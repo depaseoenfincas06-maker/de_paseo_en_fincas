@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>De Paseo en Fincas · Ops Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="workspace-shell">
+      <header class="workspace-header">
+        <div class="brand">
+          <div class="brand__avatar">DP</div>
+          <div>
+            <p class="eyebrow">Ops Console</p>
+            <h1>De Paseo en Fincas</h1>
+          </div>
+        </div>
+
+        <div class="workspace-header__status">
+          <div id="global-bot-badge" class="chat-panel__badge">Bot activo</div>
+          <div id="global-followup-badge" class="chat-panel__badge">Follow-on 08:00-22:00</div>
+          <div id="global-owner-override-badge" class="chat-panel__badge">Propietario real</div>
+          <div id="global-selection-notification-badge" class="chat-panel__badge">Notif. selección</div>
+        </div>
+      </header>
+
+      <nav class="workspace-tabs" aria-label="Secciones">
+        <a href="/simulator" class="workspace-tab" data-tab="simulator">Simulador</a>
+        <a href="/monitoring" class="workspace-tab" data-tab="monitoring">Monitoreo</a>
+        <a href="/settings" class="workspace-tab" data-tab="settings">Settings</a>
+      </nav>
+
+      <main class="workspace-content">
+        <section id="view-simulator" class="view-panel" data-view="simulator">
+          <div class="app-shell workspace-embedded">
+            <aside class="sidebar">
+              <div class="sidebar__top">
+                <div class="brand">
+                  <div class="brand__avatar">DP</div>
+                  <div>
+                    <p class="eyebrow">Local Lab</p>
+                    <h2>Simulador</h2>
+                  </div>
+                </div>
+                <button id="new-conversation-btn" class="primary-btn">Nueva conversación</button>
+              </div>
+
+              <div class="sidebar__search">
+                <input id="search-input" type="search" placeholder="Buscar pruebas" />
+              </div>
+
+              <div id="conversation-list" class="conversation-list"></div>
+            </aside>
+
+            <section class="chat-panel">
+              <header class="chat-panel__header">
+                <div class="chat-user">
+                  <div id="chat-avatar" class="chat-user__avatar">AG</div>
+                  <div>
+                    <h2 id="chat-title">Selecciona una conversación</h2>
+                    <div class="chat-meta">
+                      <span id="chat-stage" class="stage-chip">NEW</span>
+                      <span id="chat-status">Sin actividad</span>
+                    </div>
+                  </div>
+                </div>
+                <div id="workflow-badge" class="chat-panel__badge">Simulación real contra n8n</div>
+              </header>
+
+              <section id="message-thread" class="message-thread">
+                <div class="empty-state">
+                  <h3>Abre una prueba o crea una nueva</h3>
+                  <p>
+                    Cada conversación usa una sesión real del workflow y te deja ver la etapa y el contexto en tiempo
+                    casi real.
+                  </p>
+                </div>
+              </section>
+
+              <form id="message-form" class="composer">
+                <textarea
+                  id="message-input"
+                  rows="1"
+                  placeholder="Escribe un mensaje como cliente"
+                  autocomplete="off"
+                ></textarea>
+                <button id="send-btn" type="submit" class="send-btn">Enviar</button>
+              </form>
+            </section>
+
+            <aside class="inspector">
+              <header class="inspector__header">
+                <div>
+                  <p class="eyebrow">Inspector</p>
+                  <h2>Etapa y contexto</h2>
+                </div>
+              </header>
+
+              <div id="inspector-body" class="inspector__body">
+                <div class="inspector-empty">
+                  <p>Selecciona una conversación para ver el estado, el contexto y la finca elegida.</p>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="view-monitoring" class="view-panel" data-view="monitoring">
+          <div class="monitor-shell workspace-embedded">
+            <section class="monitor-toolbar">
+              <div class="monitor-toolbar__search">
+                <label class="monitor-field">
+                  <span>Buscar</span>
+                  <input id="monitor-search" type="search" placeholder="Teléfono, nombre, finca o mensaje" />
+                </label>
+              </div>
+              <div class="monitor-toolbar__filters">
+                <label class="monitor-field">
+                  <span>Timeframe</span>
+                  <select id="monitor-timeframe">
+                    <option value="all">Todo</option>
+                    <option value="today">Hoy</option>
+                    <option value="yesterday">Ayer</option>
+                    <option value="last7">Últimos 7 días</option>
+                  </select>
+                </label>
+                <label class="monitor-field">
+                  <span>Bot</span>
+                  <select id="monitor-agent">
+                    <option value="all">Todos</option>
+                    <option value="active">Bot activo</option>
+                    <option value="hitl">HITL</option>
+                  </select>
+                </label>
+                <label class="monitor-field">
+                  <span>Esperando</span>
+                  <select id="monitor-waiting">
+                    <option value="all">Todos</option>
+                    <option value="client">Cliente</option>
+                    <option value="owner">Propietario</option>
+                  </select>
+                </label>
+                <label class="monitor-field">
+                  <span>Conversión</span>
+                  <select id="monitor-converted">
+                    <option value="all">Todos</option>
+                    <option value="converted">Cerrados / elegida</option>
+                    <option value="open">Abiertos</option>
+                  </select>
+                </label>
+                <label class="monitor-field">
+                  <span>Follow on</span>
+                  <select id="monitor-follow-on">
+                    <option value="all">Todos</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="due">Vencido</option>
+                    <option value="none">Sin follow on</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section id="monitor-summary" class="monitor-summary"></section>
+
+            <section class="monitor-layout">
+              <div class="monitor-table-card">
+                <div class="monitor-table-card__header">
+                  <div>
+                    <p class="eyebrow">Pipeline vivo</p>
+                    <h2>Conversaciones</h2>
+                  </div>
+                  <div class="monitor-table-card__actions">
+                    <div id="monitoring-hours" class="chat-panel__badge">08:00-22:00 · America/Bogota</div>
+                    <div id="monitor-count" class="chat-panel__badge">0 conversaciones</div>
+                  </div>
+                </div>
+                <div class="monitor-table-wrap">
+                  <table class="monitor-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente</th>
+                        <th>Etapa</th>
+                        <th>Bot</th>
+                        <th>Esperando</th>
+                        <th>Finca</th>
+                        <th>Follow on</th>
+                        <th>Última actividad</th>
+                      </tr>
+                    </thead>
+                    <tbody id="monitor-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <aside class="monitor-detail-card">
+                <header class="monitor-detail-card__header">
+                  <div>
+                    <p class="eyebrow">Detalle</p>
+                    <h2 id="monitor-detail-title">Selecciona una conversación</h2>
+                  </div>
+                </header>
+                <div id="monitor-detail-body" class="monitor-detail-card__body">
+                  <div class="inspector-empty">
+                    <p>Selecciona una conversación para ver contexto, follow ons y mensajes recientes.</p>
+                  </div>
+                </div>
+              </aside>
+            </section>
+          </div>
+        </section>
+
+        <section id="view-settings" class="view-panel" data-view="settings">
+          <div class="settings-shell workspace-embedded">
+            <header class="settings-header">
+              <div>
+                <p class="eyebrow">Configuración viva</p>
+                <h2>Settings del agente</h2>
+              </div>
+              <div class="settings-header__actions">
+                <div id="settings-save-state" class="chat-panel__badge">Sin cambios</div>
+                <button id="settings-save-btn" class="primary-btn">Guardar settings</button>
+              </div>
+            </header>
+
+            <div id="settings-alert" class="settings-alert" hidden></div>
+
+            <form id="settings-form" class="settings-grid">
+              <section class="settings-card">
+                <h3>Tono y estilo</h3>
+                <label class="settings-field">
+                  <span>Preset de tono</span>
+                  <select id="settings-tone-preset" name="tonePreset">
+                    <option value="calido_profesional">Cálido profesional</option>
+                    <option value="premium_cercano">Premium cercano</option>
+                    <option value="directo_eficiente">Directo eficiente</option>
+                  </select>
+                </label>
+                <label class="settings-field">
+                  <span>Instrucciones extra</span>
+                  <textarea
+                    id="settings-tone-extra"
+                    name="toneGuidelinesExtra"
+                    rows="5"
+                    placeholder="Ejemplo: evita diminutivos, mantén tono premium, no uses más de 1 emoji."
+                  ></textarea>
+                </label>
+              </section>
+
+              <section class="settings-card settings-card--wide">
+                <h3>Mensaje inicial y handoff</h3>
+                <label class="settings-field">
+                  <span>Mensaje inicial</span>
+                  <textarea
+                    id="settings-initial-message"
+                    name="initialMessageTemplate"
+                    rows="10"
+                    placeholder="Mensaje que el agente usa al abrir conversación."
+                  ></textarea>
+                </label>
+                <label class="settings-field">
+                  <span>Mensaje de handoff</span>
+                  <textarea
+                    id="settings-handoff-message"
+                    name="handoffMessage"
+                    rows="4"
+                    placeholder="Mensaje cuando el bot cede a humano."
+                  ></textarea>
+                </label>
+              </section>
+
+              <section class="settings-card">
+                <h3>Inventario</h3>
+                <label class="settings-field settings-field--inline">
+                  <span>Inventario habilitado</span>
+                  <input id="settings-inventory-enabled" name="inventorySheetEnabled" type="checkbox" />
+                </label>
+                <label class="settings-field">
+                  <span>Spreadsheet ID</span>
+                  <input id="settings-inventory-doc" name="inventorySheetDocumentId" type="text" />
+                </label>
+                <label class="settings-field">
+                  <span>Pestaña</span>
+                  <input id="settings-inventory-tab" name="inventorySheetTabName" type="text" />
+                </label>
+                <label class="settings-field">
+                  <span>Máximo de fincas por respuesta</span>
+                  <input id="settings-max-properties" name="maxPropertiesToShow" type="number" min="1" max="10" />
+                </label>
+              </section>
+
+              <section class="settings-card">
+                <h3>Propietarios y operación</h3>
+                <label class="settings-field settings-field--inline">
+                  <span>Bot global habilitado</span>
+                  <input id="settings-global-bot" name="globalBotEnabled" type="checkbox" />
+                </label>
+                <label class="settings-field">
+                  <span>Teléfono override del propietario</span>
+                  <input
+                    id="settings-owner-override"
+                    name="ownerContactOverride"
+                    type="text"
+                    placeholder="Si tiene valor, se usa este número en vez del real."
+                  />
+                </label>
+                <label class="settings-field">
+                  <span>Zonas de cobertura</span>
+                  <textarea
+                    id="settings-coverage-zones"
+                    name="coverageZonesText"
+                    rows="4"
+                    placeholder="Zonas que se mencionan como cobertura comercial."
+                  ></textarea>
+                </label>
+              </section>
+
+              <section class="settings-card">
+                <h3>Notificación de selección</h3>
+                <label class="settings-field settings-field--inline">
+                  <span>Notificación habilitada</span>
+                  <input
+                    id="settings-selection-enabled"
+                    name="selectionNotificationEnabled"
+                    type="checkbox"
+                  />
+                </label>
+                <label class="settings-field">
+                  <span>Teléfonos destino</span>
+                  <input
+                    id="settings-selection-recipients"
+                    name="selectionNotificationRecipients"
+                    type="text"
+                    placeholder="573001112233, 573004445566"
+                  />
+                </label>
+                <label class="settings-field">
+                  <span>Nombre del template</span>
+                  <input
+                    id="settings-selection-template-name"
+                    name="selectionNotificationTemplateName"
+                    type="text"
+                    placeholder="staff_finca_selected_v1"
+                  />
+                </label>
+                <label class="settings-field">
+                  <span>Idioma del template</span>
+                  <input
+                    id="settings-selection-template-language"
+                    name="selectionNotificationTemplateLanguage"
+                    type="text"
+                    placeholder="es_CO"
+                  />
+                </label>
+                <p class="settings-help">
+                  Esta alerta se dispara cuando el cliente elige una finca y el flujo entra a
+                  <strong>VERIFYING_AVAILABILITY</strong>.
+                </p>
+              </section>
+
+              <section class="settings-card settings-card--wide">
+                <h3>Follow-ons</h3>
+                <div class="settings-row settings-row--triple">
+                  <label class="settings-field settings-field--inline">
+                    <span>Follow-on habilitado</span>
+                    <input id="settings-followup-enabled" name="followupEnabled" type="checkbox" />
+                  </label>
+                  <label class="settings-field">
+                    <span>Desde</span>
+                    <input id="settings-followup-start" name="followupWindowStart" type="time" />
+                  </label>
+                  <label class="settings-field">
+                    <span>Hasta</span>
+                    <input id="settings-followup-end" name="followupWindowEnd" type="time" />
+                  </label>
+                </div>
+                <label class="settings-field">
+                  <span>Mensaje follow-on en qualifying</span>
+                  <textarea id="settings-followup-qualifying" name="followupMessageQualifying" rows="4"></textarea>
+                </label>
+                <label class="settings-field">
+                  <span>Mensaje follow-on en offering</span>
+                  <textarea id="settings-followup-offering" name="followupMessageOffering" rows="4"></textarea>
+                </label>
+                <label class="settings-field">
+                  <span>Mensaje follow-on en verifying availability</span>
+                  <textarea
+                    id="settings-followup-verifying"
+                    name="followupMessageVerifyingAvailability"
+                    rows="4"
+                  ></textarea>
+                </label>
+              </section>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="conversation-item-template">
+      <button class="conversation-item">
+        <div class="conversation-item__avatar"></div>
+        <div class="conversation-item__content">
+          <div class="conversation-item__top">
+            <strong class="conversation-item__title"></strong>
+            <span class="conversation-item__time"></span>
+          </div>
+          <div class="conversation-item__bottom">
+            <p class="conversation-item__preview"></p>
+            <span class="conversation-item__stage"></span>
+          </div>
+        </div>
+      </button>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

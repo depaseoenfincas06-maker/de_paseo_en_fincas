@@ -1,0 +1,3668 @@
+finca_id,nombre,zona,municipio,activa,prioridad,capacidad_max,min_noches,precio_noche_base,precio_fin_semana,deposito_seguridad,precio_persona_extra,pet_friendly,amenidades_csv,tipo_evento_csv,descripcion_corta,foto_url,owner_nombre,owner_contacto,descuento_max_pct,source_row,codigo_original,zona_original,capacidad_minima_tarifa,precio_festivo,precio_semana_santa_receso,precio_temporada_alta,habitaciones,empleadas,especificacion_habitaciones,observaciones_originales,caracteristicas_originales,administrador_nombre,administrador_contacto,pricing_model,review_status,review_notes
+ANAPOIMA_#01,MADREMONTE,Anapoima,Anapoima,true,1,12,2,,2200000,0,,false,"empleada,golf,piscina,tenis,zonas_verdes",familiar,"4 habitaciones
+Piscina
+Zonas verdes
+Salón
+Condominio privado 
+Tennis
+Golf
+*Requiere empleada de servicio por día 8 horas diarias*",https://drive.google.com/drive/folders/1eku1g_Jrywb_kXocHFd_g6pmQGSNdo0i?usp=drive_link,Vivian abucable,+573153054025,0,4,ANAPOIMA #01,ANAPOIMA,10,2600000,3000000,3200000,4,SI,*Acomodación AP01 Apulo Condominio*,SOLO FAMILIA,"4 habitaciones
+Piscina
+Zonas verdes
+Salón
+Condominio privado 
+Tennis
+Golf
+*Requiere empleada de servicio por día 8 horas diarias*",Angélica,+573203873080,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#02,VILLA PAOLA,Anapoima,Anapoima,true,2,24,2,,2200000,0,,false,"bbq,empleada,jacuzzi,kiosco,ping_pong,piscina,rio,wifi",familiar,"Hermosa finca vacacional ubicada a 4 minutos de Anapoima, Capacidad 17-22 personas, 8 Habitaciones tipo suite, 9 baños ( uno en cada suite), Piscina privada, Jacuzzi climatizado (opcional), Kiosco, BBQ, Comedor y salón...",https://drive.google.com/drive/folders/1v-yGJPGSLZkn3dOohNNCrNDzASMk4_7C?usp=drive_link,Gloria Cosme,+573214982482,0,5,ANAPOIMA #02,ANAPOIMA,10,2700000,3000000,3500000,8,SI 2,*Acomodación anapoima02 AP02*,SOLO FAMILIA,"Hermosa finca vacacional ubicada a 4 minutos de Anapoima, Capacidad 17-22 personas, 8 Habitaciones tipo suite, 9 baños ( uno en cada suite), Piscina privada, Jacuzzi climatizado (opcional), Kiosco, BBQ, Comedor y salón exterior, Cocina equipada, Wifi, Ping pong, Tv. Una finca completamente Privada",Yaquelin,+573227086106,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#03,MESA DE YEGUAS,Anapoima,Anapoima,true,3,20,2,,3500000,0,,false,"bbq,empleada,jacuzzi,mirador,ping_pong,piscina,rio,wifi",descanso,"Hermosa finca vacacional ubicada en Anapoima condominio mesa de yeguas, Capacidad 13 personas, 6 Habitaciones, 6 Baños privado, Piscina, Jacuzzi, Zonas sociales exteriores️, BBQ, Cocina equipada, TV, WiFi, Ping pong,...",https://drive.google.com/drive/folders/1yd_Vn7aKHou3yb8IVB2Gv4aeob82F-QD?usp=drive_link,Jorge Ruiz,+573168336863,0,6,ANAPOIMA #03,ANAPOIMA,15,4300000,4600000,4900000,6,SI,Acomodacion ap03,FINCA EXCLUSIVA EN EL MEJOR CONDOMINIO DE ANAPOIMA,"Hermosa finca vacacional ubicada en Anapoima condominio mesa de yeguas, Capacidad 13 personas, 6 Habitaciones, 6 Baños privado, Piscina, Jacuzzi, Zonas sociales exteriores️, BBQ, Cocina equipada, TV, WiFi, Ping pong, Mirador espectacular",Karen,+573114598517,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#04,VILLA HARLEY DAVIDSON,Anapoima,Anapoima,true,4,50,2,,,0,100000,false,"bar,billar,cancha,discoteca,empleada,jacuzzi,kiosco,lago,parque_infantil,piscina,zonas_verdes","fiesta,matrimonio","Hermosa finca vacacional ubicada en Anapoima ideal para eventos ya sea Matrimonios o Fiestas. Capacidad: 50 personas, 11 Habitaciones️, 15 baños, Cocina equipada, Piscina, Jacuzzi (Chorros), 2 Kioscos para eventos,...",https://drive.google.com/drive/folders/1HsSdz1IMySlZ9jU8fZHF1N_-lZzRcZFd?usp=drive_link,Leandro Zarate,+573125804948,0,7,ANAPOIMA #04,ANAPOIMA,20,120000,120000,130000,11,SI,"*Acomodación ap04 anapoima04 actualizada*
+Hab 1 
+2 camarotes cama abajo semidoble cama arriba sencilla cama sencilla
+Hab 2 cama king 
+Habit 3 2 camarotes ,,,,,,,, 1 camarote sencillo 
+Hab 4 cama sencilla y camarote sencillo
+Hab 5 camarote sencillo cama doble 
+Hab 6. 3 camas sencillas y 1 doble
+Hab 7 cama king y 2 sofá camas 
+Hab 8 cama doble y 1 camarote
+Hab 9 camarote sencillo cama doble 
+Hab 10 cama doble y 1 camarote 
+Hab 11 cama king y camarote sencillo",PERMITE FIESTA,"Hermosa finca vacacional ubicada en Anapoima ideal para eventos ya sea Matrimonios o Fiestas. Capacidad: 50 personas, 11 Habitaciones️, 15 baños, Cocina equipada, Piscina, Jacuzzi (Chorros), 2 Kioscos para eventos, Amplias zonas verdes, Parque infantil, Cancha de Fútbol, Cancha Multiple, Gimnasio, Bar, Mesa de pool, Discoteca, Hamacas, Lago de pesca, Propiedad totalmente exclusiva.",Walter,+573234981556,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+ANAPOIMA_#05,LAS MARIAS,Anapoima,Anapoima,true,5,35,2,,3700000,0,,false,"bbq,cancha,empleada,jacuzzi,piscina,wifi",fiesta,"Hermosa finca vacacional muy amplia ubicada en Anapoima, Capacidad: 30-35 personas, 7 Habitaciones, 8 Baños, Piscina, Jacuzzi, Cancha múltiple, Wifi, TV, Kiosko, Cocina abierta, BBQ",https://drive.google.com/drive/folders/1K-gLjSEXUWcI1itdS7PJ3uXQlLkxAX-3?usp=drive_link,Jose Cuervo,+573124785670,0,8,ANAPOIMA #05,ANAPOIMA,15,4000000,4500000,4900000,7,SI,*Acomodación anapoima05 AP05*,NO PERMITE FIESTA,"Hermosa finca vacacional muy amplia ubicada en Anapoima, Capacidad: 30-35 personas, 7 Habitaciones, 8 Baños, Piscina, Jacuzzi, Cancha múltiple, Wifi, TV, Kiosko, Cocina abierta, BBQ",Leonardo,+573124083084,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#06,MONO BANDIDO,Anapoima,Anapoima,true,6,20,2,,4500000,0,,false,"aire_acondicionado,bar,bbq,empleada,jacuzzi,mirador,parqueadero,piscina,sauna",familiar,"☀️🌴 *Anapoima06*🌴☀️
+ Ap06
+Finca luxury Independiente 
+- 5 habitaciones tipo suite 🍃 con A.C. ❄️ y vista panorámica 🏞️
+- ⁠7 baños 🚻
+- ⁠3 piscinas con vista infinita 🏊
+- ⁠Jacuzzi con vista infinita 🛁
+- vista panorámica a...",https://drive.google.com/drive/folders/1k6j6R-bALwX4_QJH9Qo4hBc7GLieH0AQ?usp=drive_link,Marisol,+573172456508,0,9,ANAPOIMA #06,ANAPOIMA,20,5000000,5500000,5800000,5,SI,"*Acomodación ap06 anapoima06*
+Hab1
+4 camas de 1,20
+Hab2
+1 camas de 1,60
+1 camas de 1,20
+Hab3
+1 cama 1,60
+1 cama 1,20
+Hab4
+1 cama 1,60
+1 cama 1,20
+Hab5
+1 cama 1,60
+4 cama 1,20",SOLO FAMILIA,"☀️🌴 *Anapoima06*🌴☀️
+ Ap06
+Finca luxury Independiente 
+- 5 habitaciones tipo suite 🍃 con A.C. ❄️ y vista panorámica 🏞️
+- ⁠7 baños 🚻
+- ⁠3 piscinas con vista infinita 🏊
+- ⁠Jacuzzi con vista infinita 🛁
+- vista panorámica a la piscina 🧖🏻
+- ⁠BBQ ♨️
+- ⁠Asador de carbón 🍗
+- ⁠Horno para pizza 🍕 
+- ⁠Horno para carnes 🥩
+- ⁠Barril 🛢️
+- ⁠Obras de arte 🖌️
+- ⁠Bar 🔝
+- ⁠Zona de juegos 🕹️
+- ⁠Gym 🏋🏻
+- ⁠Rana 🐸
+- ⁠Ajedrez gigante ♟️
+- ⁠Gran salón para eventos 
+- Mirador 360° en el rooftop 🏞️
+- Garaje 🅿️
+- sauna! 
+Servicio ⭐️⭐️⭐️⭐️⭐️",Marisol,+573172456508,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#08,LA QUERENCIA,Anapoima,Anapoima,true,7,16,2,,1700000,0,,false,"cancha,empleada,parque_infantil,piscina,zonas_verdes","familiar,fiesta","Maravillosa finca con mucha fauna y flora a su alrededor, ubicada en Anapoima a 10 minutos del centro. Capacidad 16 personas, 5 Habitaciones️, 7 baños, Cocina equipada, Piscina, Kiosko hamacas, Kiosko de baile, Cancha...",https://drive.google.com/drive/folders/1r3TunUuZ1_kyZYW7EDADdUrQmvcYcXyk?usp=drive_link,Nestor Plata,+573108515601,0,10,ANAPOIMA #08,ANAPOIMA,10,2000000,2200000,2500000,5,SI,Hab 1 2 camas dobles 4px,PERMITE FIESTA FAMILIAR,"Maravillosa finca con mucha fauna y flora a su alrededor, ubicada en Anapoima a 10 minutos del centro. Capacidad 16 personas, 5 Habitaciones️, 7 baños, Cocina equipada, Piscina, Kiosko hamacas, Kiosko de baile, Cancha deportiva, Parque infantil, zonas verdes",Pedro,+573203310943,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#09,EL ENCANTO,Anapoima,Anapoima,true,8,15,2,,1700000,0,,false,"bbq,billar,cancha,empleada,mirador,parque_infantil,piscina,sauna,turco,wifi,zonas_verdes","familiar,fiesta","Maravillosa finca vacacional ubicada a 1 hora de Bogotá con hermoso paisajismo - Capacidad: 15-18 personas, 5 Habitaciones, 4 Baños,cocina equipada, Piscina + Piscina infantil, Jacuzzy, Sauna, Turco, Tv , WiFi , Parque...",https://drive.google.com/drive/folders/18zVHewXFELlXvYh5YJXVQONt4sKCyKtv?usp=drive_link,Mauricio Vives,+573107770515,0,11,ANAPOIMA #09,ANAPOIMA,12,2200000,2500000,2900000,4,SI,"Acomodación Anapoima09 (el encanto) 
+Hab 1 cama king
+Hab 2 2 camas dobles
+Hab 3 cama doble y camarote
+Hab 4 cama doble y camarote
+Piscina
+Piscina infantil
+Jacuzzy
+Sauna
+Turco
+Tv cable
+Wifi
+Parque infantil
+Kiosko
+Bbq
+Horno de leña
+Billar
+Full zonas verdes
+Salón de tv
+Mirador",PERMITE FIESTA FAMILIAR,"Maravillosa finca vacacional ubicada a 1 hora de Bogotá con hermoso paisajismo - Capacidad: 15-18 personas, 5 Habitaciones, 4 Baños,cocina equipada, Piscina + Piscina infantil, Jacuzzy, Sauna, Turco, Tv , WiFi , Parque infantil, Kiosko, BBQ, Horno de leña, Billar, juego de rana, Cancha de tejo, Full zonas verdes, Mirador",Daniel,+573126235784,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#10,CASA BLANCA,Anapoima,Anapoima,true,9,12,2,,2200000,0,,false,"bbq,empleada,jacuzzi,piscina,wifi,zonas_verdes",fiesta,"Maravilloso finca ubicada a 10 minutos del parque principal. Capacidad para12 personas, 4 Habitaciones️, 7 Baños, Cocina equipada, Piscina, BBQ, Jacuzzi, Parking, WiFi, TV, Zonas verdes",https://drive.google.com/drive/folders/1hpnmMXyJRF6PCiEvWJR5e9GGIGXhJFzr?usp=drive_link,alejandro vargas,+573124336816,0,12,ANAPOIMA #10,ANAPOIMA,12,2800000,3000000,3500000,4,SI,Hab3 1 cama doble 2 sencillas 4px,NO PERMITE FIESTA,"Maravilloso finca ubicada a 10 minutos del parque principal. Capacidad para12 personas, 4 Habitaciones️, 7 Baños, Cocina equipada, Piscina, BBQ, Jacuzzi, Parking, WiFi, TV, Zonas verdes",Chelín,+573108486571,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#11,CERRO MADERO 22,Anapoima,Anapoima,true,10,13,2,,2000000,0,,false,"bbq,piscina,wifi,zonas_verdes",familiar,"*ANAPOIMA11- AP11* 😃👨‍👩‍👧‍👦 Cundinamarca 
+✅Hermosa casa vacacional ubicada en el condominio cerro madero
+ 
+- 5 habitaciones 🛏️ (todas con baño privado)
+- 6 baños 🚽
+- ventiladores de techo 🌬️
+- Piscina 🏊🏻‍♀️🏊🏼‍♂️
+-...",https://drive.google.com/drive/folders/14u1ogGF7Xa4DQn0DbOlvHYl7ay42r17f?usp=drive_link,Laura álzate,+573102432504,0,13,ANAPOIMA #11,ANAPOIMA,10,2400000,2700000,3300000,5,,"*acomodación Anapoima11*
+Hab 1: 1 cama KING , 1 sofá cama
+Hab 2: 1 cama KING 
+Hab 3: 1 cama KING , 2 camas individuales 
+Hab 4: 1 cama KING, 2 camas individuales 
+Hab 5: 1 cama doble, 2 camas individuales",SOLO FAMILIA,"*ANAPOIMA11- AP11* 😃👨‍👩‍👧‍👦 Cundinamarca 
+✅Hermosa casa vacacional ubicada en el condominio cerro madero
+ 
+- 5 habitaciones 🛏️ (todas con baño privado)
+- 6 baños 🚽
+- ventiladores de techo 🌬️
+- Piscina 🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzy 🛀🏽
+- Cocina equipada 🍽️🥂
+- BBQ ♨️🥩
+- Wifi 📡
+- TV 📺
+- Zonas verdes 🌳☀️
+- *Requiere empleada de servicio por dia*
+Totalmente privada y exclusiva 🤩",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#12,SAN ISIDRO,Anapoima,Anapoima,true,11,12,2,,1500000,0,,false,"aire_acondicionado,bbq,billar,cancha,empleada,jacuzzi,lago,mirador,piscina",familiar,"*condominio San Isidro anapoima* 
+AP12
+Anapoima12
+4 Habitaciones cada de ellas con baño privado aire acondicionado ventilador techo 
+Mirador 
+Comedor 
+Bbq 
+Jacuzzi 
+Piscina 
+Sala 
+*Condominio*
+Canchas...",https://drive.google.com/drive/folders/1vvVl1LI8gXJ8HiqrG5u7crsF_u1H1Njx?usp=drive_link,Diego Mosquera,+573183668700,0,14,ANAPOIMA #12,ANAPOIMA,12,1700000,2000000,2300000,4,SI,"Acomodación ap12 anapoima12
+Hab 1-cama doble (2)
+Hab 2-cama doble (2)
+Hab 3- cama king 2 x 2 con 2 camas nido extraible (4)
+Hall de alcobas - sofa/ cama sencillo (1)",FAMILIAR CERCA AL PUEBL,"*condominio San Isidro anapoima* 
+AP12
+Anapoima12
+4 Habitaciones cada de ellas con baño privado aire acondicionado ventilador techo 
+Mirador 
+Comedor 
+Bbq 
+Jacuzzi 
+Piscina 
+Sala 
+*Condominio*
+Canchas deportivas
+Lago
+Billar
+Spa",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#14,VILLA ANDREA,Anapoima,Anapoima,true,12,25,2,,4000000,0,,false,"billar,cancha,empleada,lago,parqueadero,zonas_verdes",familiar,"*Anapoima14* Cundinamarca, ubicada a 7 minutos del centro de Anapoima.
+😃👏🏻🤩☀️🌟🥳👨‍👩‍👧‍👦
+08 habitaciones 
+Parqueadero privado 
+Zonas verdes 
+Lago 
+Cancha de fútbol 
+Cocina americana 
+Habitaciones muy cómodas 
+Asoleadores...",https://drive.google.com/drive/folders/1Kpk8eti2S6z2jL-PmOlsbZdmRZWryedU?usp=drive_link,Gina Acosta,+573103210047,0,15,ANAPOIMA #14,ANAPOIMA,20,4500000,4900000,5500000,8,SI,"Acomodación propiedad de Ref *Ap14*:
+Habitación 1:
+- 1 cama king size y un sofá cama.
+Habitación 2:
+- 2 camas dobles.
+Habitación 3:
+- 1 cama king size y un sillón.
+Habitación 4:
+- 2 camas dobles.
+Habitación 5:
+- 1 cama king size.
+Habitación 6:
+- 1 cama doble y un sillón.
+Habitación 7:
+- 1 cama king size y un sillón.
+Habitación 8:
+- 2 camas dobles.",FAMILIAR EXCLUSIVA,"*Anapoima14* Cundinamarca, ubicada a 7 minutos del centro de Anapoima.
+😃👏🏻🤩☀️🌟🥳👨‍👩‍👧‍👦
+08 habitaciones 
+Parqueadero privado 
+Zonas verdes 
+Lago 
+Cancha de fútbol 
+Cocina americana 
+Habitaciones muy cómodas 
+Asoleadores 
+Billar 
+Kiosko propiedad premium! 🌟",Diana,+573209643366,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#15,LA GOCHERIA,Anapoima,Anapoima,true,13,28,2,,2600000,0,,false,"bbq,empleada,jacuzzi,piscina,wifi,zonas_verdes",fiesta,"Hermosa finca campestre con zonas muy amplias ubicada entre la mesa y Anapoima, Capacidad 30 personas, 6 Habitaciones, 8 Baños, Cocina equipada, Piscina,Jacuzzi, Kiosko, BBQ, Wifi, TV, Zonas verdes",https://drive.google.com/drive/folders/19pogCsfUjAlBqLR40sotT9bO7lKY80ok?usp=drive_link,Jaime Cañon,+573103211317,0,16,ANAPOIMA #15,ANAPOIMA,18,3000000,3200000,3400000,6,SI,Hab6 1 doble 3 sencillas 5 px,PERMITE FIESTA FULL,"Hermosa finca campestre con zonas muy amplias ubicada entre la mesa y Anapoima, Capacidad 30 personas, 6 Habitaciones, 8 Baños, Cocina equipada, Piscina,Jacuzzi, Kiosko, BBQ, Wifi, TV, Zonas verdes",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#16,VILLA LILIANA,Anapoima,Anapoima,true,14,18,2,,2000000,0,,false,"aire_acondicionado,bbq,cancha,empleada,jacuzzi,mirador,ping_pong,piscina,tenis,wifi,zonas_verdes","familiar,fiesta","☀️🌴 *Anapoima16*🌴☀️
+ Ap16
+Finca Independiente 
+- 5 habitaciones, 4 con aire acondicionado 
+- ⁠6 baños 🚻 
+- ⁠Piscina 🏊🏼‍♂️
+- ⁠Jacuzzi 🛁
+- Cancha de fútbol ⚽️
+- Cancha de tenis 🎾 
+- BBQ ♨️
+- ⁠Mesa de Ping pong 🏓 
+- ⁠Rana...",https://drive.google.com/drive/folders/1Mdnn6XX5S4a3AJ-5SeC9zoot6QJKt3Mg?usp=drive_link,Carlos Morales,+573174039301,0,17,ANAPOIMA #16,ANAPOIMA,15,2500000,2700000,2900000,5,SI,"*Acomodación anapoima16 ap16*
+Hab 1: 2 camas dobles,
+Hab 2: 2 camas dobles, 1 individual
+Hab 3: 2 camas dobles, 1 individual 
+Hab 4: 2 camas dobles
+Hab 5: 1 cama doble",PERMITE FIESTA FAMILIAR,"☀️🌴 *Anapoima16*🌴☀️
+ Ap16
+Finca Independiente 
+- 5 habitaciones, 4 con aire acondicionado 
+- ⁠6 baños 🚻 
+- ⁠Piscina 🏊🏼‍♂️
+- ⁠Jacuzzi 🛁
+- Cancha de fútbol ⚽️
+- Cancha de tenis 🎾 
+- BBQ ♨️
+- ⁠Mesa de Ping pong 🏓 
+- ⁠Rana 🐸 
+- Zonas verdes 🌴
+- ⁠Sendero peatonal 🏃🏻‍♂️
+- Mirador 
+- - Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",Pablo - (302) 478-6805,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#17,MADREMONTE,Anapoima,Anapoima,true,15,12,2,,1700000,0,,false,"bbq,empleada,jacuzzi,piscina,rio,sauna,tenis,turco,wifi",familiar,"Hermosa finca vacacional con salones al aire libre ubicada en Anapoima ( Condominio), Capacidad 14 personas, 5 Habitaciones️, 5 Baños, Cocina equipada, TV, WiFi, Piscina,Jacuzzi, BBQ, Plancha carnes, 2 salones...",https://drive.google.com/drive/folders/1fXcpG-pbtJmCgTb0T4NpTBmHtl9Wjaj-?usp=drive_link,ivan madremonte,+573214934434,0,18,ANAPOIMA #17,ANAPOIMA,12,2200000,2400000,2700000,5,SI,"*Acomodación Anapoima17 ap17*
+segundo piso 1 hab: con cama doble, 2 personas
+primer piso: dos habitaciones , de 2 camas semidobles cada hab: 4 personas por habitación
+alcoba exterior piscina: 1 cama doble y 2 camas sencillas
+Quinta hab: 1 cama sencilla",SOLO FAMILIA,"Hermosa finca vacacional con salones al aire libre ubicada en Anapoima ( Condominio), Capacidad 14 personas, 5 Habitaciones️, 5 Baños, Cocina equipada, TV, WiFi, Piscina,Jacuzzi, BBQ, Plancha carnes, 2 salones interiores️, 2 salas exteriores, Vista espectacular️, Sauna, Turco, Tennis (condominio)",Deysi,+573212740763,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#18,MADREMONTE,Anapoima,Anapoima,true,16,17,2,,1900000,0,,false,"bbq,billar,cancha,empleada,mirador,ping_pong,piscina,rio,sauna,tenis,turco,wifi,zonas_verdes",familiar,"☀️🌴 *Anapoima18*🌴☀️
+ Ap18
+Exclusivo condominio privado
+- 4 habitaciones 🍃
+- 6 baños🚻
+- Piscina 🏊🏼‍♂️
+- ⁠Mesa de billar 🎱 
+- ⁠Mesa de Ping pong 🏓 
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- Wifi 🛜
+Condominio:
+- Cancha...",https://drive.google.com/drive/folders/1ZZ8aSr1gdhxlAJyH5xr8w1HFE78L1M75?usp=drive_link,Jimmy,+573006721981,0,19,ANAPOIMA #18,ANAPOIMA,10,2300000,2500000,2700000,4,SI,"*Acomodación* *anapoima18 Ap18*:
+1. Habitación 
+- 1 king.
+2. Habitación 
+- 3 camas semidobles.
+3. Habitación 
+- 2 camas dobles.
+- ⁠2 camas semidobles.
+4. Habitación 
+- 2 camas dobles 
+- 2 cama semidobles",SOLO FAMILIA,"☀️🌴 *Anapoima18*🌴☀️
+ Ap18
+Exclusivo condominio privado
+- 4 habitaciones 🍃
+- 6 baños🚻
+- Piscina 🏊🏼‍♂️
+- ⁠Mesa de billar 🎱 
+- ⁠Mesa de Ping pong 🏓 
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- Wifi 🛜
+Condominio:
+- Cancha de tenis 🎾 
+- ⁠Sauna 🧖🏻
+- ⁠Turco 🧖🏻‍♀️
+*Requerimiento 1 empleada por día, 90mil diarios*
+Servicio ⭐️⭐️⭐️⭐️⭐️",ivan madremonte,+573214934434,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#19,PIEDRA REAL,Anapoima,Anapoima,true,17,20,2,,2500000,0,,false,"aire_acondicionado,bbq,billar,empleada,piscina,wifi,zonas_verdes",descanso,"Hermosa finca con amplios espacios ubicada en Anapoima, Capacidad 18 personas, 5 Habitaciones tipo suite, 6 Baños, Cocina, BBQ, Piscina, Jacuzzy, Billar, Hokey, TV, WiFi, Aire acondicionado, Muchas zonas verdes.",https://drive.google.com/drive/folders/1h8lCclamK9WP7pa8QGGVtWZEKs2sYjN2?usp=drive_link,monica prop ap19,+573158506781,0,20,ANAPOIMA #19,ANAPOIMA,20,2800000,3000000,3200000,5,SI,"Acomodación Anapoima19
+Hab 1- 2 camas dobles 
+Hab 2 -4 camas dobles 
+Hab 3- 2 camas dobles 
+Hab 4- 1 cama doble 
+Hab 5 -1 cama doble","No se presta para ruido o eventos, solo descanso.","Hermosa finca con amplios espacios ubicada en Anapoima, Capacidad 18 personas, 5 Habitaciones tipo suite, 6 Baños, Cocina, BBQ, Piscina, Jacuzzy, Billar, Hokey, TV, WiFi, Aire acondicionado, Muchas zonas verdes.",Carolina,+573228967296,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#20,COND PARAISO,Anapoima,Anapoima,true,18,20,2,,2300000,0,,false,"bbq,empleada,jacuzzi,mirador,piscina,wifi,zonas_verdes",familiar,"*Anapoima20* Cundinamarca
+😃🤩🎊🌟☀️
+Condominio privado! 
+5 habitaciones cada una de ellas con baño privado ventilador de techo
+bbq 
+Piscina
+Jacuzzi 
+boli rana
+tv
+Wi-fi 
+zonas verdes 
+Cocina equipada
+Mirador",https://drive.google.com/drive/folders/10b2KPQ9GiEpw6iDRN6DXvlvdaE3fJfRb?usp=drive_link,➖,,0,21,ANAPOIMA #20,ANAPOIMA,15,2700000,3000000,3300000,5,SI,5 HAB TODAS CON DOS CAMAS DOBLES,SOLO FAMILIA,"*Anapoima20* Cundinamarca
+😃🤩🎊🌟☀️
+Condominio privado! 
+5 habitaciones cada una de ellas con baño privado ventilador de techo
+bbq 
+Piscina
+Jacuzzi 
+boli rana
+tv
+Wi-fi 
+zonas verdes 
+Cocina equipada
+Mirador",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#21,CERRO MADERO,Anapoima,Anapoima,true,19,15,2,,2500000,0,,false,"bbq,billar,cancha,empleada,golf,jacuzzi,ping_pong,piscina,tenis,wifi,zonas_verdes",familiar,"☀️🌴*Anapoima21*🌴☀️
+ Ap21
+En exclusivo condominio 
+ 
+- 5 habitaciones tipo suite 🍃
+- ⁠6 baños 🚻
+- Piscina 🏊🏼‍♂️
+- ⁠Jacuzzi 🛁
+- BBQ ♨️
+- ⁠Zonas verdes 🌴
+- Wifi 🛜
+Condominio:
+- Mini golf ⛳️ 
+- ⁠Cancha de tenis 🎾
+- ⁠Cancha...",https://drive.google.com/drive/folders/1smyc4nCbqL8J8W2xoa9y-sk8uv4RQ7Zx?usp=drive_link,➖,,0,22,ANAPOIMA #21,ANAPOIMA,15,,,,5,SI,,SOLO FAMILIA,"☀️🌴*Anapoima21*🌴☀️
+ Ap21
+En exclusivo condominio 
+ 
+- 5 habitaciones tipo suite 🍃
+- ⁠6 baños 🚻
+- Piscina 🏊🏼‍♂️
+- ⁠Jacuzzi 🛁
+- BBQ ♨️
+- ⁠Zonas verdes 🌴
+- Wifi 🛜
+Condominio:
+- Mini golf ⛳️ 
+- ⁠Cancha de tenis 🎾
+- ⁠Cancha de futbol ⚽️
+- ⁠Cancha de baloncesto 🏀
+- ⁠Mesas de billar 🎱 
+- ⁠Mesas de Ping pong 🏓 
+- ⁠Sede 
+Servicio ⭐️⭐️⭐️⭐️⭐️",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#22,SAN CARLOS - VIOTA,Anapoima,Anapoima,true,20,15,2,,1400000,0,,false,"bbq,empleada,jacuzzi,mirador,piscina,rio,wifi",fiesta,"Hermosa finca vacacional con grandes espacios abiertos ubicada en Anapoima, Capacidad 15 personas, 6 Habitaciones️, 7 Baños, cocina equipadada, Piscina privada, Jacuzzi privado, Kiosko, Mirador️, BBQ, Quebrada cerca,...",https://drive.google.com/drive/folders/1YZptUrFIyhsdSxC6mpHaOZbULXmofLS8?usp=drive_link,Pilar Mendez,+573132614542,0,23,ANAPOIMA #22,ANAPOIMA,10,1700000,3200000,3500000,6,SI,"Ap22 acomodacion 
+Hab1: 2 camas sencillas
+Hab2: cama doble
+Hab3: cama doble y camarote-
+Hab4: 2 camas sencillas
+Hab5: camas dobles
+Hab6: 1 cama doble",PERMITE FIESTA,"Hermosa finca vacacional con grandes espacios abiertos ubicada en Anapoima, Capacidad 15 personas, 6 Habitaciones️, 7 Baños, cocina equipadada, Piscina privada, Jacuzzi privado, Kiosko, Mirador️, BBQ, Quebrada cerca, Caminata ecológica, TV, WiFi, Tejo, Rana, Área de lavandería",Jorge,+573002477438,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#24,LUXURY,Anapoima,Anapoima,true,21,22,2,,2500000,0,,false,"aire_acondicionado,bbq,jacuzzi,mirador,piscina,wifi",familiar,"☀️🌴 *Anapoima24*🌴☀️
+ Ap24
+Casa Independiente en anapoima! 
+- 6 habitaciones tipo suite 🍃 con A.C. ❄️
+- ⁠9 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Cascada 🌊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠Jacuzzi en el rooftop 🔝
+- ⁠BBQ ♨️
+- ⁠Mirador...",https://drive.google.com/drive/folders/1iV-mqRbb9x39bCjcc9HzUt4nEiLElCeh?usp=drive_link,Alex,+573212607825,0,24,ANAPOIMA #24,ANAPOIMA,15,2900000,3300000,3600000,6,,"*Acomodacion ap24 anapoima24*
+6 habitaciones con 2 camas dobles cada habitación =24 personas (4 personas por habitación, 6 habitaciones",SOLO FAMILIA,"☀️🌴 *Anapoima24*🌴☀️
+ Ap24
+Casa Independiente en anapoima! 
+- 6 habitaciones tipo suite 🍃 con A.C. ❄️
+- ⁠9 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Cascada 🌊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠Jacuzzi en el rooftop 🔝
+- ⁠BBQ ♨️
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",Alex,+573212607825,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#25,LAS MARIAS APULO,Anapoima,Anapoima,true,22,25,2,,2500000,0,,false,"bbq,empleada,jacuzzi,piscina,wifi,zonas_verdes",fiesta,"Maravilloso finca en apulo amplias y hermosas zonas verdes , Capacidad: 25 personas, 5 Habitaciones tipo loft, 5 Baños, Kiosko amplió, BBQ, Cocina equipadada, Piscina , Jacuzzi, full salon, WiFi, TV, excelente vista,...",https://drive.google.com/drive/folders/1jxp9hE1bTXLyXjM7JvPEsGkHD4S-wQDp?usp=drive_link,Diego Caicedo,+573003860783,0,25,ANAPOIMA #25,ANAPOIMA,15,2900000,3200000,3500000,5,SI,"Acomodación AP25
+Primera planta
+1 habitación con 1 cama doble y 3 sencillas
+2 habitación una cama doble y 2 camarotes 
+3 habitación dos camas dobles
+Segunda planta
+4 habitación cama doble y 2 cama sencilla
+5 habitación cama doble y 3 cama sencilla",PERMITE FIESTA CONTROLADA,"Maravilloso finca en apulo amplias y hermosas zonas verdes , Capacidad: 25 personas, 5 Habitaciones tipo loft, 5 Baños, Kiosko amplió, BBQ, Cocina equipadada, Piscina , Jacuzzi, full salon, WiFi, TV, excelente vista, Requiere chica de servicio por 8 horas para un servicio 5 estrellas",Esperanza,+573223147687,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#26,LA BLANCA,Anapoima,Anapoima,true,23,15,2,,1300000,0,,false,"bbq,billar,empleada,kiosco,piscina,wifi",familiar,"☀️🌴 *Anapoima26*🌴☀️
+ Ap26
+Finca Independiente 
+- 4 habitaciones 🍃
+- ⁠5 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠BBQ ♨️
+- ⁠Kiosco🔝
+- ⁠Mesa de billar 🎱 
+- ⁠Rana 🐸
+- ⁠Jardín 🪷
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",https://drive.google.com/drive/folders/1SWm_XIlLkQNUrVjrwD01sI4WBvefp4U-?usp=drive_link,➖,,0,26,ANAPOIMA #26,ANAPOIMA,15,1600000,1900000,2000000,4,SI,,SOLO FAMILIA,"☀️🌴 *Anapoima26*🌴☀️
+ Ap26
+Finca Independiente 
+- 4 habitaciones 🍃
+- ⁠5 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠BBQ ♨️
+- ⁠Kiosco🔝
+- ⁠Mesa de billar 🎱 
+- ⁠Rana 🐸
+- ⁠Jardín 🪷
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#27,QUINTAS DE PUENTE ROTO,Anapoima,Anapoima,true,24,12,2,,1500000,0,,false,"empleada,jacuzzi,mirador,piscina,wifi",familiar,"Maravillosa finca por la vía mesa, Joaquín, Capacidad 14 personas, 6 Habitaciones️, 5 Baños, Piscina privada , Jacuzzi, Cocina abierta equipadada, Salón social, Comedor, Lavandería, Abanicos, Mirador️, playa seca,...",https://drive.google.com/drive/folders/134rIVHAfaJW5rvitlk18iBnSV21UQbau?usp=drive_link,Liliana -,+573108061055,0,27,ANAPOIMA #27,ANAPOIMA,12,1800000,2200000,2500000,6,SI,"Acomodación AP27 lamesa27
+1 habitación cama doble con baño privado y balcón
+2 habitación cama doble baño privado.
+3 habitación dos camas dobles baño privado
+ 4 habitación cama 
+doble baño privado balcón 
+ 5 habitación principal cama 2 metros por dos 
+Baño privado y balcón 
+6 habitación dos camas dobles y balcon",FAMILIAR,"Maravillosa finca por la vía mesa, Joaquín, Capacidad 14 personas, 6 Habitaciones️, 5 Baños, Piscina privada , Jacuzzi, Cocina abierta equipadada, Salón social, Comedor, Lavandería, Abanicos, Mirador️, playa seca, Solárium, TV, WiFi",Diego - (321) 943-6740,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#28,LIBERIA 2,Anapoima,Anapoima,true,25,22,2,,2200000,0,,false,"aire_acondicionado,jacuzzi,mirador,ping_pong,piscina,wifi",familiar,"☀️🌴 *Anapoima28*🌴☀️
+ Ap28
+Finca Independiente en el pueblo 
+- 5 habitaciones 🍃con A.C. ❄️
+- 6 baños 🚻 
+- Piscina 🏊 
+- Jacuzzi 🛁
+- ⁠Zona de hamacas 🧘🏻
+- ⁠Mesa de ping pong 🏓 
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",https://drive.google.com/drive/folders/1JonzKVWODm9aOaoTavP2rH2mC7S6sn6b?usp=drive_link,Alex,+573212607825,0,28,ANAPOIMA #28,ANAPOIMA,15,2700000,2900000,3200000,5,,"*Acomodacion anapoima28 ap28*
+Hab1- 1 cama king size y 1 cama sencilla 
+Hab2- 2 camas dobles y 1 camarote semidoble 
+Hab3- 2 camas dobles 
+Hab4- 2 camas king size
+y 1 sofá cama
+Hab 5- 1 cama King",SOLO FAMILIA,"☀️🌴 *Anapoima28*🌴☀️
+ Ap28
+Finca Independiente en el pueblo 
+- 5 habitaciones 🍃con A.C. ❄️
+- 6 baños 🚻 
+- Piscina 🏊 
+- Jacuzzi 🛁
+- ⁠Zona de hamacas 🧘🏻
+- ⁠Mesa de ping pong 🏓 
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",Alex,+573212607825,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#30,MANSION SOMOA,Anapoima,Anapoima,true,26,24,2,,3800000,0,,false,"bbq,empleada,jacuzzi,ping_pong,piscina,wifi",familiar,"Maravillosa finca de lujo, ubicada en Anapoima, Capacidad 24 personas, 6 habitaciones️, 7 Baños, Cocina equipadada, Piscina de 180 M2 , Jacuzzi familiar, Juego de billa?, Juego de ping pong, BBQ, WiFi, TV Incluye...",,➖,,0,29,ANAPOIMA #30,ANAPOIMA,10,,,,6,SI,"Acomodación Anapoima30 AP30
+Hab principal-2 camas dobles 1 sencilla
+Hab2- 2 camas dobles
+Hab3- 2 camas dobles
+Hab4- 2 camas dobles
+Hab5- 2 camas dobles
+Hab6- 2 camas dobles",EXCLUSIVA,"Maravillosa finca de lujo, ubicada en Anapoima, Capacidad 24 personas, 6 habitaciones️, 7 Baños, Cocina equipadada, Piscina de 180 M2 , Jacuzzi familiar, Juego de billa?, Juego de ping pong, BBQ, WiFi, TV Incluye servico doméstico (2 señoras) propiedad 5 estrellas, Totalmente exclusiva",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#31,LUNA LINDA,Anapoima,Anapoima,true,27,10,2,,1400000,0,,false,"bbq,empleada,piscina,rio",descanso,"Hermosa finca en anapoima, dispone de 4 habitaciones, 1 habitacion tipo suítes queen, piscina privada, Kiosko, BbQ, comedor y salón exterior, salon interior, piscina full, Directv, Sendero para caminar",https://drive.google.com/drive/folders/1p7N6HO9MMivdr8biXhnSIi2faX7XhS_T?usp=sharing,Jairo Rubio,+573102286582,0,30,ANAPOIMA #31,ANAPOIMA,10,1800000,2000000,2400000,5,SI,"Acomodación Anapoima31
+4 habitaciones:
+1 habitacion tipo suítes queen
+1 habitaciones con dos camarotes y baño privado
+2 habitacione con 2 camas semi dobles
+2 baños para cada una de lás habitaciones en frente",CAMPESTRE,"Hermosa finca en anapoima, dispone de 4 habitaciones, 1 habitacion tipo suítes queen, piscina privada, Kiosko, BbQ, comedor y salón exterior, salon interior, piscina full, Directv, Sendero para caminar",Lizbet,+573219941090,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#32,VILLA ESMERALDA,Anapoima,Anapoima,true,28,18,2,,1700000,0,,false,"bbq,jacuzzi,mirador,parqueadero,ping_pong,piscina,zonas_verdes",familiar,"*Anapoima32* Cundinamarca 
+👏🏻🤩🥳🎊🌟😃☀️
+ 
+4 habitaciones 
+Piscina
+Jacuzzi
+Bbq
+Zonas verdes
+Asoleadores 
+Tv
+Mirador
+Hamacas 
+Comedor
+Ventiladores 
+Kiosko
+Parqueadero
+Ping pong
+BoliRana",https://drive.google.com/drive/folders/1eiePFM8G0Do49XdAzHBsmrZPzFieHHxd?usp=drive_link,Nidia Amador 313881515,,0,31,ANAPOIMA #32,ANAPOIMA,10,1900000,2100000,2400000,4,,"*Acomodación anapoima32 AP32*
+Habitacion 1 Cama doble : 2 personas
+Habitacion 2 2 camarotes sencillos : 4 personas 
+Habitacion 3 2 camarotes semidobles: 4 a 6 personas 
+Habitacion 4 2 camarotes sencillos y 1 Cama doble : 6 personas",SOLO FAMILIA,"*Anapoima32* Cundinamarca 
+👏🏻🤩🥳🎊🌟😃☀️
+ 
+4 habitaciones 
+Piscina
+Jacuzzi
+Bbq
+Zonas verdes
+Asoleadores 
+Tv
+Mirador
+Hamacas 
+Comedor
+Ventiladores 
+Kiosko
+Parqueadero
+Ping pong
+BoliRana",Leydi,+573137330455,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#33,CERRO MADERO,Anapoima,Anapoima,true,29,15,2,,2000000,0,,false,"bbq,empleada,jacuzzi,piscina,wifi,zonas_verdes",descanso,"Espectacular finca en Anapoima con 5 habitaciones , Piscina , Jacuzzi, Bbq, Wifi, Zonas verdes, Finca exclusiva ubicada en Condominio privado",https://drive.google.com/drive/folders/1ngYG_JD3wq_WuCi6aZpBiWTd3C21FqYg?usp=drive_link,Zulma Casas,+573105854340,0,32,ANAPOIMA #33,ANAPOIMA,15,2500000,2700000,3300000,5,SI,,EXCLUSIVA,"Espectacular finca en Anapoima con 5 habitaciones , Piscina , Jacuzzi, Bbq, Wifi, Zonas verdes, Finca exclusiva ubicada en Condominio privado",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#36,EL MIRADOR,Anapoima,Anapoima,true,30,45,2,,,0,120000,false,"bbq,billar,empleada,jacuzzi,mirador,piscina,wifi,zonas_verdes",descanso,"Maravillosa finca Ubicada en Anapoima, Capacidad: 45 personas, 7 Habitaciones, 9 Baños, Cocina equipada, Piscina, BBQ, Mirador espectacular , Jacuzzy, Billar, TV, WiFi, zonas verdes, fresca , jacuzzi, amplios espacios",https://drive.google.com/drive/folders/1zOAZLSB_eR49DhSGU9M5bfyAUkMlWP17?usp=drive_link,Ferney Restrepo,+573175169377,0,33,ANAPOIMA #36,ANAPOIMA,20,140000,150000,160000,7,SI,"Habitación #1:
+- Dos camas sencillas
+- Una cama doble
+- Tres nidos
+(Habitacion para maximo 7 personas)
+● Habitación #2:
+- Dos camas dobles - Una cama sencilla
+- Tres nidos
+(Habitacion para maximo 8 personas)
+● Habitación #3:
+- Dos camas sencillas
+- Una cama doble
+- Dos nidos
+(Habitacion para maximo 6 personas)
+● Habitación #4:
+- Tres camarotes sencillos (Habitacion para maximo 6 personas)
+● Habitación #5:
+- Dos camas sencillas
+- Una cama doble
+- Tres nidos
+(Habitacion para maximo 7 personas)
+● Habitación #6:
+- Dos camas sencillas
+- Una cama doble
+- Tres nidos
+(Habitacion para maximo 7 personas)
+● Habitación #7:
+- Una cama sencilla - Dos camas dobles
+- Dos nidos
+(Habitacion para maximo 7 personas)",EXCLUSIVA,"Maravillosa finca Ubicada en Anapoima, Capacidad: 45 personas, 7 Habitaciones, 9 Baños, Cocina equipada, Piscina, BBQ, Mirador espectacular , Jacuzzy, Billar, TV, WiFi, zonas verdes, fresca , jacuzzi, amplios espacios",Manuel,+573026917801,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+ANAPOIMA_#38,EL CIELO,Anapoima,Anapoima,true,31,15,2,,2000000,0,,false,"bbq,empleada,mirador,piscina,wifi,zonas_verdes","descanso,familiar","Hermosa finca ubicada en Anapoima a tan solo 2 horas de Bogotá, Capacidad: 15 personas, 5 Habitaciones, 6 Baños, Cocina equipada, Piscina, BBQ, Mirador , Jacuzzy, TV, WiFi, zonas verdes , ideal para un verdadero fin de...",https://drive.google.com/drive/folders/1pWIySa5kScULHLfh6EcdLBCffV-F1K9A?usp=drive_link,Cesar Alvarado,+573153315266,0,34,ANAPOIMA #38,ANAPOIMA,15,2500000,2900000,3500000,5,SI,"Acomodacion AP38
+Hab1 cama king cama sencilla
+Hab 2 cama doble cama sencilla 
+Hab 3 cama doble cama sencilla
+Hab 4 cama doble cama sencilla
+Hab 5 cama doble cama sencilla",PLAN FAMILIAR,"Hermosa finca ubicada en Anapoima a tan solo 2 horas de Bogotá, Capacidad: 15 personas, 5 Habitaciones, 6 Baños, Cocina equipada, Piscina, BBQ, Mirador , Jacuzzy, TV, WiFi, zonas verdes , ideal para un verdadero fin de semana de descanso",Dina,+573214264332,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#39,,Anapoima,Anapoima,false,32,12,,,1400000,,,false,"cancha,empleada,kiosco,mirador,piscina,wifi",familiar,"☀️🌴*Anapoima39*🌴☀️
+ Ap39
+Independiente 
+- 3 habitaciones 🍃
+- 4 baños 🚻 
+- Piscina 🏊
+- ⁠Kiosco ⛩️
+- ⁠Malla de catamaran 😎
+- ⁠Zona de hamacas 🧘🏻
+- ⁠Cancha de tejo 💥 
+- ⁠Rana 🐸
+- ⁠Mirador 🏞️
+- ⁠Senderismo 🥾
+- ⁠Wifi...",https://drive.google.com/drive/folders/1l_KnsY0EwBBdrm-77UhxrkaKT5WKgEGQ?usp=drive_link,adriana prop ap39,+573013146947,,35,ANAPOIMA #39,ANAPOIMA,10,1900000,2200000,2500000,3,SI,"Acomodación Ap39 anapoima39
+Habitación 1:
+- 1 cama doble y nido doble.
+Habitación 2:
+- 1 cama doble y nido doble.
+Habitación 3:
+- 1 cama doble y nido doble.",PLAN FAMILIAR,"☀️🌴*Anapoima39*🌴☀️
+ Ap39
+Independiente 
+- 3 habitaciones 🍃
+- 4 baños 🚻 
+- Piscina 🏊
+- ⁠Kiosco ⛩️
+- ⁠Malla de catamaran 😎
+- ⁠Zona de hamacas 🧘🏻
+- ⁠Cancha de tejo 💥 
+- ⁠Rana 🐸
+- ⁠Mirador 🏞️
+- ⁠Senderismo 🥾
+- ⁠Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",,,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#40,CUSCAY,Anapoima,Anapoima,true,33,15,2,,2000000,0,,false,"bbq,cancha,jacuzzi,mirador,piscina,tenis,wifi",familiar,"🤩🤩 *Anapoima40*🤩🤩
+- 4 habitaciones tipo suite
+- ⁠5 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Solárium 👙
+- ⁠Jacuzzi climatizado 🛁
+- BBQ ♨️
+- ⁠Horno de carbón 🥩
+- ⁠Zonas de verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio 
+- Cancha de tenis 🎾...",https://drive.google.com/drive/folders/1-WYTQZtWd-YRRkEtQVQ34Tqvgq5_skfy?usp=drive_link,Juliana Muñoz +506 71581817,,0,36,ANAPOIMA #40,ANAPOIMA,15,2500000,3000000,3300000,4,,"AP40 acomodación 
+Hab 1 - 1Cama King 3 sencillas
+Hab 2- 3 camas sencilla 1 doble
+Hab 3 - 4 camas sencilla 1doble
+Hab 4 - 2 camas sencilla 1 doble
+Hab auxiliar- 1 cama semi doble 
+Todas con baño privado",PLAN FAMILIAR,"🤩🤩 *Anapoima40*🤩🤩
+- 4 habitaciones tipo suite
+- ⁠5 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Solárium 👙
+- ⁠Jacuzzi climatizado 🛁
+- BBQ ♨️
+- ⁠Horno de carbón 🥩
+- ⁠Zonas de verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio 
+- Cancha de tenis 🎾 
+- ⁠Sendero peatonal 🚶🏻
+Servicio ⭐️⭐️⭐️⭐️⭐️",Marta,+573114406153,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#41,VILLA NELSON,Anapoima,Anapoima,true,34,40,2,,,0,110000,false,"bbq,billar,empleada,mirador,piscina,wifi,zonas_verdes","familiar,fiesta","Espectacular finca con una gran capacidad para todo tipo de reuniones, ubicada en Anapoima. Ideal para fiestas o eventos, Capacidad 40 personas, 16 Habitaciones, 15 Baños, Cocina equipada, Piscina, BBQ, salón de...",https://drive.google.com/drive/folders/1rQy57E3dFKmnHb5ibJCNZSOCqx1WAGd0?usp=drive_link,Orlando Gonzalez,+573173834356,0,37,ANAPOIMA #41,ANAPOIMA,20,120000,130000,150000,14,si,"Acomodación anapoima41
+12 habitaciones con baño privado, cada una con cama doble y cama sencilla 👏🏻",PLAN FAMILIAR,"Espectacular finca con una gran capacidad para todo tipo de reuniones, ubicada en Anapoima. Ideal para fiestas o eventos, Capacidad 40 personas, 16 Habitaciones, 15 Baños, Cocina equipada, Piscina, BBQ, salón de eventos, Billar, Bolirana, Mirador, TV, WiFi, zonas verdes",Nelson,+573228922028,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+ANAPOIMA_#43,CUSCAY,Anapoima,Anapoima,true,35,15,2,,1700000,0,,false,"bbq,cancha,empleada,jacuzzi,mirador,piscina,tenis,wifi,zonas_verdes",familiar,"🤩🤩 *Anapoima43* 🤩🤩
+En exclusivo condominio 
+- 4 habitaciones🍃
+- ⁠4 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio:
+- Cancha de tenis 🎾 
+- ⁠Sendero...",https://drive.google.com/drive/folders/10Y5hupDNi6d24IjAwsFJUPP32gW-I1WP?usp=drive_link,Juliana Muñoz +506 71581817,,0,38,ANAPOIMA #43,ANAPOIMA,10,2000000,2300000,2500000,4,SI,"*Acomodacion ap43 anapoima43*
+Cama doble y dos sencillas en cada habitación",SOLO FAMILIA,"🤩🤩 *Anapoima43* 🤩🤩
+En exclusivo condominio 
+- 4 habitaciones🍃
+- ⁠4 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio:
+- Cancha de tenis 🎾 
+- ⁠Sendero peatonal 🚶🏻
+Servicio ⭐️⭐️⭐️⭐️⭐️",Marta,+573114406153,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#45,AP43 JUNIOR,Anapoima,Anapoima,true,36,10,2,,1500000,0,,false,"bbq,cancha,empleada,jacuzzi,mirador,piscina,tenis,wifi,zonas_verdes",familiar,"En exclusivo condominio 
+- habitaciones🍃
+- ⁠4 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio:
+- Cancha de tenis 🎾 
+- ⁠Sendero peatonal 🚶🏻
+Servicio...",https://drive.google.com/drive/folders/1zlB6qgkaPS-CsMZKtePhQpWAjJKhbJ_D?usp=drive_link,Juliana Muñoz +506 71581817,,0,39,ANAPOIMA #45,ANAPOIMA,10,1800000,2000000,2400000,3,SI,*Acomodacion ap45 anapoima45*,SOLO FAMILIA,"En exclusivo condominio 
+- habitaciones🍃
+- ⁠4 baños 🚻 
+- ⁠Piscina 🏊
+- ⁠Jacuzzi 🛁
+- ⁠Solárium 👙
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠Wifi 🛜
+Condominio:
+- Cancha de tenis 🎾 
+- ⁠Sendero peatonal 🚶🏻
+Servicio ⭐️⭐️⭐️⭐️⭐️",Marta,+573114406153,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#53,CERRO MADERO,Anapoima,Anapoima,true,37,15,2,,3800000,0,,false,"bbq,billar,cancha,empleada,golf,jacuzzi,piscina,tenis,wifi,zonas_verdes",familiar,"*Anapoima53 AP53* 🌟🤩
+Condominio cerro madero 🌟
+- 05 habitaciones 
+- ⁠Baño privado 
+- Piscina 
+- Jacuzzi
+- Bbq
+- Wifi
+- Zonas verdes
+Finca exclusiva privada en Condominio✨✨
+*Condominio:*
+- Cancha de tennis 
+- Cancha de...",https://drive.google.com/drive/folders/19fxVeBR0gZFGyHEzrl2eqFyhEvxRTt0A?usp=drive_link,jorge,+573102229337,0,40,ANAPOIMA #53,ANAPOIMA,15,4500000,4800000,5200000,5,SI 2,"*Acomodación ap53 anapoima53*
+Hab 1: cama King 
+Hab 2: cama King
+Hab 3: cama doble, cama sencilla y 1 nido
+Hab 4: cama doble, cama sencilla y 1 nido
+Hab 5: cama doble, cama sencilla y 1 nido",SOLO FAMILIA NO RUIDO,"*Anapoima53 AP53* 🌟🤩
+Condominio cerro madero 🌟
+- 05 habitaciones 
+- ⁠Baño privado 
+- Piscina 
+- Jacuzzi
+- Bbq
+- Wifi
+- Zonas verdes
+Finca exclusiva privada en Condominio✨✨
+*Condominio:*
+- Cancha de tennis 
+- Cancha de baloncesto 
+- Cancha de football 5
+- Zona mesa de billar 
+- Mini Golf
+*Se Requiere dos empleadas de servicio por dia*",Sandra,+573115908556,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#55,PANORAMA,Anapoima,Anapoima,true,38,40,2,,4700000,0,,false,"bar,bbq,billar,empleada,jacuzzi,mirador,parque_infantil,ping_pong,piscina",familiar,"*Anapoima55* Cundinamarca 
+🤩😃☀️🌟🎊😁
+8 habitaciones 
+Piscina
+Jacuzzi
+Cocina americana
+Ping pong
+Billar
+Futbolín
+Parque infantil
+Bbq 
+Barril
+Baño social
+Juegos de mesa
+Mirador espectacular!!
+*Requiere 3 empleadas de...",https://drive.google.com/drive/folders/1eJWYamzXL3yid71hrjmCbT2_qa9dYDJZ?usp=drive_link,paola fajardo,+573118503853,0,41,ANAPOIMA #55,ANAPOIMA,25,5500000,5500000,5800000,9,SI 3,"*Acomodación Ap55 anapoima55*
+Hab 1 cama doble 2 senc baño privado 
+Hab 2 “”””””””””””
+Hab 3 “””””””””
+Hab 4”””””””
+Hab 5 cama doble baño priva
+Hab 6 2 camas dobles 1 sencilla baño 
+Hab 7 “””””
+Hab 8 3 camas sencillas 1 doble y baño
+Hab 9 cama doble 2 sencillas",SOLO FAMILIA E INTEGRACION,"*Anapoima55* Cundinamarca 
+🤩😃☀️🌟🎊😁
+8 habitaciones 
+Piscina
+Jacuzzi
+Cocina americana
+Ping pong
+Billar
+Futbolín
+Parque infantil
+Bbq 
+Barril
+Baño social
+Juegos de mesa
+Mirador espectacular!!
+*Requiere 3 empleadas de servicio por día, cada una 80mil 8 horas diarias* 🤩",Magali,+573115735785,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANAPOIMA_#56,MINISTRO,Anapoima,Anapoima,true,39,20,2,,3800000,0,,false,"aire_acondicionado,bbq,empleada,mirador,ping_pong,piscina,wifi",familiar,"🤩 *Anapoima56* 🤩
+- 05 Habitaciones 
+- Aire acondicionado.
+- Piscina
+- Jacuzzy 
+- ⁠ping pong
+- Tv
+- Wifi
+- Lounge room
+- Bbq
+- Mirador Espectacular
+- Privada🤩🤩",https://drive.google.com/drive/folders/10x2DE8GEj7EF2MpW0Kbd85yxbfqOdk-K?usp=drive_link,Camilo Sanchez,+573153577861,0,42,ANAPOIMA #56,ANAPOIMA,15,4000000,4300000,4500000,5,SI,"*Acomodacion ap56 anapoima56*
+Son cuatro habitaciones con cama doble y dos camas sencillas y una habitación con cama King y cama semi doble",SOLO FAMILIA,"🤩 *Anapoima56* 🤩
+- 05 Habitaciones 
+- Aire acondicionado.
+- Piscina
+- Jacuzzy 
+- ⁠ping pong
+- Tv
+- Wifi
+- Lounge room
+- Bbq
+- Mirador Espectacular
+- Privada🤩🤩",Laura,+573204996239,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ARBELAEZ_#01,AVATAR,Arbelaez,Arbelaez,true,40,70,2,,,0,130000,false,"bbq,empleada,jacuzzi,parque_infantil,ping_pong,piscina,wifi,zonas_verdes","evento_empresarial,fiesta","*Arbelaez01* Cundinamarca 
+🥳🤩☀️🌟👨‍👩‍👧‍👦
+Finca privada
+15 habitaciones
+2 cabañas 
+Piscina climatizada 
+2 Jacuzzis climatizados
+Salón de eventos
+Zonas verdes
+WiFi
+2 Bbq
+Voleibol 
+Ping Pong 
+Bolirana
+Parque...",https://drive.google.com/drive/folders/1mXnT-f_DHPMqmibkBeDnfVLqI4GS1IcP,valeria vargas,+573147234944,0,43,ARBELAEZ #01,ARBELAEZ,30,130000,140000,150000,21,SI,"*Acomodación Arbelaez01*
+casa 1
+1 cama doble alcoba principal 
+2 camas semidoble segunda alcoba
+1 cama semi doble 
+1 sencilla
+Casa 2
+1 cama doble alcoba principal 
+1cama semidoble 
+1cama semidoble 
+1cama semidoble 
+1cama doble 
+Casa 3
+1cama doble alcoba principal 
+1cama doble 
+1cama semidoble 
+1cama doble 
+1cama semidoble 
+Casa 4
+1cama doble alcoba principal 
+1cama doble 
+1cama semidoble 
+1cama doble
+1cama semidoble 
+1 sofá cama doble
+Casa 5
+1cama doble alcoba principal 
+1cama doble 
+1cama semidoble 
+1cama doble 
+1 cama semidoble 
+1 sofá cama doble
+Casa 6
+1 cama doble alcoba principal
+1 cama sencilla 
+1 cama doble 
+1cama sencilla 
+1 cama doble 
+1 sofá cama doble
+Casa 7
+1 cama doble alcoba principal 
+1 cama doble 
+1 cama sencilla 
+1 cama doble 
+1 cama sencilla 
+1 sofá cama doble","FAMILAR, EVENTO EMPRESARIAL, FIESTA","*Arbelaez01* Cundinamarca 
+🥳🤩☀️🌟👨‍👩‍👧‍👦
+Finca privada
+15 habitaciones
+2 cabañas 
+Piscina climatizada 
+2 Jacuzzis climatizados
+Salón de eventos
+Zonas verdes
+WiFi
+2 Bbq
+Voleibol 
+Ping Pong 
+Bolirana
+Parque infantil
+Alquiler de Caballos ( pago adicional)
+👏🏻🤩🌟👨‍👩‍👧‍👦🥳😃☀️🌟",valeria vargas,+573147234944,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+LA_MESA_#01,MIRA LOMAS,La Mesa,La Mesa,true,41,14,2,,1400000,0,,false,"bbq,cancha,empleada,kiosco,piscina,sauna,tenis,turco,wifi",familiar,"Maravillosa finca ubicada en la mesa Cundinamarca, Capacidad 14 personas, 5 habitaciones️, 5 Baños, 2 sofa camas️, Cocina integral equipada, Terraza , Piscina , WiFi, Fuente-cascada, Kiosco, BBQ El conjunto cuenta con:...",https://drive.google.com/drive/folders/1--M4kPJmWMPwjoP6M7tFrZkSCoodpVIt?usp=drive_link,Juan Emilio - (301) 661-9891,,0,44,LA MESA #01,LA MESA,10,1800000,2000000,2200000,5,SI,"*Acomodacion La Mesa01 LM01*
+Hab 1- cama doble
+Hab 2- cama doble
+Hab 3- 2 camas dobles
+Hab 4 cama doble y cama sencilla
+Hab 5: dos camas dobles",PLAN FAMILIAR,"Maravillosa finca ubicada en la mesa Cundinamarca, Capacidad 14 personas, 5 habitaciones️, 5 Baños, 2 sofa camas️, Cocina integral equipada, Terraza , Piscina , WiFi, Fuente-cascada, Kiosco, BBQ El conjunto cuenta con: 3 canchas de tenis( tierra batida), 2 canchas múltiples , Zona de niños, Zona de eventos , Piscina social , Turco‍, Sauna‍",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#04,UKIYO,La Mesa,La Mesa,true,42,10,2,,1400000,0,,false,"bbq,empleada,mirador,piscina,wifi",familiar,"*Lamesa04* 👏🏻😃
+Cundinamarca
+Exclusiva finca vacacional ubicada en la mesa, Cundinamarca, condominio.🏠🥳
+3 habitaciones con closets 
+Piscina
+Bbq
+Mirador 
+Privada 
+TV's 
+Wifi
+Zona de fogata",https://drive.google.com/drive/folders/1nI7_Y7pz4phYN2O6B_wfwB5iYXpXkrma?usp=drive_link,Laura,+573158792281,0,45,LA MESA #04,LA MESA,10,1800000,2000000,2200000,3,SI,"*ACOMODACIÓN LM04 lamesa04*
+Habitacion principal
+1 cama queen 
+1 sofá cama opcional 
+Habitación 2
+1 cama doble 
+1 nido doble estraible 
+Habitación 3
+1 cama doble 
+1 nido doble estraible 
+Todas con baño privado y un baño social",SOLO FAMILIA,"*Lamesa04* 👏🏻😃
+Cundinamarca
+Exclusiva finca vacacional ubicada en la mesa, Cundinamarca, condominio.🏠🥳
+3 habitaciones con closets 
+Piscina
+Bbq
+Mirador 
+Privada 
+TV's 
+Wifi
+Zona de fogata",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#05,LOS TOBOGANES,La Mesa,La Mesa,true,43,35,2,,3200000,0,,false,"bbq,billar,empleada,kiosco,piscina",familiar,"*LAMESA05* 😃🤩
+Finca los toboganes ☀️
+ *Piscina privada
+*Tobogán grande 
+*Cascadas.
+*Acomodacion múltiple en 3 casas.
+Espacios, Jardines 
+*billar y pull, básquet tejo,rana-microfutbol
+* BBQ 
+*Kiosco - karaoke...",https://drive.google.com/drive/folders/1OP_DxBEW6-NKE4YFOoh4sWfYsf4DWWUe?usp=drive_link,Julio Saavedra,+573002644427,0,46,LA MESA #05,LA MESA,25,3500000,3500000,3500000,,SI,"Acomodacion lm05
+CASA 1 
+cama súper king para 3 personas- 3 camas dobles 5 camas sencillas - 2 baños (14 px)
+CASA 2
+3 habitaciones
+a) 2 camas dobles 2 camas sencillas, baño. (6 px)
+b) 1 cama doble 1 sencilla - baño.(3px)
+c) 1cama doble 1 camarote.(4 px)
+CASA 3
+2 Habitaciones
+a) 1 cama doble 2 camas sencillas 2 camarotes - baño. (8 px)
+b) 1 cama doble 1 sencilla 2 camarotes - baño. (7 px)",FINCA RUSTICA,"*LAMESA05* 😃🤩
+Finca los toboganes ☀️
+ *Piscina privada
+*Tobogán grande 
+*Cascadas.
+*Acomodacion múltiple en 3 casas.
+Espacios, Jardines 
+*billar y pull, básquet tejo,rana-microfutbol
+* BBQ 
+*Kiosco - karaoke 
+Cocina-congelador, nevecones.
+* Tv, comunal
+Especial Familias",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#06,,La Mesa,La Mesa,false,44,13,,,1500000,,,false,"bbq,empleada,jacuzzi,kiosco,piscina,rio,wifi",familiar,"*LaMesa06 LM06* Cundinamarca 🥳🤩
+4 Habitaciones 
+Piscina privada
+Jacuzzi 
+Kiosco 
+Bbq
+Comedor y salón exterior
+Cocina full
+Wifi
+Bolirana
+Tv cable
+Juegos de mesa
+Privada",https://drive.google.com/drive/folders/1pq5GZjjmWmN7KTcP0D_xbp6oaoJZoWgJ?usp=drive_link,Carlos Pinzon,+573204472661,,47,LA MESA #06,LA MESA,10,1900000,2000000,2300000,4,SI,"*Acomodación LM06 lamesa06*
+Hab 1 - cama doble - cama sencilla
+Hab 2 - cama doble - camarote
+Hab 3 - cama doble - camarote
+Hab 4- cama semi doble (auxiliar)",PLAN FAMILIAR,"*LaMesa06 LM06* Cundinamarca 🥳🤩
+4 Habitaciones 
+Piscina privada
+Jacuzzi 
+Kiosco 
+Bbq
+Comedor y salón exterior
+Cocina full
+Wifi
+Bolirana
+Tv cable
+Juegos de mesa
+Privada",Alexis,+573114809605,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#07,HACIENDA MAZAL,La Mesa,La Mesa,true,45,25,2,,2900000,0,,false,"bbq,cancha,empleada,jacuzzi,piscina,wifi,zonas_verdes",familiar,"*Lamesa07*🤩🤩
+Espectácular própiedad ubicada a 03 min de vía principal ✅
+ 
+- 6 habitaciones 
+- Piscina.👙
+- Jacuzzi.
+- BBQ🥩
+- Cancha múltiple ⚽
+- Wifi.🛜
+- Cocina totalmente.👩‍🍳 equipada.
+- Zona tv.📺
+- Sendero.🏞️
+- Zonas...",https://drive.google.com/drive/folders/1KVLQgLsLliFrrDHmjpU9f2zzlf1WPJyN?usp=drive_link,María Andrea,+573102554656,0,48,LA MESA #07,LA MESA,20,3300000,3500000,4000000,6,SI,"*Acomodación lm07 lamesa07* 👏🏻
+Acomodación primera habitación una cama doble y un camarote baño privado ventilador 
+Segunda habitación cama doble y nido doble baño ventilador toldillo 
+Tercera habitación cama doble baño privado ventilador toldillo 
+Cuarta habitación 3 camarotes que son 6 camas sencillas baño privado ventilador 
+Quinta habitación cama kin dos camarotes que Serían cuatro camas sencillas baño ventilador 
+Cesta habitación cama kin y dos camarotes serían cuatro camas sencillas ventilador baño privado",PLAN FAMILIAR,"*Lamesa07*🤩🤩
+Espectácular própiedad ubicada a 03 min de vía principal ✅
+ 
+- 6 habitaciones 
+- Piscina.👙
+- Jacuzzi.
+- BBQ🥩
+- Cancha múltiple ⚽
+- Wifi.🛜
+- Cocina totalmente.👩‍🍳 equipada.
+- Zona tv.📺
+- Sendero.🏞️
+- Zonas verdes.🌲🌳",Daniela,+573103791272,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#09,,La Mesa,La Mesa,false,46,23,,,2900000,,,false,"billar,cancha,empleada,mirador,ping_pong,piscina,tenis,turco,zonas_verdes",familiar,"Lm09 La Mesa09, Cundinamarca 🤩😃☀️⚡🏕️🪄🌟
+6 habitaciones 
+Piscina
+Piscina infantil
+Turco
+Billar
+Ping pong
+Cancha football
+Cancha tennis
+Cancha volley
+Cancha basketball 
+Zonas verdes
+Mirador",https://drive.google.com/drive/folders/1mRlU4on94rip1YT-qezCh6I9GpWTj74u?usp=drive_link,camilo prop lm09,+573118569335,,49,LA MESA #09,LA MESA,20,3300000,3500000,3700000,5,SI,"*Acomodacion lamesa09 Lm09*
+ACOMODACIÓN LM09
+HABITACIÓN PRINCIPAL: 
+2 cama doble
+1 sofá cama doble 
+Baño privado y TV 
+HABITACIÓN 1:
+1 camas dobles 
+Baño privado 
+HABITACIÓN 2: 
+2 camas dobles 
+Baño privado
+HABITACIÓN 3: 
+2 camas dobles 
+Baño privado
+HABITACIÓN 4: 
+1 cama doble 
+1 cama sencilla con nido 
+Baño privado 
+HABITACIÓN 5: 
+1 cama doble 
+1 cama sencilla dos sommier 
+Baño exterior",PLAN FAMILIAR,"Lm09 La Mesa09, Cundinamarca 🤩😃☀️⚡🏕️🪄🌟
+6 habitaciones 
+Piscina
+Piscina infantil
+Turco
+Billar
+Ping pong
+Cancha football
+Cancha tennis
+Cancha volley
+Cancha basketball 
+Zonas verdes
+Mirador",Luis,+573228424533,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#10,LA FAUSTINA,La Mesa,La Mesa,true,47,22,2,,4500000,0,,false,"bar,bbq,empleada,jacuzzi,mirador,piscina",familiar,"*LaMesa10*
+Cundinamarca 
+🤩👏🏻🌟☀️⚡🏕️👌
+6 habitaciones baño privado 
+Piscina
+Jacuzzi climatizado
+Mirador
+Salón
+Bbq
+Horno de pizza
+Paellera
+Barril
+Entre La Mesa y San Joaquin
+*Se Requiere 3 empleadas de servicio por día.*",https://drive.google.com/drive/folders/1rggKEkEzxY3_PEBWO-m7s_C-pVkGI5da?usp=drive_link,carlos moreno prop lm10,+573158322438,0,50,LA MESA #10,LA MESA,15,5000000,5200000,5500000,6,SI 3,"*Lamesa10 Lm10 acomodación*
+Hab1 Cama King cama doble 
+Hab2 Cama King cama doble 
+Hab3 Cama King cama doble 
+Hab4 Cama King cama doble 
+Hab5 Cama King cama doble 
+Hab6 Cama King 2 cama dobles",SOLO FAMILIA,"*LaMesa10*
+Cundinamarca 
+🤩👏🏻🌟☀️⚡🏕️👌
+6 habitaciones baño privado 
+Piscina
+Jacuzzi climatizado
+Mirador
+Salón
+Bbq
+Horno de pizza
+Paellera
+Barril
+Entre La Mesa y San Joaquin
+*Se Requiere 3 empleadas de servicio por día.*",Elías,+573213413807,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_MESA_#11,VILLA IGNACIA,La Mesa,La Mesa,true,48,12,2,,1100000,0,,false,"bbq,empleada,mirador,piscina,wifi,zonas_verdes",familiar,"*Lm11 lamesa11* Cundinamarca 🤩🥳🏕️🌟
+- 4 habitaciones 🍃
+- 4 baños 🚻 
+- Piscina 🏊🏼‍♂️ 
+- BBQ 🍗 
+- ⁠Wifi 🛜
+- Zonas verdes 🏕️
+- Mirador al cañon ⛰️",https://drive.google.com/drive/folders/1MdkvX3qw2egVOmB66-eq5yI5R4lcP4Wx?usp=drive_link,➖,,0,51,LA MESA #11,LA MESA,10,1400000,1500000,1700000,4,SI,"*Acomodación lm11 lamesa11*
+Finca Villa Ignacia 
+1 planta 
+Hab 1: 1 cama doble baño y armario
+ 
+2da planta 
+Hab 2: 2 camas dobles 
+Armario y baño 
+Hab 3: 1 cama semi doble armario y balcón 
+Hab 4:
+2 cama dobles armario y balcón 
+1 baño compartido 
+Piscina 
+BBQ 
+Zonas verdes 
+Mirador
+Wifi",SOLO FAMILIA,"*Lm11 lamesa11* Cundinamarca 🤩🥳🏕️🌟
+- 4 habitaciones 🍃
+- 4 baños 🚻 
+- Piscina 🏊🏼‍♂️ 
+- BBQ 🍗 
+- ⁠Wifi 🛜
+- Zonas verdes 🏕️
+- Mirador al cañon ⛰️",Ávila,+573142109793,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#01,VILLA CARMEN,Carmen de Apicala,Carmen de Apicala,true,49,25,2,,2500000,0,,false,"aire_acondicionado,bbq,billar,empleada,parqueadero,piscina,rio,wifi",familiar,"*Carmen De Apicala01* 🤩
+Propiedad privada 
+5 habitaciones con aire acondicionado. 🤩
+5 baños
+Piscina
+Jacuzzy 
+Wifi
+Tv 
+Billar
+Bbq
+Kiosko
+Cocina exterior
+Salón de tv
+Privada
+Parqueadero
+ 🛻🚗
+👏🏻🤩🌟👨‍👩‍👧‍👦😃🔥🎊",https://drive.google.com/drive/folders/1pJnDYVffLt0HJAaKeDmBT6Q7sKFV6hmX,Valentina Aya --- jimmy aya,+573219104916,0,52,CARMEN DE APICALA #01,CARMEN DE APICALA,15,2800000,2900000,3200000,5,SI,Cama doble y dos sencillas en cada habitación,PLAN FAMILIAR,"*Carmen De Apicala01* 🤩
+Propiedad privada 
+5 habitaciones con aire acondicionado. 🤩
+5 baños
+Piscina
+Jacuzzy 
+Wifi
+Tv 
+Billar
+Bbq
+Kiosko
+Cocina exterior
+Salón de tv
+Privada
+Parqueadero
+ 🛻🚗
+👏🏻🤩🌟👨‍👩‍👧‍👦😃🔥🎊",Dorance,+573108782975,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#03,DINASTIA DEL SOL,Carmen de Apicala,Carmen de Apicala,true,50,12,2,,1900000,0,,false,"bbq,empleada,jacuzzi,piscina,zonas_verdes",fiesta,"Maravillosa finca nueva, a 5 minutos de Carmen de Apicala, Capacidad 12 personas, 4 Habitaciones️, 4 Baños, Cocina equipada, Piscina , Jacuzzi, Kiosko, BBQ, amplías zonas verdes",https://drive.google.com/drive/folders/1K91sKnUy_cRH_ckAPQohNrr1O9uHxpKV,Isabel cardenas,+573102654634,0,53,CARMEN DE APICALA #03,CARMEN DE APICALA,12,2300000,2600000,3000000,4,SI,"Acomodación CA03 
+Carmen de Apicala03
+Habitación 1 Principal: 
+Cama Queen de 1,60x1,90 mts
+Un sofá con dos camas de 0,90x1,90 mts . Aquí 4 personas.
+Habitación 2. En segundo piso, contigua a la principal: cama de 1,40x1,90, Doble. 
+Sofocada con dos camas de 0,90x1,90.
+Aquí 4 personas 
+Habitación 3. Primer piso al lado piscina. 
+Cama 1,60x1,90 o Queen.
+Aquí 2 personas 
+Habitacion 4. Primer piso
+Cama 1,40x1,90 doble
+Sofacama con dos camas de 0,90x190mts.
+Aquí 2 personas.",NO PERMITE FIESTA,"Maravillosa finca nueva, a 5 minutos de Carmen de Apicala, Capacidad 12 personas, 4 Habitaciones️, 4 Baños, Cocina equipada, Piscina , Jacuzzi, Kiosko, BBQ, amplías zonas verdes",José jardinero,+573214387265,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#04,MARIDANI,Carmen de Apicala,Carmen de Apicala,true,51,18,2,,1700000,0,,false,"bbq,billar,empleada,ping_pong,piscina,wifi",fiesta,"Finca en Carmen de apicala, Villa Diana Marcela ubicada en el Condominio Colinas de apicala, habitaciones totalmente amobladas, dispone de amplios baños, Piscina, Nevera, Wifi, BBQ, Ping pong, Billar, Kiosko",https://drive.google.com/drive/folders/1tptNBCnR9MeazFtE1W9R_IqzqJMXQteR,➖,,0,54,CARMEN DE APICALA #04,CARMEN DE APICALA,18,,,,4,SI,"*Carmen de apicala04*
+Villa Diana Marcela
+Condominio Colinas de apicala
+Casa 14
+Hab1 ppal cama King 
+3 cama sencilla
+Hab 2 cama King
+3 sencilla
+Baño
+Piscina 
+Hab3 3 cama sencilla baño
+Hab 4 cama King 3 sencilla",NO PERMITE FIESTA,"Finca en Carmen de apicala, Villa Diana Marcela ubicada en el Condominio Colinas de apicala, habitaciones totalmente amobladas, dispone de amplios baños, Piscina, Nevera, Wifi, BBQ, Ping pong, Billar, Kiosko",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#06,DINASTIA DEL SOL 95,Carmen de Apicala,Carmen de Apicala,true,52,12,2,,2000000,0,,false,"bbq,billar,empleada,jacuzzi,piscina,wifi",fiesta,"Hermosa finca en Carmen de apicala, cuenta con un total de 4 habitaciones, Piscina, Jacuzzi, Bbq, Wifi, Tv, Billar, Totalmente privada para que disfrutes tus vacaciones.",https://drive.google.com/drive/folders/11u6fFmjAlBdg0gtahALA0aXlcBZcMDxF,➖,,0,55,CARMEN DE APICALA #06,CARMEN DE APICALA,12,2500000,2700000,3200000,4,SI,hab1: cama King hab2: cama queen hab3: 2 camas dobles hab4: 2 camas dobles,NO PERMITE FIESTA,"Hermosa finca en Carmen de apicala, cuenta con un total de 4 habitaciones, Piscina, Jacuzzi, Bbq, Wifi, Tv, Billar, Totalmente privada para que disfrutes tus vacaciones.",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#07,DINASTIA DEL SOL 39,Carmen de Apicala,Carmen de Apicala,true,53,12,2,,1800000,0,,false,"bbq,empleada,jacuzzi,parque_infantil,piscina,wifi","descanso,fiesta","Maravillosa Finca para tener un descanso ideal ubicada en Carmen de Apicala, Capacidad 13 personas, 4 Habitaciones️, 4 Baños, Cocina equipada, Piscina , Jacuzzi, Soláriu Bbq , WiFi, TV, Parque infantil",https://drive.google.com/drive/folders/1aSjHibRluCTpUWFOo5ksyAcTUAkX2gxP,➖,,0,56,CARMEN DE APICALA #07,CARMEN DE APICALA,12,2200000,2500000,290000,4,SI,,NO PERMITE FIESTA,"Maravillosa Finca para tener un descanso ideal ubicada en Carmen de Apicala, Capacidad 13 personas, 4 Habitaciones️, 4 Baños, Cocina equipada, Piscina , Jacuzzi, Soláriu Bbq , WiFi, TV, Parque infantil",José jardinero,+573214387265,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#_08,El IMPERIO,Carmen de Apicala,Carmen de Apicala,true,54,14,2,,1700000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina,rio",familiar,"Maravillosa finca disponible para alquiler, Condominio Imperio, 4 habitaciones , Piscina, Jacuzzi, Aire acondicionado",https://drive.google.com/drive/folders/1IiaF8ZEuQ55WVlf-BIX_AOuYI-Kz2Z32,➖,,0,57,CARMEN DE APICALA # 08,CARMEN DE APICALA,14,2000000,2300000,2500000,4,SI,"Acomodación CA08 
+Carmen de Apicala08
+Habitación 1- cama queen
+Habitacion 2- 2 cama doble
+Habitacion 3- 2 camas dobles
+Habitacion 4- cama doble cama sencilla",PLAN FAMILIAR,"Maravillosa finca disponible para alquiler, Condominio Imperio, 4 habitaciones , Piscina, Jacuzzi, Aire acondicionado",José jardinero,+573214387265,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#11,DINASTIA DEL SOL,Carmen de Apicala,Carmen de Apicala,true,55,12,2,,1800000,0,,false,"bbq,empleada,piscina,zonas_verdes",familiar,"*Carmen de apicala11* 🤩
+Condominio privado 🌟
+4 habitaciones
+Piscina
+Juegos
+Bbq
+Salón de estar
+Zonas verdes
+*Requiere empleada 80mil 8 horas diarias*",https://drive.google.com/drive/folders/1hHnFTec432s3LE0ecMmiFuMIOnUSSoNm,marcela prop ca11,+573158615753,0,58,CARMEN DE APICALA #11,CARMEN DE APICALA,10,2000000,23000000,2600000,4,SI 1,"*Acomodación ca11*
+2 hab en el primero piso 
+Hab 1: cama doble, cama nido baño privado 
+Hab 2: cama doble, 2 camas sencillas baño privado 
+Tres hab en el segundo piso
+Hab 3: cama King, 1 litera baño privado 
+Hab 4: 1 cama doble con baño privado",PLAN FAMILIAR,"*Carmen de apicala11* 🤩
+Condominio privado 🌟
+4 habitaciones
+Piscina
+Juegos
+Bbq
+Salón de estar
+Zonas verdes
+*Requiere empleada 80mil 8 horas diarias*",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#12,EXCLUSIVA,Carmen de Apicala,Carmen de Apicala,true,56,20,2,,2800000,0,,false,"bbq,empleada,jacuzzi,piscina",familiar,"Carmen de Apicalá12
+🤩😃👌🏻🌟👏🥳🌿⛱️
+La casa cuenta con Bbq, piscina privada, jacuzzi, zona de social con chimenea, baño de la piscina; dentro de la casa hay 6 habitaciones cada habitación tiene su baño privado, cocina...",https://drive.google.com/drive/folders/1eKD_g57XhVh-1uch5Ut7RBFrnDNwpbgo,leidy prop ca12,+573223840857,0,59,CARMEN DE APICALA #12,CARMEN DE APICALA,20,3000000,3300000,3500000,6,SI,,PLAN FAMILIAR,"Carmen de Apicalá12
+🤩😃👌🏻🌟👏🥳🌿⛱️
+La casa cuenta con Bbq, piscina privada, jacuzzi, zona de social con chimenea, baño de la piscina; dentro de la casa hay 6 habitaciones cada habitación tiene su baño privado, cocina integral totalmente dotada, cuarto de aseo donde se encuentra un congelador, una nevera aparte de el nevecon que está en la cocina, baño social, sala comedor, y balcón en la habitación principal",➖,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+CARMEN_DE_APICALA_#13,VILLAS DE LA ANTIGUA,Carmen de Apicala,Carmen de Apicala,true,57,24,2,,2700000,0,,false,"aire_acondicionado,bbq,billar,cancha,empleada,jacuzzi,kiosco,parqueadero,piscina,wifi,zonas_verdes",familiar,"Carmen de Apicalá13 
+😃👏🤩🌟👌🏻🤩🌿🥳
+6 habitaciones con aire acondicionado y baño privado. ❄️
+Finca totalmente Privada 👌🏻
+Piscina 🏊‍♀
+Jacuzzi 🛀
+Zonas verdes 🌿
+Cancha de fútbol ⚽ 
+Juego de Rana 🐸 
+Kiosco con bbq 🍖
+Parqueadero...",https://drive.google.com/drive/folders/1itO_OuPZ5wDXCiGnXDUxmtBKBJYyCs91,Laura Ozuna,+573168236173,0,60,CARMEN DE APICALA #13,CARMEN DE APICALA,24,3000000,3400000,3600000,6,SI,,PLAN FAMILIAR,"Carmen de Apicalá13 
+😃👏🤩🌟👌🏻🤩🌿🥳
+6 habitaciones con aire acondicionado y baño privado. ❄️
+Finca totalmente Privada 👌🏻
+Piscina 🏊‍♀
+Jacuzzi 🛀
+Zonas verdes 🌿
+Cancha de fútbol ⚽ 
+Juego de Rana 🐸 
+Kiosco con bbq 🍖
+Parqueadero amplio 🛻🚘
+WiFi 📲
+Cocina equipada 👨‍🍳
+Billar 🎱",Jhoana,+573178725018,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_#05,TIERRA LINDA,Girardot,Girardot,true,58,15,2,,1800000,0,,false,"bbq,cancha,empleada,lago,piscina,rio,wifi",familiar,"Hermosa casa campestre en girardot para alquiler, Capacidad 20 personas, 4 habitaciones, 4 baños, Piscina privada🏊‍, cancha de VoleyFutball, Rana, Mesa de PingPong, Televisión por TDT, Wifi, zona de lavanderia, BBQ y...",https://drive.google.com/drive/folders/1D_LGiV2cotUC5Whh22ZRnIJ0eBNJcBbc?usp=drive_link,➖,,0,61,GIRARDOT #05,GIRARDOT,15,2200000,2500000,2800000,5,SI,"Acomodación GT05
+Habitación 1: 1 cama queen
+Habitación 2: 1 cama doble, 1 cama semidoble con nido
+Habitación 3: 1 cama doble, 1 cama semidoble con nido
+Habitación 4: 1 cama doble, 1 cama semidoble con nido",PLAN FAMILIAR,"Hermosa casa campestre en girardot para alquiler, Capacidad 20 personas, 4 habitaciones, 4 baños, Piscina privada🏊‍, cancha de VoleyFutball, Rana, Mesa de PingPong, Televisión por TDT, Wifi, zona de lavanderia, BBQ y sala exterior, A 5 minutos del lago",Richard Lara,+573330507230,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_#09,TIERRA LINDA,Girardot,Girardot,true,59,10,2,,1500000,0,,false,"empleada,jacuzzi,piscina",familiar,"*Girardot09* 👏🏻🤩😃
+*GT09*
+Condominio privado
+4 habitaciones 
+1. Cama 1.60
+2. Camarote mas nido
+3. Dos camas dobles 
+4. Cama 2x2
+5. Cama 1.60
+Piscina
+Jacuzzi 
+Kiosko",https://drive.google.com/drive/folders/1IBkJI1HPVisz0_mdhDeg8r0eVCPvJx1Z?usp=drive_link,Leydi Osorio,+573015008771,0,62,GIRARDOT #09,GIRARDOT,10,1700000,2000000,2200000,4,SI,"4 habitaciones 
+1. Cama 1.60
+2. Camarote mas nido
+3. Dos camas dobles 
+4. Cama 2x2",PLAN FAMILIAR,"*Girardot09* 👏🏻🤩😃
+*GT09*
+Condominio privado
+4 habitaciones 
+1. Cama 1.60
+2. Camarote mas nido
+3. Dos camas dobles 
+4. Cama 2x2
+5. Cama 1.60
+Piscina
+Jacuzzi 
+Kiosko",Carmen Vanegas,+573143755185,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_#10,TIERRA LINDA,Girardot,Girardot,true,60,10,2,,1500000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina",familiar,"*GIRARDOT10* 👏🏻🤩
+*GT10*
+Condominio privado 🤩
+4 habitaciones 
+Baño privado
+Aire acondicionado 
+Piscina 
+Jacuzzi
+Condominio privado",https://drive.google.com/drive/folders/1oeDBzEKZZ6xE28c-fw8Jg2lTW10iUANh?usp=drive_link,Leydi Osorio,+573015008772,0,63,GIRARDOT #10,GIRARDOT,10,1700000,2000000,2200000,4,SI,"4 habitaciones 
+1. Cama 1.60
+2. Camarote mas nido
+3. Dos camas dobles 
+4. Cama 2x2",PLAN FAMILIAR,"*GIRARDOT10* 👏🏻🤩
+*GT10*
+Condominio privado 🤩
+4 habitaciones 
+Baño privado
+Aire acondicionado 
+Piscina 
+Jacuzzi
+Condominio privado",Leydi Osorio,+573015008771,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_#12,EL PEÑON,Girardot,Girardot,true,61,15,2,,2200000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina,wifi",familiar,"*Girardot12* 
+👏🏻🤩🌟😎😃
+El Peñon
+5 habitaciones 
+Baño privado
+Aire acondicionado 
+Piscina
+Jacuzzi
+Salon
+Tv
+WiFi
+Espectacular!!!",https://drive.google.com/drive/folders/1fNOvH9JacVkQ-UQ-6T0VP9fDImShTdCP?usp=drive_link,,,0,64,GIRARDOT #12,GIRARDOT,15,2500000,3000000,3500000,5,SI,"*Acomodación Girardot12 gt12 Peñon*
+Hab 1 cama king
+Hab 2 2 camas dobles
+Hab 3 2 camas dobles
+Hab 4 1 cama doble 2 camas semi dobles
+Hab 5 1 cama Queen",PLAN FAMILIAR,"*Girardot12* 
+👏🏻🤩🌟😎😃
+El Peñon
+5 habitaciones 
+Baño privado
+Aire acondicionado 
+Piscina
+Jacuzzi
+Salon
+Tv
+WiFi
+Espectacular!!!",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_#18,LAS ROSAS,Girardot,Girardot,true,62,70,2,,,0,130000,false,"bbq,cancha,empleada,mirador,piscina,wifi,zonas_verdes",familiar,"🤩🤩 *Girardot18* 🤩🤩
+Finca Independiente 
+- 15 habitaciones
+- importante llevar desechables 
+- 10 baños 🚻
+- ⁠Piscina 🏊
+- ⁠Cancha de futbol sintética ⚽️
+- ⁠Cancha de baloncesto 🏀
+- ⁠Salón de eventos 🥳
+- ⁠BBQ ♨️
+- ⁠Zonas...",https://drive.google.com/drive/folders/1IuIdfQCEELtuWOgseBNoIieqgrZqp2UC?usp=drive_link,,,0,65,GIRARDOT #18,GIRARDOT,70,160000,165000,170000,15,SI,"*Acomodación Girardot18 gt18*
+Todas las habitaciones tienen cuatro camas dobles y hay una que tiene tres camas dobles con sus respectivos nidos",PLAN FAMILIAR,"🤩🤩 *Girardot18* 🤩🤩
+Finca Independiente 
+- 15 habitaciones
+- importante llevar desechables 
+- 10 baños 🚻
+- ⁠Piscina 🏊
+- ⁠Cancha de futbol sintética ⚽️
+- ⁠Cancha de baloncesto 🏀
+- ⁠Salón de eventos 🥳
+- ⁠BBQ ♨️
+- ⁠Zonas verdes 🌴
+- ⁠Mirador 🏞️
+- ⁠No Wifi 🛜
+Servicio ⭐️⭐️⭐️⭐️⭐️",,,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+GIRARDOT_M2,TIERRA LINDA,Girardot,Girardot,true,63,12,2,,1400000,0,,false,"aire_acondicionado,bbq,cancha,empleada,jacuzzi,piscina,tenis,wifi,zonas_verdes",familiar,"GirardotM2
+🤩🥳🌟👌🏻😃🫱🏻‍🫲🏼⛱️🏕️
+4 habitaciones 
+Aire acondicionado 
+Baño privado 
+Piscina 
+Jacuzzi 
+Bbq
+Tv
+WiFi
+Capacidad 10 personas
+*Condominio* 
+Cancha de tennis 
+Cancha de Basketball
+Zonas verdes",https://drive.google.com/drive/folders/1tuMsqPPgcUjQLu4vJLRBBo_YVMaKke0Z?usp=drive_link,Leydi Osorio,+573015008771,0,66,GIRARDOT M2,GIRARDOT M2,10,1700000,2000000,2200000,4,SI,,PLAN FAMILIAR,"GirardotM2
+🤩🥳🌟👌🏻😃🫱🏻‍🫲🏼⛱️🏕️
+4 habitaciones 
+Aire acondicionado 
+Baño privado 
+Piscina 
+Jacuzzi 
+Bbq
+Tv
+WiFi
+Capacidad 10 personas
+*Condominio* 
+Cancha de tennis 
+Cancha de Basketball
+Zonas verdes",Leydi Osorio,+573015008771,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GIRARDOT_Q12,TIERRA LINDA,Girardot,Girardot,true,64,12,2,,1400000,0,,false,"aire_acondicionado,bbq,cancha,empleada,jacuzzi,piscina,tenis,wifi,zonas_verdes",familiar,"GirardotQ12
+🤩😃🫱🏻‍🫲🏼🏕️🌟👌🏻⛱️🥳
+4 habitaciones 
+Aire acondicionado 
+Baño privado 
+Piscina 
+Jacuzzi 
+Bbq
+Tv
+WiFi
+Capacidad 10 personas
+*Condominio* 
+Cancha de tennis 
+Cancha de Basketball
+Zonas verdes",https://drive.google.com/drive/folders/1ED1tvcrEXzgPtVHPxSFgN87sh5QBKi4Z?usp=drive_link,Leydi Osorio,+573015008772,0,67,GIRARDOT Q12,GIRARDOT Q12,10,1700000,2000000,2200000,4,SI,,PLAN FAMILIAR,"GirardotQ12
+🤩😃🫱🏻‍🫲🏼🏕️🌟👌🏻⛱️🥳
+4 habitaciones 
+Aire acondicionado 
+Baño privado 
+Piscina 
+Jacuzzi 
+Bbq
+Tv
+WiFi
+Capacidad 10 personas
+*Condominio* 
+Cancha de tennis 
+Cancha de Basketball
+Zonas verdes",Leydi Osorio,+573015008772,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_VEGA_#_01,RIACHUELOS,La Vega,La Vega,true,65,20,2,,2900000,0,,false,"bbq,empleada,jacuzzi,parqueadero,ping_pong,piscina,wifi,zonas_verdes",familiar,"*LA VEGA01(cundi)* 🥳🏊🏻
+Exclusiva finca vacacional en condominio! 🏘️🥳 
+- 5 habitaciones con baño Privado
+- Terraza
+- Sala
+- Comedor
+- Cocina completamente Dotada
+- Amplias zonas verdes
+- BBQ
+- Parqueadero
+- Vista...",https://drive.google.com/drive/folders/1i1hmETg-kiQRVp6AAZvvw57u4HAnOK4r,diego ulises,+573178756507,0,68,LA VEGA # 01,LA VEGA,20,3500000,4000000,4500000,5,SI 2,"*Acomodacion Vega01 VG01* 
+Hab 1- cama King, 2 sencillas,1 nido
+Hab 2- 2 C dobles, 2 C Sencillas, 1 nido
+Hab 3- 2 C dobles, 2 C Sencillas, 1 nido
+Hab 4- Cama doble 
+Hab 5- Cama queen y 1 cama semidoble",PLAN FAMILIAR SIN RUIDO,"*LA VEGA01(cundi)* 🥳🏊🏻
+Exclusiva finca vacacional en condominio! 🏘️🥳 
+- 5 habitaciones con baño Privado
+- Terraza
+- Sala
+- Comedor
+- Cocina completamente Dotada
+- Amplias zonas verdes
+- BBQ
+- Parqueadero
+- Vista espectacular 
+- WIFI
+- Piscina (climatizada valor adicional)
+- Jacuzzi climatizado 
+- ⁠Ping pong
+- ⁠Saltarín
+*Requiere una empleada de servicio por dia*
+PRIVADA Y ENCANTADORA 
+✨🏊💥🔥🎉🏘️",diego ulises,+573168756507,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_VEGA_#02,RIACHUELOS,La Vega,La Vega,true,66,14,2,,1900000,0,,false,"jacuzzi,mirador,piscina,zonas_verdes",familiar,"La Vega02, Cundinamarca 
+👏🏻😃🤩🏕️⚡☀️👌
+CONDOMINIO PRIVADO
+3 habitaciones cómodas 
+Piscina
+Jacuzzi climatizado
+Zonas verdes 
+Mirador
+*Requiere una empleada de servicio por día*",https://drive.google.com/drive/folders/1swq5byZ10NeQG673gkI-Rmy0y8O78VbF,diego ulises,+573178756507,0,69,LA VEGA #02,LA VEGA,10,2500000,2900000,3200000,3,NO,"HAB 1 CAMA EXTRADOBLE 1 SOFA CAMA, HAB 2 CAMA EXTRADOBLE CAMA SENCILLA NIDO SOFA CAMA, HAB 3 CAMA EXTRADOBLE CAMA SENCILLA NIDO, CABAÑA OPCIONAL CON CAMA KING Y COCINETA",PLAN FAMILIAR SIN RUIDO,"La Vega02, Cundinamarca 
+👏🏻😃🤩🏕️⚡☀️👌
+CONDOMINIO PRIVADO
+3 habitaciones cómodas 
+Piscina
+Jacuzzi climatizado
+Zonas verdes 
+Mirador
+*Requiere una empleada de servicio por día*",diego ulises,+573178756507,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_VEGA_#03,CASA BLANCA,La Vega,La Vega,true,67,15,2,,1900000,0,,false,"bbq,empleada,kiosco,mirador,piscina,rio,zonas_verdes",familiar,"*Vega03* 🤩😃
+Cundinamarca 👏🏻
+1 planta:
+Cocina
+Comedor 
+Salon 
+Torre de sonido 
+Baño social 
+Área de lavandería 
+Área de relax(compuesta por 2 hamacas)
+Piscina 
+""Kiosco""
+BBQ
+Columpio 
+Zonas verdes 
+Mirador 
+Acceso privado...",https://drive.google.com/drive/folders/19xdHbPwqcc_0FP8QH47n0eTh6xo3uyx6,,,0,70,LA VEGA #03,LA VEGA,10,2500000,2700000,3300000,5,SI,,PLAN FAMILIAR,"*Vega03* 🤩😃
+Cundinamarca 👏🏻
+1 planta:
+Cocina
+Comedor 
+Salon 
+Torre de sonido 
+Baño social 
+Área de lavandería 
+Área de relax(compuesta por 2 hamacas)
+Piscina 
+""Kiosco""
+BBQ
+Columpio 
+Zonas verdes 
+Mirador 
+Acceso privado al río 
+Plata 2
+Salon de Tv 
+Hab 1
+Cama semidoble 
+Armario escritorio
+Ventilador 
+Hab 2
+Cama king
+Sillón
+Baño privado 
+AC
+Ventilador 
+Hab 3
+Cama Queen
+Camarote sencillo 
+Baño privado 
+Armario 
+AC
+Ventilador 
+Balcón 
+Hab 4 
+Cama Queen 
+1 cama sencilla 
+Baño privado 
+Armario 
+Ventilador
+Acceso directo al río
+😃🤩 mira esta propiedad súper linda 😃",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+LA_VEGA_#04,EL CUCURUCHO,La Vega,La Vega,true,68,50,2,,,0,135000,false,"bbq,empleada,mirador,piscina,rio,wifi",descanso,"Espectacular finca, todo tipo de distracciones naturales ubicada a 10 minutos de La Vega, Capacidad: 50 personas, 12 habitaciones️, 14 Baños, PISCINA CLIMATIZADA , Distracciones naturales, Cocina equipada, WiFi, TV,...",https://drive.google.com/drive/folders/1jHjnoChkTgtjTqfNYkhksSaVyGeiu6j8,,,0,71,LA VEGA #04,LA VEGA,30,145000,150000,160000,12,SI,"Vega04
+*ACOMODACIÓN*
+Hab 1.- 2 camas dobles = 4px
+Hab 2.- 2 Camas dobles = 4px
+Hab 3.- 1 Cama semidoble y 2 camas dobles = 6 px
+Hab 4.- 2 Camas dobles = 4 px
+Hab 5.- 2 camas dobles 
+Hab 6.- 2 camas dobles
+Hab 7.- 2 camas dobles
+Hab 8.- 1 Cama semidoble",EVENTOS,"Espectacular finca, todo tipo de distracciones naturales ubicada a 10 minutos de La Vega, Capacidad: 50 personas, 12 habitaciones️, 14 Baños, PISCINA CLIMATIZADA , Distracciones naturales, Cocina equipada, WiFi, TV, Rio, Zonas de camping, Zonas para caminatas, BBQ, Kiosko, Mirador, Zonas muy amplias",,,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+LA_VEGA_#20,VEGA20,La Vega,La Vega,true,69,50,2,,,0,120000,false,"empleada,parqueadero,piscina,rio",familiar,"*LA VEGA20* Cundinamarca 
+14 habitaciones con baño privado y televisor 
+15 camas dobles
+3 camas sencillas
+Cocina
+Comedor 
+Espacios exterior 
+Zona verde
+Parqueadero
+Río 
+Baño social
+Baño en la piscina 
+Piscina...",https://drive.google.com/drive/folders/1n2u7TJrX1vBe7OPJUiANBB5KDdIAGsA5,,,0,72,LA VEGA #20,LA VEGA,50,140000,150000,155000,12,SI,,PLAN FAMILIAR,"*LA VEGA20* Cundinamarca 
+14 habitaciones con baño privado y televisor 
+15 camas dobles
+3 camas sencillas
+Cocina
+Comedor 
+Espacios exterior 
+Zona verde
+Parqueadero
+Río 
+Baño social
+Baño en la piscina 
+Piscina niños
+Piscina adultos",,,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+VILLETA_#01,LUGO,Villeta,Villeta,true,70,20,2,,3200000,0,,false,"bbq,empleada,piscina,zonas_verdes",familiar,"Hermosa finca en Villeta disponible para alquiler por dias o fines de semana, cuenta con 4 habitaciones, Piscina, BBQ, Zonas verdes, vigilancia privada, no te quedes con las ganas de disfrutar de esta espectacular finca!",https://drive.google.com/drive/folders/1lEIprPmCftgKFUnG2d7G2MgG6-neVSk7,,,0,73,VILLETA #01,VILLETA,15,3600000,3800000,4200000,4,SI,,PLAN FAMILIAR,"Hermosa finca en Villeta disponible para alquiler por dias o fines de semana, cuenta con 4 habitaciones, Piscina, BBQ, Zonas verdes, vigilancia privada, no te quedes con las ganas de disfrutar de esta espectacular finca!",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#02,BELLA VISTA 02 (LUGO9,Villeta,Villeta,true,71,14,2,,1700000,0,,false,"bbq,cancha,empleada,parqueadero,ping_pong,wifi,zonas_verdes",familiar,"*VILLETA02* 
+Hermosa finca campestre vacacional ubicada a solo 6 kilometros del parque principal de villeta en condominio. 😁👌
+- 5 habitaciones
+- 7 baños
+- Sala
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas...",https://drive.google.com/drive/folders/1PzC_vcqMTQQNDOkS5mrEn1A0plQfYOEY,,,0,74,VILLETA #02,VILLETA,10,2300000,2500000,2800000,5,SI,,PLAN FAMILIAR,"*VILLETA02* 
+Hermosa finca campestre vacacional ubicada a solo 6 kilometros del parque principal de villeta en condominio. 😁👌
+- 5 habitaciones
+- 7 baños
+- Sala
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas verdes
+- BBQ
+- WIFI 
+- Parqueadero
+- Terraza
+- Senderos ecológicos
+- mesa de ping pong
+- canchas de minifutbol
+Requiere empleada de servicio",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#03_(50),EMANUEL,Villeta,Villeta,true,72,22,2,,2500000,0,,false,"bbq,empleada,jacuzzi,mirador,piscina,wifi",familiar,"7 habitaciones baño privado 
+Piscina
+Jacuzzi
+Tv
+WiFi
+Bbq
+Mirador
+Totalmente nueva
+5 min de Villeta",https://drive.google.com/drive/folders/1CnRXyWa2bl6x_nlv800UWTcYRp5WHORz,,,0,75,VILLETA #03 (50),VILLETA,15,2800000,3000000,3300000,7,SI,,PLAN FAMILIAR,"7 habitaciones baño privado 
+Piscina
+Jacuzzi
+Tv
+WiFi
+Bbq
+Mirador
+Totalmente nueva
+5 min de Villeta",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#04,LUGO,Villeta,Villeta,true,73,18,2,,2300000,0,,false,"bbq,cancha,empleada,jacuzzi,parqueadero,piscina,wifi",familiar,"*VILLETA04* 🥳😁🤩☀️
+Hermosa finca vacacional 🏡
+Ubicada en el exclusivo sector de payande 
+- 05 Habitaciones
+- 05 Baños
+- Sala
+- Comedor
+- Cocina Equipada
+- Cancha de futbol
+- BBQ
+- Parqueadero
+- Wifi
+- Piscina 
+- Jacuzzi...",https://drive.google.com/drive/folders/1HQw5n5EdGHLpNEB1YrxpzfuxJ0xt136W,,,0,76,VILLETA #04,VILLETA,15,2600000,2900000,3200000,5,SI,,PLAN FAMILIAR,"*VILLETA04* 🥳😁🤩☀️
+Hermosa finca vacacional 🏡
+Ubicada en el exclusivo sector de payande 
+- 05 Habitaciones
+- 05 Baños
+- Sala
+- Comedor
+- Cocina Equipada
+- Cancha de futbol
+- BBQ
+- Parqueadero
+- Wifi
+- Piscina 
+- Jacuzzi Climatizado
+ 
+Espectacular, Encantadora!
+Requiere empleada de servicio 
+🌴🍻🍃🍒🏡🍃🍻🌴",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#05,AZUL,Villeta,Villeta,true,74,35,2,,3800000,0,,false,"aire_acondicionado,billar,empleada,kiosco,mirador,ping_pong,piscina",familiar,"*Villeta05*
+- 8 habitaciones con aire acondicionado 
+- 9 baños.
+- Piscina de adultos.
+- Piscina de niños.
+- ⁠Tobogán.
+- ⁠Mesa de Ping pong.
+- ⁠Mesa de billar.
+- ⁠Mirador.
+- ⁠Cascada.
+- ⁠Kiosco.",https://drive.google.com/drive/folders/1Q-CdoXSa1Hm13EnSzgwtdIveT8_0WVs2,,,0,77,VILLETA #05,VILLETA,25,4500000,4800000,5200000,8,SI,"Acomodación Vt05 villeta05
+Hab1- 1 cama king 
+Hab2- 2 camas dobles
+Hab3- 2 camas dobles 
+Hab4- 2 camas dobles 
+Hab5- 1 cama king 
+Hab6- 2 camas dobles 
+Hab7-1 cama doble
+Hab8-1 cama doble 
+Adicional, la casa tiene 15 colchonetas.",PLAN FAMILIAR,"*Villeta05*
+- 8 habitaciones con aire acondicionado 
+- 9 baños.
+- Piscina de adultos.
+- Piscina de niños.
+- ⁠Tobogán.
+- ⁠Mesa de Ping pong.
+- ⁠Mesa de billar.
+- ⁠Mirador.
+- ⁠Cascada.
+- ⁠Kiosco.",Tatiana,+573102836260,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#06,CABAÑAS,Villeta,Villeta,true,75,10,2,,1300000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes","descanso,familiar","Finca para alquiler en Villeta, ideal para un fin de semana de verdadero descanso, a tan solo 5 minutos del pueblo, Capacidad 9 personas, 3 cabañas, 5 Baños, Sala, Comedor, TV, WiFi, Cocina equipada, Amplias zonas...",https://drive.google.com/drive/folders/1iPD_XC_c-gAwIkPB8n4_ZAtJcG1fdjv0,,,0,78,VILLETA #06,VILLETA,10,1600000,1900000,2200000,3,SI,,PLAN FAMILIAR,"Finca para alquiler en Villeta, ideal para un fin de semana de verdadero descanso, a tan solo 5 minutos del pueblo, Capacidad 9 personas, 3 cabañas, 5 Baños, Sala, Comedor, TV, WiFi, Cocina equipada, Amplias zonas verdes , BBQ, Parqueadero, Piscina, Jacuzzi",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#08,EL OCASO (LUGO),Villeta,Villeta,true,76,12,2,,1500000,0,,true,"aire_acondicionado,bbq,empleada,parqueadero,piscina,wifi",familiar,"*Villeta08* 🤩👏🏻
+La casa el ocaso 🏡 está ubicada en Villeta a cinco minutos del parque principal, 1 hr desde el puente de guadua en Bogotá!
+Cinco habitaciones distribuidas así: 
+🛏🛏Una habitación con dos camas, 1 queen y...",https://drive.google.com/drive/folders/1ZtS0W65BYnjlti6VwLfhpdN0f664rQMX,,,0,79,VILLETA #08,VILLETA,10,1900000,2200000,2400000,5,SI,"Cinco habitaciones distribuidas así: 
+🛏🛏Una habitación con dos camas, 1 queen y 1 doble, aire acondicionado, ventilador, closet y baño privado, 
+🛏Una habitación con una cama doble, closet, aire acondicionado y ventilador.
+🛏Una habitación con una cama doble, closet, aire acondicionado y ventilador.
+🛏Una habitación con una cama doble.
+🛏🛏una habitación con dos camas individuales, aire acondicionado y ventilador.",PLAN FAMILIAR,"*Villeta08* 🤩👏🏻
+La casa el ocaso 🏡 está ubicada en Villeta a cinco minutos del parque principal, 1 hr desde el puente de guadua en Bogotá!
+Cinco habitaciones distribuidas así: 
+🛏🛏Una habitación con dos camas, 1 queen y 1 doble, aire acondicionado, ventilador, closet y baño privado, 
+🛏Una habitación con una cama doble, closet, aire acondicionado y ventilador.
+🛏Una habitación con una cama doble, closet, aire acondicionado y ventilador.
+🛏Una habitación con una cama doble.
+🛏🛏una habitación con dos camas individuales, aire acondicionado y ventilador. 
+🚽🚿un baño completo, y un medio baño
+🚘 parqueadero y 💦piscina privada.
+🥩🥓zona de BBQ.
+💻📡 🔉WiFi- Bluetooth
+🐶 Pet friendly",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#09,LUGO,Villeta,Villeta,true,77,11,2,,1900000,0,,false,"bbq,empleada,piscina,wifi,zonas_verdes",familiar,"*VILLETA09* 😃👨‍👩‍👧‍👦
+✅Hermosa casa vacacional ubicada en villeta zona payande con capacidad para 10 personas cómodas. 
+ 
+- 4 habitaciones 🛏️ (todas con baño privado)
+- 5 baños 🚽
+- ventiladores de techo 🌬️
+- Piscina...",https://drive.google.com/drive/folders/1hPZc_qZmopoGHeJeA-q3LaytfV6fzPVh,,,0,80,VILLETA #09,VILLETA,6,2400000,2600000,2900000,4,SI 1,,PLAN FAMILIAR,"*VILLETA09* 😃👨‍👩‍👧‍👦
+✅Hermosa casa vacacional ubicada en villeta zona payande con capacidad para 10 personas cómodas. 
+ 
+- 4 habitaciones 🛏️ (todas con baño privado)
+- 5 baños 🚽
+- ventiladores de techo 🌬️
+- Piscina 🏊🏻‍♀️🏊🏼‍♂️
+- Cocina equipada 🍽️🥂
+- BBQ ♨️🥩
+- Terraza 
+- Wifi 📡
+- TV 📺
+- Zonas verdes 🌳☀️
+- *Requiere empleada de servicio* 
+- 
+Totalmente privada y exclusiva 🤩",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#10,VILLA JHONY (LUGO),Villeta,Villeta,true,78,27,2,,3000000,0,,false,"bbq,cancha,empleada,parqueadero,piscina",familiar,"Finca disponible para alquiler en Villeta, 6 habitaciones, 6 baños, Piscina, Piscina infantil, Juegos para niños, BBQ, Cancha, Zona Infantil, Zonas sociales, Kiosko, Parqueadero",https://drive.google.com/drive/folders/1d_4xNY_xg08-Wlu6xFyZ4oaUGTztbf1l,,,0,81,VILLETA #10,VILLETA,20,3300000,3500000,3800000,6,SI,"*Acomodación Villeta10*
+Hab 1: cama doble y cama sencilla-baño privado 
+Hab 2: dos camas dobles-baño compartido
+Hab 3: dos camarotes baño compartido
+Hab 4: tre camas sencilla y una doble- baño compartido
+Hab 5: cama doble, 1 sofa cama",PLAN FAMILIAR,"Finca disponible para alquiler en Villeta, 6 habitaciones, 6 baños, Piscina, Piscina infantil, Juegos para niños, BBQ, Cancha, Zona Infantil, Zonas sociales, Kiosko, Parqueadero",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#12,CASA BLANCA (LUGO),Villeta,Villeta,true,79,20,2,,2700000,0,,false,"empleada,jacuzzi,mirador,piscina,wifi,zonas_verdes",familiar,"Finca para alquiler en Villeta, cuenta con 5 habitaciones con baño privado, Piscina, Jacuzzi, Zonas verdes,Tv, Wifi, Mirador espectacular, Moderna",https://drive.google.com/drive/folders/11x8dHwA0yiu2_0WrzVqy43ibJ5yyHHqm,,,0,82,VILLETA #12,VILLETA,16,3400000,3700000,4200000,5,SI,"Acomodación vt12 Villeta12
+Son 5 habitaciones todas con dos camas dobles",PLAN FAMILIAR,"Finca para alquiler en Villeta, cuenta con 5 habitaciones con baño privado, Piscina, Jacuzzi, Zonas verdes,Tv, Wifi, Mirador espectacular, Moderna",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#13,LUGO,Villeta,Villeta,true,80,14,2,,1900000,0,,false,"bbq,empleada,parqueadero,wifi,zonas_verdes",familiar,"*VILLETA13* 🥳🌟🤩
+Hermosa finca campestre vacacional ubicada a solo 3 kilometros del parque principal de villeta. 😁👌
+- 5 habitaciones
+- 6 baños
+- Sala
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas verdes
+- BBQ
+-...",https://drive.google.com/drive/folders/1AP7avj8eMYMZDTTFKEjacJfy_L2g4iHi,,,0,83,VILLETA #13,VILLETA,10,2300000,2600000,2900000,5,SI 1,,PLAN FAMILIAR,"*VILLETA13* 🥳🌟🤩
+Hermosa finca campestre vacacional ubicada a solo 3 kilometros del parque principal de villeta. 😁👌
+- 5 habitaciones
+- 6 baños
+- Sala
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas verdes
+- BBQ
+- WIFI 
+- Parqueadero
+- Terraza
+- Senderos ecológicos
+Requiere empleada de servicio 
+🤩🥳🎉🏘️",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#15,LUGO,Villeta,Villeta,true,81,14,2,,1700000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes",familiar,"Finca en Villeta a tan solo 10 minutos del centro del pueblo, cuenta con 4 habitaciones, Baño y privado, Aire acondicionad,oSala, Comedor, Cocina, Amplias zonas verdes, BBQ, Parqueadero, Wifi, Terraza, Piscina, Jacuzzi",https://drive.google.com/drive/folders/1pUxfXMosa7FjxNGmfIub2yaiNKsrPLFF,,,0,84,VILLETA #15,VILLETA,15,,,,4,SI,,PLAN FAMILIAR,"Finca en Villeta a tan solo 10 minutos del centro del pueblo, cuenta con 4 habitaciones, Baño y privado, Aire acondicionad,oSala, Comedor, Cocina, Amplias zonas verdes, BBQ, Parqueadero, Wifi, Terraza, Piscina, Jacuzzi",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#16,,Villeta,Villeta,false,82,35,,,,,100000,false,"bbq,empleada,parqueadero,piscina,wifi,zonas_verdes",familiar,"Exclusiva finca vacacional en Villeta, Capacidad 35 personas, 09 Habitaciones, 08 Baños, Cocina equipada, Terraza, Sala️, Comedor, BBQ, Parqueadero, WIFI, TV, Piscina grande y pequeña, Amplias y Hermosas Zonas Verdes,...",https://drive.google.com/drive/folders/1DBT0zEecJ2gNm8ObpQ5khKZXuJUd7bdi,,,,85,VILLETA #16,VILLETA,20,120000,125000,130000,8,SI,"*Habitación 1* con baño privado 
+1 cama doble 
+1 cama sencilla
+*Habitación 2*
+2 camas dobles 
+1 sencilla 
+Baño privado
+*Habitación 3*
+2 camas dobles 
+1 cama sencilla 
+Baño privado
+*Habitación 4*
+1 cama doble 
+2 sencillas 
+Baño compartido, con la habitación 5
+*Habitación 5*
+1 cama doble 
+1 camarote sencillo 
+Baño compartido con la habitación 4
+*Habitación 6*
+1 cama doble 
+1 cama sencilla 
+Baño privado
+*Habitación 7*
+3 camas sencillas 
+Baño privado
+*Habitación 8*
+2 camas dobles 
+1 cama sencilla 
+Baño privado
+*Habitación 9*
+1 cama doble 
+Baño privado",PLAN FAMILIAR,"Exclusiva finca vacacional en Villeta, Capacidad 35 personas, 09 Habitaciones, 08 Baños, Cocina equipada, Terraza, Sala️, Comedor, BBQ, Parqueadero, WIFI, TV, Piscina grande y pequeña, Amplias y Hermosas Zonas Verdes, Totalmente privada, Espectacular !",jonathan lugo,+573005332220,por_persona,INCOMPLETE,falta nombre; tarifa origen en formato por persona
+VILLETA_#17,VILLA SANDRA (LUGO),Villeta,Villeta,true,83,60,2,,5800000,0,,false,"bbq,cancha,empleada,lago,parqueadero,ping_pong,piscina,wifi,zonas_verdes",familiar,"Espectacular Finca con zonas muy amplias ubicada en Villeta, con amplia Capacidad 50 personas, 07 Habitaciones️, 07 Baños, Sala, Comedor, TV, WiFi, Cocina Equipada, BBQ, Parqueadero, Rana, Canchas de Tejo y Minitejo,...",https://drive.google.com/drive/folders/1ZxlRoOdND9N2d6KVgSQN269__AuGgPVK,,,0,86,VILLETA #17,VILLETA,30,6600000,6900000,7300000,9,SI,"HAB 1. 1 CAMAROTE DOBLE, 1 CAMA DOBLE, 1 NIDO HAB 2. 1 CAMA DOBLE, 1 CAMAROTE INDIVIDUAL Y 1 NIDO HAB 3. 1 CAMAROTE DOBLE, 1 CAMAROTE INDIVIDUAL Y 1 NIDO HAB 4. 2 CAMAROTES DOBLES, 1 CAMAROTE INDIVIDUAL Y 1 CAMA DOBLE HAB 5. 2 CAMAROTES DOBLES Y DOS NIDOS HAB 6. DOS CAMAROTES DOBLES Y 2 NIDOS HAB 7. 2 CAMAROTES DOBLES Y 2 NIDOS",PLAN FAMILIAR,"Espectacular Finca con zonas muy amplias ubicada en Villeta, con amplia Capacidad 50 personas, 07 Habitaciones️, 07 Baños, Sala, Comedor, TV, WiFi, Cocina Equipada, BBQ, Parqueadero, Rana, Canchas de Tejo y Minitejo, Kiosko, Lago, Senderos Ecológicos, Mesa de Ping Pong, Cancha de Fútbol, Piscina, Amplias Zonas Verdes, Privada, Maravillosa!",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#19,LUGO,Villeta,Villeta,true,84,16,2,,2200000,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes",familiar,"Exclusiva finca vacacional en Villeta Capacidad: 16 personas, 4 Habitaciones con aire acondicionado, 4 Baños, Sala, Comedor, Cocina Equipada, Amplias Zonas Verdes, BBQ, Parqueadero, Wifi, Piscina, Jacuzzi Privada,...",https://drive.google.com/drive/folders/1jkrXvFE56KGeDceTEVoDMMk8Kh17kcGu,,,0,87,VILLETA #19,VILLETA,10,2600000,2900000,3200000,4,SI,"Aconodacion vt19 villeta19
+Habitación 1 
+1 cama dobel y sofá cama doble 
+Habitación 2 
+2 camas dobles 
+Habitacion 3 
+1 cama doble camarote doble abajo sencillo arriba 
+Habitacion 4 
+1 cama doble camarote doble abajo sencillo arriba",PLAN FAMILIAR,"Exclusiva finca vacacional en Villeta Capacidad: 16 personas, 4 Habitaciones con aire acondicionado, 4 Baños, Sala, Comedor, Cocina Equipada, Amplias Zonas Verdes, BBQ, Parqueadero, Wifi, Piscina, Jacuzzi Privada, Maravillosa!",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#20,LUGO,Villeta,Villeta,true,85,20,2,,2600000,0,,false,"aire_acondicionado,bbq,cancha,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes",descanso,"Exclusiva finca vacacional en Villeta Cundinamarca, Capacidad 20 personas, 5 habitaciones, 5 Baños, Aire acondicionado, Terraza, Sala, Comedor, TV, WiFi, Cocina equipada, Amplias zonas verdes , BBQ, Parqueadero,...",https://drive.google.com/drive/folders/1DyHdp6rwcv7nda9uxbILjrYw-TEISMo6,,,0,88,VILLETA #20,VILLETA,20,30000003,3400000,3700000,5,SI,5 HABIACIONES CADA UNA CON DOS CAMAS DOBLES,EXCLUSIVA,"Exclusiva finca vacacional en Villeta Cundinamarca, Capacidad 20 personas, 5 habitaciones, 5 Baños, Aire acondicionado, Terraza, Sala, Comedor, TV, WiFi, Cocina equipada, Amplias zonas verdes , BBQ, Parqueadero, Piscina, Jacuzzi, Mini cancha de fútbol, Privada",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#24,LUGO,Villeta,Villeta,true,86,18,2,,2200000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes",familiar,"*VILLETA24* Cundinamarca 🥳🏊🏻
+Exclusiva finca vacacional! 🏘️🥳 
+- 5 habitaciones
+- 6 baños
+- Terraza.
+- Sala.
+- Comedor.
+- Cocina completamente Dotada.
+- Amplias zonas verdes
+- BBQ.
+- Parqueadero.
+- WIFI.
+- Piscina.
+-...",https://drive.google.com/drive/folders/1EVP9UBqAqoHSB3zEH2pg2jkyrBwDmm9W,,,0,89,VILLETA #24,VILLETA,10,2600000,2900000,3300000,5,SI 2,"Acomodación VT24 Villeta24
+Piso 1 
+ *Habitación 1:* 1 cama doble y 1 cama auxiliar: 4 px 
+ *Habitación 2:* 1 cama doble y 1 cama auxiliar: 4 px 
+ *Habitación 3:* 1 cama doble y 1 cama auxiliar: 4 px 
+Piso 2 
+ *Habitación 1:* 1 cama Queen: 2 px 
+ *Habitación 2:* 1 cama doble: 2 px 
+ *Habitación 3:* 1 cama doble: 2 px",PLAN FAMILIAR,"*VILLETA24* Cundinamarca 🥳🏊🏻
+Exclusiva finca vacacional! 🏘️🥳 
+- 5 habitaciones
+- 6 baños
+- Terraza.
+- Sala.
+- Comedor.
+- Cocina completamente Dotada.
+- Amplias zonas verdes
+- BBQ.
+- Parqueadero.
+- WIFI.
+- Piscina.
+- Jacuzzi.
+- Privada y moderna 😎
+Requiere empleadas de servicio",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#25,LUGO,Villeta,Villeta,true,87,14,2,,1700000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,zonas_verdes",familiar,"Hermosa finca vacacional ubicada en la inspección de la magdalena a unos 11 kilometros de Villeta, Capacidad: 16 personas, 6 habitaciones, 5 baños, Cocina completamente dotada, Amplias zonas verdes, BBQ, Kiosko,...",https://drive.google.com/drive/folders/1XRhusAwkwlgfT5SvDl3_1ReINb_VVkUI,,,0,90,VILLETA #25,VILLETA,10,2100000,2400000,2600000,6,SI,"Acomodación Villeta25
+📌Habitación 1
+Cama doble y baño privado
+(2 personas)
+📌Habitación 2
+Cama doble y baño privado
+(2 personas)
+📌Habitación 3
+Cama doble y baño privado
+(2 personas)
+📌Habitación 4
+Cama semidoble con Nicho
+(3 personas) 
+📌Habitación 5
+Cama semidoble con Nicho
+(3 personas)
+Tiene baño compartido para la habitación 4 y 5.
+📌Habitación principal
+Cama Queen, 2 camas sencillas, baño privado y TV
+(4 personas)
+Total: 16 personas en cama.",PLAN FAMILIAR,"Hermosa finca vacacional ubicada en la inspección de la magdalena a unos 11 kilometros de Villeta, Capacidad: 16 personas, 6 habitaciones, 5 baños, Cocina completamente dotada, Amplias zonas verdes, BBQ, Kiosko, Parqueadero, Terraza, Piscina y jacuzzi",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#26,LUGO,Villeta,Villeta,true,88,12,2,,1400000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,zonas_verdes",familiar,"Exclusiva finca vacacional completamente privada 4 habitaciones todas con baño privado, Sala, Comedor, Cocina completamente dotada, Zonas verdes, BBQ, Parqueadero, Terraza, Piscina y jacuzzi",https://drive.google.com/drive/folders/18D0whJhXFHVQaS9kivfuYI4WqO_-hKyo,,,0,91,VILLETA #26,VILLETA,10,1700000,2000000,2200000,4,SI,,PLAN FAMILIAR,"Exclusiva finca vacacional completamente privada 4 habitaciones todas con baño privado, Sala, Comedor, Cocina completamente dotada, Zonas verdes, BBQ, Parqueadero, Terraza, Piscina y jacuzzi",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#27,LUGO,Villeta,Villeta,true,89,12,2,,1800000,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,parque_infantil,parqueadero,piscina,zonas_verdes",familiar,"*VILLETA27* Cundinamarca 😀🏘️🎊
+Hermosa finca vacacional ubicada a 6 kilometros del parque principal de villeta. 🌳🌟
+- 4 habitaciones, 1 hab con aire acondicionado.
+- 4 baños
+- Cocina completamente dotada
+- Amplias zonas...",https://drive.google.com/drive/folders/1y4QVXFLBrQuZOiabC4245zgNxZf7vVvO,,,0,92,VILLETA #27,VILLETA,10,2200000,2500000,2700000,4,SI,"Acomodación VT27 villeta27
+- Habitación 1: 2 camas dobles, aire acondicionado y baño 
+- Habitación 2: 1 cama doble 1 cama sencilla 
+- Habitación 3: 1 cama doble 1 cama sencilla 
+- Habitación 4: 3 camas sencillas con ventilador sin baño 
+Habitaciones 2 y 3 comparten baño",PLAN FAMILIAR,"*VILLETA27* Cundinamarca 😀🏘️🎊
+Hermosa finca vacacional ubicada a 6 kilometros del parque principal de villeta. 🌳🌟
+- 4 habitaciones, 1 hab con aire acondicionado.
+- 4 baños
+- Cocina completamente dotada
+- Amplias zonas verdes
+- BBQ 
+- parque infantil 
+- Parqueadero
+- Terraza
+- Piscina y jacuzzi
+Moderna y familiar",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#29,LUGO,Villeta,Villeta,true,90,10,2,,1600000,0,,false,"empleada,mirador,parqueadero,piscina,zonas_verdes",familiar,"*Villeta29*
+3 habitaciones
+Zonas verdes 
+Lujosa 
+Piscina 
+Jacuzzy 
+Mirador 
+Parqueadero 
+Requiere empleada de servicio",https://drive.google.com/drive/folders/1zvuoFc5mWVHlZCSZmo8Q9qaffd5RoWQG,,,0,93,VILLETA #29,VILLETA,9,,,,3,Si,,PLAN FAMILIAR,"*Villeta29*
+3 habitaciones
+Zonas verdes 
+Lujosa 
+Piscina 
+Jacuzzy 
+Mirador 
+Parqueadero 
+Requiere empleada de servicio",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#30,LUGO,Villeta,Villeta,true,91,18,2,,3200000,0,,false,"bbq,empleada,jacuzzi,parqueadero,piscina,wifi,zonas_verdes",familiar,"*VILLETA30 (cundi)* 🥳🏊🏻
+Exclusiva finca vacacional! 🏘️🥳 
+- 5 habitaciones con baño Privado
+- Terraza
+- Sala
+- Comedor
+- Cocina completamente Dotada
+- Amplias zonas verdes
+- BBQ
+- Parqueadero
+- Vista espectacular 
+-...",https://drive.google.com/drive/folders/1idnQVdYH_ltXiT3nMPfhUD6BxRUPQDqu,,,0,94,VILLETA #30,VILLETA,15,3700000,4200000,4800000,5,SI 2,,PLAN FAMILIAR,"*VILLETA30 (cundi)* 🥳🏊🏻
+Exclusiva finca vacacional! 🏘️🥳 
+- 5 habitaciones con baño Privado
+- Terraza
+- Sala
+- Comedor
+- Cocina completamente Dotada
+- Amplias zonas verdes
+- BBQ
+- Parqueadero
+- Vista espectacular 
+- WIFI
+- Piscina
+- Jacuzzi
+PRIVADA Y ENCANTADORA 
+Requiere empleada de servicio 
+✨🏊💥🔥🎉🏘️",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLETA_#31,LUGO,Villeta,Villeta,true,92,15,2,,1700000,0,,false,"cancha,empleada,parque_infantil,parqueadero,ping_pong,piscina,tenis,wifi,zonas_verdes",familiar,"*VILLETA31* 💥✨
+Hermosa finca vacacional ubicada a solo 3 kilometros del parque principal de villeta dentro de condominio . 👌🏡 
+- 4 habitaciones
+- 5 baños
+- Sala 
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas...",https://drive.google.com/drive/folders/1nliiA7UBYq5KyM_OWfS1tC4N2kOMw9Th,,,0,95,VILLETA #31,VILLETA,15,2000000,2200000,2400000,4,SI,"Acomodación VT31 Villeta31
+Habitacion 1 
+2 camas dobles 1 sencilla 5 px
+Habitación 2 
+1 cama semidoble 2 px
+Habitacion 3 
+2 camas dobles 4 px
+Habitacion 4 
+2 camas dobles 4 px",PLAN FAMILIAR,"*VILLETA31* 💥✨
+Hermosa finca vacacional ubicada a solo 3 kilometros del parque principal de villeta dentro de condominio . 👌🏡 
+- 4 habitaciones
+- 5 baños
+- Sala 
+- Comedor
+- Cocina completamente dotada
+- Amplias zonas verdes
+- Terrazas
+- Hermosa vista
+- WIFI
+- Culumpios 
+- Bolirana 
+- Mesa de ping pong 
+- Saltarin 
+- Horno artesanal 
+- juegos de mesa 
+- Parrilla
+- Parqueadero
+- Piscina
+Requiere empleada de servicio
+Dentro del condominio se encuentran senderos ecológicos, áreas sociales, Kiosko, parque infantil, piscinas comunales, Cancha de baloncesto y cancha de tenis. 
+😃🤩🎊💥✨",jonathan lugo,+573005332220,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+ANTIOQUIA,,Antioquia,Antioquia,false,93,,,,,,,false,,descanso,,,,,,96,ANTIOQUIA,ANTIOQUIA,,,,,,,,,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+SANTAFE_#02,OASIS MEDITERRANEO,Antioquia,Santa Fe de Antioquia,true,94,70,2,,,0,110000,false,"bbq,empleada,piscina,wifi,zonas_verdes",descanso,"Maravillosa finca con amplios espacios ubicada en Santa fe de Antioquía, Capacidad 60 personas, 12 Habitaciones , 15 Baños, Cocina equipada, BBQ , Piscina muy grande , Jacuzzy climatizado, Kiosko, TV, WiFi, Balcón con...",https://drive.google.com/drive/folders/1V15qXsSIdtesf7CNk8Y-JAkaXA-_Dw2-,Sara Uribe,+573234220765,0,97,SANTAFE #02,SANTAFE,40,140000,150000,160000,15,SI,"🏠 Nivel 1
+Habitación 1 (6 personas)
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+Habitación 2 (6 personas)
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+Habitación 3 (6 personas)
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+Habitación 4 (6 personas)
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+Habitación 5 (5 a 6 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama king
+ • 2 personas – Cama king
+Baño social
+ • Baño medio (sin ducha)
+⸻
+🏠 Nivel 2
+Habitación 6 (3 a 4 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama king
+Habitación 7 (9 a 10 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama king
+ • 2 personas – Cama king
+Habitación 8 (6 a 8 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama doble
+ • 2 personas – Cama king
+Habitación 9 (8 a 10 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama king
+Habitación 10 (9 a 10 personas)
+ • 1 a 2 personas – Cama semidoble
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble
+ • 2 personas – Cama king
+ • 2 personas – Cama king
+Habitación 11 (4 personas)
+ • 2 personas – Cama doble
+ • 2 personas – Cama doble",EXCLUSIVA,"Maravillosa finca con amplios espacios ubicada en Santa fe de Antioquía, Capacidad 60 personas, 12 Habitaciones , 15 Baños, Cocina equipada, BBQ , Piscina muy grande , Jacuzzy climatizado, Kiosko, TV, WiFi, Balcón con una hermosa vista, excelentes acabados, Muchas zonas verdes muy amplias",,,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+SANTAFE_#03,ANTIGUA 41,Antioquia,Santa Fe de Antioquia,true,95,20,2,,2300000,0,,false,"bbq,empleada,jacuzzi,piscina,wifi",descanso,"Maravillosa finca ubicada en Santa Fe, ven y disfruta de uno de los pueblos mas bonitos de Colombia, 6 habitaciones, 6 baños, cocina equipada, TV, Wifi, piscina , jacuzzi climatizado, Kiosko, BBQ",https://drive.google.com/drive/folders/1Pk0wnuZXfr5T6TC3m2G5CpIu-HmHXQxF,,,0,98,SANTAFE #03,SANTAFE,15,2700000,2900000,3200000,6,SI,"Distribución de habitaciones sf03
+Habitación 1 Cama doble - 2
+Habitación 2 Cama doble - 2
+Habitación 3 Cama doble - 2
+Habitación 4 Cama doble - 2
+Habitación 5 Cama semidoble - 1 Cama doble - 2
+Habitación 6 Litera sencilla - 2 Litera sencilla - 2 Cama doble",CAMPESTRE,"Maravillosa finca ubicada en Santa Fe, ven y disfruta de uno de los pueblos mas bonitos de Colombia, 6 habitaciones, 6 baños, cocina equipada, TV, Wifi, piscina , jacuzzi climatizado, Kiosko, BBQ",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#06,ABUDABI/ANTIGUA44,Antioquia,Santa Fe de Antioquia,true,96,20,2,,2200000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina",descanso,"Espectacular finca para un descanso soñado en SantaFe Antioquía, con capacidad para 20 personas, 5 habitaciones , Aire Acondicionado, Piscina, Jacuzzi, Totalmente Privada, A tan solo 2 minutos del pueblo",https://drive.google.com/drive/folders/1laNUaETu67gTtz688p8zYOXI4kX5WDYE,Vanesa Pelaez,+573246545434,0,99,SANTAFE #06,SANTAFE,15,2600000,2900000,3200000,5,SI,"Sf06 Acomodacion 
+Hab 1 dos camas dobles - 1 nido
+Hab 2 dos camas dobles - 1 nido
+Hab 3 dos camas dobles - 1 nido
+Hab 4 dos camas dobles 
+Hab 5 cama doble",EXCLUSIVA,"Espectacular finca para un descanso soñado en SantaFe Antioquía, con capacidad para 20 personas, 5 habitaciones , Aire Acondicionado, Piscina, Jacuzzi, Totalmente Privada, A tan solo 2 minutos del pueblo",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#08,LOS CEDROS39,Antioquia,Santa Fe de Antioquia,true,97,35,2,,3500000,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,piscina,wifi",familiar,"Finca ideal para unas vacaciones en familia en SantaFe Antioquia, 6 habitaciones , Aire acondicionado, Kiosko, Piscina, Jacuzzi, Bbq, Wifi, Espectacular",https://drive.google.com/drive/folders/1ToW0Ry7bWsN_XCRa2Ue1yvVfyfWN2B_l,,,0,100,SANTAFE #08,SANTAFE,20,3900000,4200000,4700000,6,SI,"Acomodación Santa Fe08 SF08
+Hab 1 2 dobles 1 sencilla
+Hab 2 2 dobles 2 sencillas
+Hab3 1 cama doble 3 sencillas
+Hab4 2 cama dobles 2 sencillas
+Hab5 2 camas dobles 
+Hab 6 3 camas dobles 1 sencilla",PLAN FAMILIAR,"Finca ideal para unas vacaciones en familia en SantaFe Antioquia, 6 habitaciones , Aire acondicionado, Kiosko, Piscina, Jacuzzi, Bbq, Wifi, Espectacular",Emilse Gaibao,+573206991411,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#09,CEIBA VERDE,Antioquia,Santa Fe de Antioquia,true,98,14,2,,1600000,0,,false,"bbq,empleada,piscina,wifi",familiar,"Ven y disfruta de esta espectacular finca con tus amigos o tu familia, esta ubicada en SantaFe Antioquia, dispone de 3 comodas habitaciones, 2 baños privados, Tv, Piscina, BBQ, NO WIFI, NO TV",https://drive.google.com/drive/folders/1UFsIhFPWLMdg_RyXt5HssIE39YT44ZYu,Juan Acosta,+573104695132,0,101,SANTAFE #09,SANTAFE,10,1900000,2000000,2400000,3,SI,"*Acomodación santafe09 SF09*
+Habitación 1 
+2 camas dobles con nido doble.
+Habitación 2 
+1 cama doble con nido doble 
+Habitación 3 
+1 cama doble con nido doble y sofá cama sencillo.
+Todas las habitaciones con aire acondicionado",PLAN FAMILIAR,"Ven y disfruta de esta espectacular finca con tus amigos o tu familia, esta ubicada en SantaFe Antioquia, dispone de 3 comodas habitaciones, 2 baños privados, Tv, Piscina, BBQ, NO WIFI, NO TV",Omaira,+573127611433,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#10,VILLA JADE,Antioquia,Santa Fe de Antioquia,true,99,15,2,,2000000,0,,false,"aire_acondicionado,empleada,jacuzzi,mirador,piscina,turco",familiar,"Sal de la rutina en una de nuestras fincas. Ubicada en SantaFe Antioquia, cuenta con un total de 5 habitaciones amobladas, Aire acondicionado, Implementos de cocina, Piscina, Jacuzzi, Turco, Mirador espectacular, Zonas...",https://drive.google.com/drive/folders/1-WoPWsq4RLro9vC7_Gf2O1Rfqwn9eB8c,,,0,102,SANTAFE #10,SANTAFE,10,2500000,2900000,3500000,5,SI,"*cuenta con dos habitaciones en el primer piso*
+Acomodacion santafe10 
+Habitación 1: 1 cama doble, 1 cama individual con 1 nido
+Hab 2: 1 cama doble, 1 cama semidoble con 1 Nido.
+Hab 3: 1 cama king con 1 individual, 
+Hab 4: 1 cama king 
+Hab 5 (principal) 1 cama king",PLAN FAMILIAR,"Sal de la rutina en una de nuestras fincas. Ubicada en SantaFe Antioquia, cuenta con un total de 5 habitaciones amobladas, Aire acondicionado, Implementos de cocina, Piscina, Jacuzzi, Turco, Mirador espectacular, Zonas abiertas, Tv, Sonido, Privacidad TOTAL!!!",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#15,FORTICH,Antioquia,Santa Fe de Antioquia,true,100,30,2,,3500000,0,,false,"empleada,jacuzzi,piscina,wifi,zonas_verdes",familiar,"*SANTAFE15* ⭐🤩
+6 Habitaciones
+Piscina
+Jacuzzi
+Wifi
+Tv
+Zonas verdes
+Una planta.
+Requiere empleada de servicio",https://drive.google.com/drive/folders/1jbHSVDtAoH0-21VsLTooRsx68CmQIvhM,,,0,103,SANTAFE #15,SANTAFE,20,3900000,4200000,4500000,6,SI,,FAMILIA,"*SANTAFE15* ⭐🤩
+6 Habitaciones
+Piscina
+Jacuzzi
+Wifi
+Tv
+Zonas verdes
+Una planta.
+Requiere empleada de servicio",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#17,,Antioquia,Santa Fe de Antioquia,false,101,25,,,3500000,,,false,"aire_acondicionado,empleada,jacuzzi,piscina,rio,wifi,zonas_verdes",familiar,"🤩 *Santafe17* 🤩
+Propiedad Totalmente Exclusiva.🥳🥳
+- 04 habitaciones 
+- Baño privado
+- Aire acondicionado 
+- Piscina 
+- Jacuzzi 
+- Zona lounge exterior
+- Wifi
+- Tv
+- Zonas verdes 
+Requiere empleada de servicio",https://drive.google.com/drive/folders/1PP2vJA0lG3tkXY8j-FxiKg1JknHComsp,,,,104,SANTAFE #17,SANTAFE,20,3900000,4300000,4500000,4,SI,,FAMILIA,"🤩 *Santafe17* 🤩
+Propiedad Totalmente Exclusiva.🥳🥳
+- 04 habitaciones 
+- Baño privado
+- Aire acondicionado 
+- Piscina 
+- Jacuzzi 
+- Zona lounge exterior
+- Wifi
+- Tv
+- Zonas verdes 
+Requiere empleada de servicio",,,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+SANTAFE_#20,PALMAR DEL CAUCA,Antioquia,Santa Fe de Antioquia,true,102,25,2,,2800000,0,,false,"aire_acondicionado,bbq,empleada,parque_infantil,wifi",familiar,"Santafe20
+Ubicada en Parcelación 
+5 habitaciones 
+Baño privado
+Aire acondicionado 
+Bbq
+Micro Footbol 
+Saltarín
+Parque infantil 
+WiFi
+TV
+Requiere empleadas de servicio",https://drive.google.com/drive/folders/1z77MfIli3fbPYm1nfTGlkQvMXwoFsDYK,,,0,105,SANTAFE #20,SANTAFE,20,3500000,3900000,4200000,5,SI 2,"Acomodación Sf20
+Habitación 1: 4 camas Dobles con baño ( Aire acondicionado y ventilador )
+Habitación 2: 1 cama doble y 1 cama individual con baño ( Aire acondicionado )
+Habitación 3: 4 camas dobles con baño ( Aire acondicionado y ventilador )
+Habitación 4: 2 camarotes dobles y 2 nidos individuales con baño ( Aire acondicionado y ventilador )
+Habitación 5: 1 cama king",FAMILIA,"Santafe20
+Ubicada en Parcelación 
+5 habitaciones 
+Baño privado
+Aire acondicionado 
+Bbq
+Micro Footbol 
+Saltarín
+Parque infantil 
+WiFi
+TV
+Requiere empleadas de servicio",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+GUATAPE_#01,,Antioquia,Guatape,false,103,20,,,2600000,,,false,"bbq,empleada,piscina,wifi",familiar,"Guatape01
+3 habitaciones 
+2 habitaciones 2 camas dobles c/u
+1 habitación 5camas dobles
+Piscina
+Muelle
+Bbq
+Wifi
+Jet skyes Opciónal de pago
+Lancha Opcional de pago",https://drive.google.com/drive/folders/1byZASMxrZX8Xb_bxnvX03QD-cgVYZCc-,,,,106,GUATAPE #01,GUATAPE,15,3200000,3500000,3700000,3,SI,"Acomodacion Guatape01 
+3 habitaciones
+2 habitaciones 2 camas dobles c/u
+1 habitación 5camas dobles",PLAN FAMILIAR,"Guatape01
+3 habitaciones 
+2 habitaciones 2 camas dobles c/u
+1 habitación 5camas dobles
+Piscina
+Muelle
+Bbq
+Wifi
+Jet skyes Opciónal de pago
+Lancha Opcional de pago",,,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+SOPETRAN_#01,VILLA PAZ,Antioquia,Sopetran,true,104,15,2,,1700000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina,wifi",familiar,"Espectacular Finca en SopeTRAN #, ven a disfrutar con tu familia o amigos, a tan solo 10 minutos del pueblo, dispone de 4 habitaciones baño privado, Aire acondicionado, Tv, Wifi, Piscina, Jacuzzi climatizado, Solarium,...",https://drive.google.com/drive/folders/1t45A58S9MWQApqqMKdsN5Z_ZwWmFnwLd,Karina de los Rios,+573153316766,0,107,SOPETRAN #01,SOPETRAN,10,1900000,2100000,2500000,5,SI,"Acomodacion SP01
+ 
+▪ Cocina dotada (horno y horno microondas).
+▪ Comedor familiar.
+▪ comedor exterior. 
+▪ Sonido. 
+▪ 1 Enfriador botellero.
+▪ 1 nevera.
+▪ Sala star.
+▪ Sala tv amoblada y con juegos de mesa. 
+▪ Kiosco BBQ.
+▪ Kiosco piscina.
+▪ 1 baño social
+▪ 2 ventiladores exteriores.
+▪ Zona de lavadoras.
+▪ Sonido
+▪ Ranita.
+▪ zona de gym.
+▪ wifi, Netflix, DirecTV.
+▪ Zona de broceado.
+▪ Sillas de bronceo.
+▪ juegos de mesa.
+▪ Zona de camping.
+▪ parqueadero amplio hasta para 9 autos.
+*HABITACION 1*
+▪ 2 camas dobles.
+▪ 1 cama sencilla. 
+▪ Aire acondicionado 
+▪ Baño privado.
+*HABITACION 2*
+▪ 1 cama doble.
+▪ 2 camas sencillas. 
+▪ Aire acondicionado
+▪ Baño privado.
+*HABITACION 3*
+▪ 1 cama doble.
+▪ 2 camas sencillas. 
+▪ Aire acondicionado.
+▪ Baño privado.
+▪ Smart TV.
+*HABITACION 4*
+▪ 2 camarotes semidobles. 
+▪ Aire acondicionado.
+▪ Baño privado.
+▪ Smart TV.
+*HABITACION PRINCIPAL*
+▪ Con terraza. 
+▪ 1 Cama doble. 
+▪ 1 Sofá cama. 
+▪ Aire acondicionado.
+▪ Baño privado amplio.
+▪ Smart TV grande.
+▪Ubicada en Sopetrán.
+▪A solo 10 minutos del parque principal",PLAN FAMILIAR,"Espectacular Finca en SopeTRAN #, ven a disfrutar con tu familia o amigos, a tan solo 10 minutos del pueblo, dispone de 4 habitaciones baño privado, Aire acondicionado, Tv, Wifi, Piscina, Jacuzzi climatizado, Solarium, Zona camping",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SOPETRAN_#02,SAN JOSE DEL PALMAR,Antioquia,Sopetran,true,105,25,2,,2800000,0,,false,"bbq,empleada,mirador,piscina,wifi,zonas_verdes",fiesta,"Sopetran02 SP02
+Antioquia 
+🤩😃👏🔥🫱🏻‍🫲🏼🥳🌟🏕️⛱️
+5 habitaciones
+Wifi 
+Piscina
+Kiosko
+Mirador espectacular 
+Bbq
+A 5 min del Pueblo
+Zonas verdes
+Ganadería 
+Tarifa: *$3.700.000/ noche*",https://drive.google.com/drive/folders/1nN8pewRf_aRVClekz3fI_lU7iJmdRqqv,Socorro Agudelo,+573155541138,0,108,SOPETRAN #02,SOPETRAN,20,3400000,3600000,3900000,5,SI,"*Acomodación SP02 sopetran02*
+Habitación 1
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(6 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 4
+(6 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+Baño completo",PERMITE FIESTA CONTROLADA,"Sopetran02 SP02
+Antioquia 
+🤩😃👏🔥🫱🏻‍🫲🏼🥳🌟🏕️⛱️
+5 habitaciones
+Wifi 
+Piscina
+Kiosko
+Mirador espectacular 
+Bbq
+A 5 min del Pueblo
+Zonas verdes
+Ganadería 
+Tarifa: *$3.700.000/ noche*",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SOPETRAN_#03,PARCELACION CENTROAMERICA,Antioquia,Sopetran,true,106,20,2,,2000000,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,piscina,wifi",familiar,"Hora de unas vacaciones en una de nuestras fincas en SopeTRAN #, dispone de 5 habitaciones, Baño privado, Piscina, Piscina infantil, Jacuzzi, Bbq, Aire Acondicionado, Wifi, Tv, Football",https://drive.google.com/drive/folders/1yBNaVLkG_EWmUHMrc_3HKhVJX6JrWhcq,Sandra Corrales,+573202624041,0,109,SOPETRAN #03,SOPETRAN,15,2400000,2600000,2900000,4,SI,"Acomodacion SP03
+25 personas
+Habitaciones 
+Primer piso 1
+2 camas dobles
+2 camarotes 
+Segundo piso 
+Habitación 1
+1 cama doble 
+2 camarotes
+Habitación 2
+1 cama doble 
+3 camarotes
+Habitación 3
+1 cama doble 
+2 camarotes 
+Todas las habitaciones tienen baño privado aire acondicionado 
+Jacuzzy 
+Kiosko para eventos 
+BBQ",PLAN FAMILIAR,"Hora de unas vacaciones en una de nuestras fincas en SopeTRAN #, dispone de 5 habitaciones, Baño privado, Piscina, Piscina infantil, Jacuzzi, Bbq, Aire Acondicionado, Wifi, Tv, Football",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SOPETRAN_#20,,Antioquia,Sopetran,false,107,70,,,,,130000,false,"aire_acondicionado,bbq,billar,empleada,jacuzzi,piscina",familiar,"Sopetran20 
+Maravillosa finca ubicada entre Sopetaran y Santa Fe, cuenta con:
+- 12 Habitaciones
+- Baño Privado y Aire Acondicionado
+- Piscina
+- Jacuzzi
+- Kiosko
+- Parrilla 
+- ⁠BBQ
+- ⁠Billar
+- ⁠Billar pool
+- ⁠Salon de...",https://drive.google.com/drive/folders/1Gg7Z1ORHCq6T7wlimI8kku988r1xtAE1,,,,110,SOPETRAN #20,SOPETRAN,40,130000,160000,160000,10,SI,,PLAN FAMILIAR,"Sopetran20 
+Maravillosa finca ubicada entre Sopetaran y Santa Fe, cuenta con:
+- 12 Habitaciones
+- Baño Privado y Aire Acondicionado
+- Piscina
+- Jacuzzi
+- Kiosko
+- Parrilla 
+- ⁠BBQ
+- ⁠Billar
+- ⁠Billar pool
+- ⁠Salon de eventos
+- Maravillosa! 
+- ⁠Mantenimiento 10/10
+Requiere empleadas de servicio",,,por_persona,INCOMPLETE,falta nombre; tarifa origen en formato por persona
+SAN_JERONIMO_#01,ORFA,Antioquia,San Jeronimo,true,108,25,2,,2900000,0,,false,"aire_acondicionado,billar,cancha,empleada,parqueadero,piscina,sauna,turco,zonas_verdes",familiar,"Espectacular fina en San Jeronimo uno de los pueblitos magicos de Antioquia, dispone de 6 habitaciones con baño, parqueadero, zonas verdes, Aire acondicionado, Piscina, Billar, Sauna turco y Cancha de footbal",https://drive.google.com/drive/folders/1gJc7wzh-vpufIpFwK4NbsKgs0LsYglS0,,,0,111,SAN JERONIMO #01,SAN JERONIMO,20,3500000,3900000,4300000,6,SI,"Acomodación San jeronimo01
+Hab 1 cama doble baño aire 2 px
+Hab 2 2 camarotes 1,40 y 1,20 10px
+Hab 3 cama doble 2px
+Hab 4 cama doble y nido 3px
+Hab 5 cama doble 2 px
+Hab 6 cama doble camarote doble 6px
+Hab auxiliar camarote metro 2px",FAMILIAR EXCLUSIVA,"Espectacular fina en San Jeronimo uno de los pueblitos magicos de Antioquia, dispone de 6 habitaciones con baño, parqueadero, zonas verdes, Aire acondicionado, Piscina, Billar, Sauna turco y Cancha de footbal",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+SAN_JERONIMO_#06,CASAS BLANCAS,Antioquia,San Jeronimo,true,109,14,2,,2000000,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,mirador,piscina,wifi",descanso,"San Jerónimo06, Antioquía 
+😃🤩🫱🏻‍🫲🏼🥳🌟👏
+4 habitaciones 
+Aire acondicionado 
+Piscina
+Jacuzzi climatizado
+Salón
+Zona verde
+Bbq 
+Wifi
+Mirador espectacular 
+10 min de San Jerónimo",https://drive.google.com/drive/folders/1Emae2mqqqerYKBUUIEqAkHL31YftlfBQ,,,0,112,SAN JERONIMO #06,SAN JERONIMO,10,2500000,2800000,3300000,4,SI,"Acomodación SJ06 San Jerónimo06
+Hab 1 1 cama King 
+Hab 2 2 camas dobles 
+Hab 3 2 camas dobles con 1 cama individual 
+Hab 4 dos camas dobles",PLAN FAMILAR,"San Jerónimo06, Antioquía 
+😃🤩🫱🏻‍🫲🏼🥳🌟👏
+4 habitaciones 
+Aire acondicionado 
+Piscina
+Jacuzzi climatizado
+Salón
+Zona verde
+Bbq 
+Wifi
+Mirador espectacular 
+10 min de San Jerónimo",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+PEREIRA_#10,EL PARAÍSO,Eje cafetero,Pereira,true,110,29,2,,2700000,0,,false,"bbq,cancha,empleada,jacuzzi,piscina,wifi",familiar,"Finca el paraiso esta ubicada a 15 min de pereira y a tan solo 1 minuto de la poblacion de altagracia, en medio del eje cafetero, con todos los servicios para unas vacaciones increibles, con una vista espectacular en la...",https://drive.google.com/drive/folders/1eVwiD8gRcfgoz2jW1__RDHkE3nwxwPlT,,,0,113,PEREIRA #10,PEREIRA,10,3200000,3400000,3700000,7,SI,"acomodacion pe10
+Hab 1: 1 camarote simidoble y cama individual
+Hab 2: 2 camarotes semindobles 1 cama individual y 1 baño 
+Hab 3: cama King y 1 baño 
+Hab 4: cama King y 1 baño 
+Hab 5: cama King y cama individual y 1 baño 
+Hab 6: 2 camas dobles y 1 baño
+Hab 7: 1 cama doble y 1 baño",PLAN FAMILIAR,"Finca el paraiso esta ubicada a 15 min de pereira y a tan solo 1 minuto de la poblacion de altagracia, en medio del eje cafetero, con todos los servicios para unas vacaciones increibles, con una vista espectacular en la cual se asoma los departamentos de risaralda, quindio y valle del cauca.
+Capacidad: 25 personas, 7 Habitaciones, 1 Cabaña, 6 Baños, Piscina, Jacuzzi, Cancha múltiple, Wifi, TV, Cocina abierta, BBQ , FOGON DE LEÑA, Animales exóticos",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO,,Villavicencio,Villavicencio,false,111,,,,,,,false,,descanso,,,,,,114,VILLAVICENCIO,VILLAVICENCIO,,,,,,,,,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+VILLAVICENCIO_#2,LA ESTACION,Villavicencio,Villavicencio,true,112,22,2,,2300000,0,,false,"bbq,empleada,parque_infantil,ping_pong,piscina,sauna,zonas_verdes",familiar,"*Villavicencio02* 😃🤩
+7 habitaciones 
+Piscina
+Kiosko
+Bbq
+Sauna 
+Ping pong
+Bbq
+Parque infantil
+Zonas verdes",https://drive.google.com/drive/folders/1g2SyRwZrfeeE5Tz-rMyjFx9VZfmbhvZC?usp=drive_link,Jorge Mesa,+573134241044,0,115,VILLAVICENCIO #2,VILLAVICENCIO,15,2600000,3300000,3500000,7,SI,"Acomodación vv02 villavicencio02
+Habitacion 1 - 2 camas dobles 
+Habitacion 2 - 2 camas dobles 
+Habitacion 3 - 2 camas dobles 
+Habitacion 4 - 2 camas dobles 
+Habitacion 5 a 2 camas dobles 
+Habitacion 6 - 2 camas dobles- Sofacama 
+Habitacion 7 - 1 camarote triple",PLAN FAMILIAR,"*Villavicencio02* 😃🤩
+7 habitaciones 
+Piscina
+Kiosko
+Bbq
+Sauna 
+Ping pong
+Bbq
+Parque infantil
+Zonas verdes",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO_#4,LOS COLORES,Villavicencio,Villavicencio,true,113,16,2,,1800000,0,,false,"aire_acondicionado,empleada,jacuzzi,piscina,wifi",familiar,"*Villavicencio04* 😃🤩
+5 habitaciones 
+Aire acondicionado 
+Wifi
+Piscina
+Jacuzzi
+Tv
+20 minutos de Villavicencio 
+Atracciones
+Senderos
+Ciclo rutas",https://drive.google.com/drive/folders/1yd94NYt2J40__0zUZ36MRa8LLoBJeoAA?usp=drive_link,,,0,116,VILLAVICENCIO #4,VILLAVICENCIO,10,2000000,2300000,2800000,5,SI,"Acomodación Villavicencio04
+Hab1- cama doble-cama auxiliar semi doble y baño
+Hab2-cama doble-cama auxiliar semi doble y baño
+Hab3-cama doble-cama auxiliar semi doble y baño
+Hab4-cama doble-cama auxiliar semi doble y baño
+Hab5-cama doble cama auxiliar y baño",PLAN FAMILIAR,"*Villavicencio04* 😃🤩
+5 habitaciones 
+Aire acondicionado 
+Wifi
+Piscina
+Jacuzzi
+Tv
+20 minutos de Villavicencio 
+Atracciones
+Senderos
+Ciclo rutas",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO_#5,TRES SOLES,Villavicencio,Villavicencio,true,114,25,2,,2700000,0,,false,"aire_acondicionado,bbq,billar,empleada,jacuzzi,mirador,piscina,wifi",familiar,"*VILLAVICENCIO05*
+TRES SOLES
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- 6 Habitaciones 🛏️🛏️
+- 6 Baños🚽
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire...",https://drive.google.com/drive/folders/1sT8sUBFMNB5i8gjkq8MuOcWCbtQPEjYC?usp=drive_link,Johana Rojas,+573118055858,0,117,VILLAVICENCIO #5,VILLAVICENCIO,20,2900000,3200000,3700000,6,SI,"ACOMODACIÓN VV05
+* Habitación 1 
+cama king- sofacama doble 
+* Habitación 2 
+2 camas dobles y sofá cama
+* Habitacion 3
+3 camas sencillas y sofacama 
+* Habitacion 4
+2 camas dobles y sofacama
+* Habitacion 5
+2 camas dobles y sofacama doble
+* Habitacion 6
+Cama queen y sofacama doble
+* Estudio sofá cama doble
+* ⁠salón con sofacama doble 
+* todas las habitaciones, cuentan con baño, privado y Aire Acondicionado, clóset 
+Billar, Ping pong, Bolirana, tejo, Volley ball, parques, Ajedrez","PLAN FAMILIAR, CONDOMINIO","*VILLAVICENCIO05*
+TRES SOLES
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- 6 Habitaciones 🛏️🛏️
+- 6 Baños🚽
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire acondicionado 💨
+-Mirador 🖼️
+-Wifi📡
+-Tv 📺
+- Kiosko 🛕
+- Zona asado llanero 🥩
+- BBQ ♨️
+- Zona de billar 🎱
+*Todas las habitaciones cuentan con baño privado, Aire y Tv*🤩",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO_#8,EL PORVENIR,Villavicencio,Villavicencio,true,115,20,2,,2000000,0,,false,"aire_acondicionado,bbq,cancha,empleada,mirador,piscina,wifi",familiar,"*VILLAVICENCIO08* meta 🥳🤩
+FINCA PRIVADA EL PORVENIR
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- 5 Habitaciones 🛏️🛏️
+- 5 Baños🚽
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Aire...",https://drive.google.com/drive/folders/1mlwfbWvXYbCTq1S41phENF4unuQ6v13s?usp=drive_link,,,0,118,VILLAVICENCIO #8,VILLAVICENCIO,15,2300000,2600000,3000000,5,SI,"*Acomodación Villavicencio08*
+Finca porvenir 
+Hab 1 cama doble. 2 sencillas baño privado aire tv
+Hab 2 1 doble Camarote sencillo aire y tv 
+Hab 3 “”””””””””
+Baño compartido
+Hab 4. 1 doble 2 sencillas tv baño privado aire
+Hab 5 cama king cama se silla tv baño privado ventilador techo y pared 
+Toallas mano y cuerpo
+*Capacidad 21 personas y 4 personas en sommiers*
+Parque infantil 
+Cancha volleyball
+Mini tejo 
+Microfutbol 
+Mesa pimpón 
+BBQ 
+Fogón leña",PLAN FAMILIAR,"*VILLAVICENCIO08* meta 🥳🤩
+FINCA PRIVADA EL PORVENIR
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- 5 Habitaciones 🛏️🛏️
+- 5 Baños🚽
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Aire acondicionado 💨
+- Mirador 🖼️
+- Wifi📡
+- Tv 📺
+- Fogón se leña 🪵
+- BBQ ♨️
+- Sonido 📻
+- Paque infantil🎡🛝
+- Cancha de voleibol 🏐
+- Mini Tejo 🥏
+- Mesa de PingPong 🏓
+- Cancha de microfútbol ⚽
+*Toallas de mano y cuerpo*🤩
+- Espectacular🏡🏕️🌴💐",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO_#20,SAN MATEO,Villavicencio,Villavicencio,true,116,40,2,,4300000,0,,false,"aire_acondicionado,bar,bbq,billar,cancha,empleada,jacuzzi,parqueadero,ping_pong,piscina,wifi,zonas_verdes",familiar,"*VILLAVICENCIO20*
+🤩👏🏻🥳⚡🌟☀️👨‍👩‍👧‍👦🙏🏻😃🏕️
+Estamos ubicados a 3.5 kms del corredor ecológico de villavicencio, entrando por la chevrolet del anillo vial.
+La finca incluye: 
+- piscina 💦
+- jacuzzi 💦
+- 3 salas estar 🍃
+- zona...",https://drive.google.com/drive/folders/1O8jYvyNcBn5lgxbZSal-XUqfcQsf30FG?usp=drive_link,,,0,119,VILLAVICENCIO #20,VILLAVICENCIO,20,4500000,4900000,5800000,8,SI,,PLAN FAMILIAR,"*VILLAVICENCIO20*
+🤩👏🏻🥳⚡🌟☀️👨‍👩‍👧‍👦🙏🏻😃🏕️
+Estamos ubicados a 3.5 kms del corredor ecológico de villavicencio, entrando por la chevrolet del anillo vial.
+La finca incluye: 
+- piscina 💦
+- jacuzzi 💦
+- 3 salas estar 🍃
+- zona bbq🍖( parrilla, barril, móvil) 
+- cancha futbol ⚽️
+- voleyplaya🏐
+- salón eventos
+- cocina equipada 
+- zona de bodegaje 
+- parqueadero 16 vehículos aproximadamente 
+- cancha tejo 
+- zona hamacas 
+- zona snack bar 
+- sala de TV 
+- 8 habitaciones equipadas con aire acondicionado
+- sala de juegos ( billar, bolirana, ping pong, rana, parques, juegos de mesa) con aire acondicionado 
+- wifi en toda la propiedad
+- zonas verdes",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO,EL CAPRICHO,Villavicencio,Villavicencio,true,117,16,2,,1900000,0,,false,"empleada,parqueadero,piscina",familiar,"CAPRICHO
+Villavicencio50
+La quinta cuenta con 4 habitaciones: 2 habitaciones cama king baño privado y ventilador de techo 1 habitacion duplex cama doble baño privado y ventilador de techo 
+La 4 habitacion es tipo apto...",https://drive.google.com/drive/folders/1GXMKF6VeZ9uY9ATKsUIWlb3obE0JXD85?usp=drive_link,,,0,120,VILLAVICENCIO,VILLAVICENCIO,10,2200000,2500000,2800000,4,SI,,PLAN FAMILIAR,"CAPRICHO
+Villavicencio50
+La quinta cuenta con 4 habitaciones: 2 habitaciones cama king baño privado y ventilador de techo 1 habitacion duplex cama doble baño privado y ventilador de techo 
+La 4 habitacion es tipo apto cuenta con 3 camas sencillas y una cama doble baño privado 
+Piscina 
+Cocina 
+Áreas sociales 
+Zona verde 
+Parqueadero 
+Juegos de mesa 
+Es una quinta totalmente privada",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO,LOS ABUELOS,Villavicencio,Villavicencio,true,118,16,2,,1700000,0,,false,"bar,empleada,kiosco,parqueadero,piscina",familiar,"Villavicencio, los abuelos
+😃🤩🫱🏻‍🫲🏼👌🏻🌟⛱️🥳
+5 habitaciones cómodas
+Piscina 
+Zona verde
+2 Kioscos
+Hamacas
+Mini bar
+Parqueadero 
+Propiedad privada
+Rana
+Comedor",https://drive.google.com/drive/folders/1GjZFtykVsWJtDEdDnQR2PbWTdVo88WMv?usp=drive_link,,,0,121,VILLAVICENCIO,VILLAVICENCIO,10,1900000,2300000,3200000,6,SI,"Los abuelos
+* habitacion 1 ventilador de techo camas doble
+* ⁠habitacion 2 ventilador de techo cama doble
+* ⁠habitacion 3 ventilador de techo cama doble
+* ⁠habitacion 4 ventilador de techo cama doble
+* ⁠habitacion 5-Acomodación múltiple 2 camas king 2 nidos Aire habitacion 
+* ⁠Habitacion 6-Acomodación múltiple 2 camas king 2 nidos Aire acondicionado",PLAN FAMILIAR,"Villavicencio, los abuelos
+😃🤩🫱🏻‍🫲🏼👌🏻🌟⛱️🥳
+5 habitaciones cómodas
+Piscina 
+Zona verde
+2 Kioscos
+Hamacas
+Mini bar
+Parqueadero 
+Propiedad privada
+Rana
+Comedor",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+VILLAVICENCIO,DON JULIO,Villavicencio,Villavicencio,true,119,19,2,,,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,piscina,wifi,zonas_verdes",familiar,"DON JULIO
+Villavicencio70
+6 habitaciones 
+Piscina 
+Jacuzzi
+Zonas verdes
+Bbq
+WiFi
+A 15 min de Villavicencio 
+Habitación 1 
+1 cama Queen con nido semi doble 
+Habitación 2 
+1 cama Queen con nido semi doble 
+Habitación 3
+1...",https://drive.google.com/drive/folders/1rqGEUBpjg4i-NqIl4yQpmH7HAiEmcf9y?usp=drive_link,,,0,122,VILLAVICENCIO,VILLAVICENCIO,10,,,,6,SI,"Habitación 1 
+1 cama Queen con nido semi doble 
+Habitación 2 
+1 cama Queen con nido semi doble 
+Habitación 3
+1 cama Queen con nido sencillo 
+Habitación 4 
+1 cama Queen con sofá 
+Habitación 5 
+1 cama Queen con nido sencillo 
+Habitación 6 
+una cama Queen con nido semi doble y un nido sencillo 
+Todas las habitaciones cuentan con aire acondicionado más TV",PLAN FAMILIAR,"DON JULIO
+Villavicencio70
+6 habitaciones 
+Piscina 
+Jacuzzi
+Zonas verdes
+Bbq
+WiFi
+A 15 min de Villavicencio 
+Habitación 1 
+1 cama Queen con nido semi doble 
+Habitación 2 
+1 cama Queen con nido semi doble 
+Habitación 3
+1 cama Queen con nido sencillo 
+Habitación 4 
+1 cama Queen con sofá 
+Habitación 5 
+1 cama Queen con nido sencillo 
+Habitación 6 
+una cama Queen con nido semi doble y un nido sencillo 
+Todas las habitaciones cuentan con aire acondicionado más TV
+*NUEVA PARA ESTRENAR*",,,sin_tarifa_clara,REVIEW_PRICE_MODEL,sin tarifa FDS normal usable
+VILLAVICENCIO,HOTEL,Villavicencio,Villavicencio,true,120,60,2,,,0,,false,"aire_acondicionado,bbq,empleada,jacuzzi,mirador,ping_pong,piscina,wifi,zonas_verdes",familiar,"HOTEL
+*VILLAVICENCIO55*
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- ⁠18 Habitaciones 🛏️🛏️
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire acondicionado...",https://drive.google.com/drive/folders/1OqC3zcVTMNsRdZcoiNui8a6Hwnp-9ZUP?usp=drive_link,,,0,123,VILLAVICENCIO,VILLAVICENCIO,30,,,,18,SI,,PLAN FAMILIAR,"HOTEL
+*VILLAVICENCIO55*
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- ⁠18 Habitaciones 🛏️🛏️
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire acondicionado 💨
+- Mirador 🖼️
+- Wifi📡
+- Tv 📺
+- Kiosko 🛕
+- Zona asado llanero 🥩
+- BBQ ♨️
+- ⁠zonas verdes
+- ⁠ping pong
+- ⁠15 min de Villavicencio 
+*Todas las habitaciones cuentan con baño privado*🤩
+-Espectacular🏡🏕️🌴💐",,,sin_tarifa_clara,REVIEW_PRICE_MODEL,sin tarifa FDS normal usable
+VILLAVICENCIO_#60,KIOSKO,Villavicencio,Villavicencio,true,121,50,2,,,0,100000,false,"aire_acondicionado,bbq,billar,empleada,jacuzzi,mirador,piscina,wifi",familiar,"*VILLAVICENCIO60*
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- ⁠14 Habitaciones 🛏️🛏️
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire acondicionado...",https://drive.google.com/drive/folders/19JI8d-4CO0OUReNubWstnUpAhs1FMHba?usp=drive_link,Paola,+573208563068,0,124,VILLAVICENCIO #60,VILLAVICENCIO,30,115000,120000,130000,14,SI,"*Acomodacion vv60 Villavicencio60*
+Kiosko acomodación
+9 habitaciones cama king privadas (18px)
+5 habitaciones camas king más nido semi doble (20 px)",PLAN FAMILIAR,"*VILLAVICENCIO60*
+✅ Hermosa finca vacacional ubicada en Villavicencio totalmente exclusiva 😎🤩⚡
+- ⁠14 Habitaciones 🛏️🛏️
+- Cocina equipada 🍽️
+- Piscina🏊🏻‍♀️🏊🏼‍♂️
+- Jacuzzi🛀🏽
+- agua caliente 🔥🚿
+- Aire acondicionado 💨
+-Mirador 🖼️
+-Wifi📡
+-Tv 📺
+- Kiosko 🛕
+- ⁠Footbolista
+- ⁠Rana
+- Zona asado llanero 🥩
+- BBQ ♨️
+- Zona de billar 🎱
+*Todas las habitaciones cuentan con baño privado, Aire y Tv*🤩
+-Espectacular🏡🏕️🌴💐",,,por_persona,REVIEW_PRICE_MODEL,tarifa origen en formato por persona
+EJE_CAFETERO,,Eje cafetero,Eje cafetero,false,122,,,,,,,false,,descanso,,,,,,125,EJE CAFETERO,EJE CAFETERO,,,,,,,,,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#03,NUEVO SOL,Eje cafetero,Pereira,true,123,20,2,,1700000,0,,false,"bbq,empleada,piscina,zonas_verdes",familiar,"*Pereira03* 🤩🤩🤩
+Vía Morelia, nuevo sol 
+- 5 habitaciones
+- Piscina 
+- jacuzzy
+- BBQ
+- sonido
+- Cocina Dotada 
+- Sala comedor
+- Zonas verdes",https://drive.google.com/drive/folders/1sUPdXlc7PSth9apb-qqhIOePGX5OE9Nj,,,0,126,PEREIRA #03,PEREIRA,15,2000000,2300000,2800000,5,SI,"Nivel 1 – Acomodación
+Habitación 1 (2 personas)
+ • 1 Cama Queen – para 2 personas
+⸻
+Habitación 2 (5 personas)
+ • 1 Cama Doble – 2 personas
+ • 1 Cama Queen – 2 personas
+ • 1 Sofá cama sencillo – 1 persona
+ • Baño completo
+⸻
+Habitación 3 (2 personas)
+ • 1 Cama Doble – 2 personas
+⸻
+Habitación 4 (3 – 4 personas)
+ • 1 Cama Queen – 2 personas
+ • 1 Sofá cama semidoble – 1 a 2 personas
+ • Baño completo
+⸻
+Habitación 5 (6 – 12 personas)
+ • 2 Literas semidobles – 2 a 4 personas cada una
+ • 2 Nidos semidobles – 1 a 2 personas cada uno
+⸻
+Habitación 6 (3 – 6 personas)
+ • 1 Litera semidoble – 2 a 4 personas
+ • 1 Nido semidoble – 1 a 2 personas
+⸻
+Baño Social
+ • Baño completo",PLAN FAMILIAR,"*Pereira03* 🤩🤩🤩
+Vía Morelia, nuevo sol 
+- 5 habitaciones
+- Piscina 
+- jacuzzy
+- BBQ
+- sonido
+- Cocina Dotada 
+- Sala comedor
+- Zonas verdes",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+PEREIRA_#04,,Eje cafetero,Pereira,false,124,25,,,2600000,,,false,"bbq,cancha,empleada,jacuzzi,kiosco,lago,piscina,sauna",familiar,"*Ref. Pereira04*
+🤩👏🏻🌟
+Ubicación: Morelia, Pereira
+Habitaciones: 6
+Piscina
+Jacuzzi (Climatizado de pago) 
+Sauna 
+Cancha de fútbol
+Lago de pesca
+BBQ 
+Kiosco
+Cancha de fútbol
+🤩☀️👏🏻🥳",https://drive.google.com/drive/folders/1mcthvvLoUls0-7AjRK_Cjp3_h_dM4i9U,,,,127,PEREIRA #04,PEREIRA,15,2800000,3000000,3500000,6,SI,"Habitación 1
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Cama doble
+Habitación 3
+(6 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Baño social
+ - Baño completo
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 4
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(6 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Habitación 6
+(6 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Baño social",PLAN FAMILIAR,"*Ref. Pereira04*
+🤩👏🏻🌟
+Ubicación: Morelia, Pereira
+Habitaciones: 6
+Piscina
+Jacuzzi (Climatizado de pago) 
+Sauna 
+Cancha de fútbol
+Lago de pesca
+BBQ 
+Kiosco
+Cancha de fútbol
+🤩☀️👏🏻🥳",,,paquete_fin_de_semana,INCOMPLETE,falta nombre; precio_noche_base vacio; origen trae tarifa FDS/paquete
+PEREIRA_#06,,Eje cafetero,Pereira,false,125,,,,,,,false,"bbq,cancha,empleada,jacuzzi,piscina,sauna,turco,wifi,zonas_verdes",descanso,"*Pereira06* 😃🥳😁🌟🤩
+Categoría: Premium
+Tipo: Finca privada 
+Ubicación: Morelia, Pereira
+Habitaciones: 6
+Baños: 5
+Piscina extragrande 
+Jacuzzi calefacción (pago)
+Jacuzzi cubierto hidromasaje 
+Agua caliente duchas casa...",https://drive.google.com/drive/folders/1t9gMpgdzri8aGtrgEiPQSrnm7_fA8MwP,,,,128,PEREIRA #06,PEREIRA,,,,,6,SI,"Habitación 1
+(3 - 4 Personas)
+ 1 a 2 - Cama semidoble
+ 2 - Cama doble
+Habitación 2
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 3
+(7 - 8 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+ 3 - Litera doble inferior y sencilla superior
+ - Baño completo
+Habitación 4
+(2 Personas)
+ 2 - Cama king
+Habitación 5
+(4 - 6 Personas)
+ 2 - Litera sencilla
+ 2 a 4 - Litera Semidoble
+Habitación 6
+(8 Personas)
+ 4 - Litera doble
+ 4 - Litera doble
+Habitación 7
+(1 Personas)
+ 1 - Cama sencilla",,"*Pereira06* 😃🥳😁🌟🤩
+Categoría: Premium
+Tipo: Finca privada 
+Ubicación: Morelia, Pereira
+Habitaciones: 6
+Baños: 5
+Piscina extragrande 
+Jacuzzi calefacción (pago)
+Jacuzzi cubierto hidromasaje 
+Agua caliente duchas casa principal 
+Cancha de fútbol
+Amplias zonas verdes 
+Wifi
+BBQ 
+Sauna 
+Turco 
+*No incluye: *
+Agua caliente casa auxiliar 
+Productos limpieza 
+Productos aseo personal
+Cilindro gas zona BBQ 
+Cilindro gas jacuzzi 
+Toallas.",,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#09,LA MORAVIA,Eje cafetero,Pereira,true,126,30,2,,3200000,0,,false,"billar,cancha,empleada,jacuzzi,kiosco,piscina,wifi",familiar,"*Ref. Pereira09* 🤩👏🏻
+Tipo: Finca privada 
+Ubicación: Via Condina, Pereira 
+Acceso: Vía principal 
+Habitaciones 6
+Baños completos: 7
+Baños medios: 2 
+Agua caliente 
+Televisión 
+Wifi 
+Piscina
+Piscina niños 
+Jacuzzi...",https://drive.google.com/drive/folders/1cywpEHyFntsYfHZ-6_cAtm2a5pdiBbTK,,,0,129,PEREIRA #09,PEREIRA,20,3500000,3700000,4400000,6,SI,"Habitación 1
+(2 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 2
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ - Baño completo
+Habitación 3
+(10 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño completo
+ - Baño completo
+ - Baño completo
+Nivel 2
+Habitación 4
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ - Baño completo
+Habitación 6
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Baño social","PLAN FAMILIAR, EVENTOS","*Ref. Pereira09* 🤩👏🏻
+Tipo: Finca privada 
+Ubicación: Via Condina, Pereira 
+Acceso: Vía principal 
+Habitaciones 6
+Baños completos: 7
+Baños medios: 2 
+Agua caliente 
+Televisión 
+Wifi 
+Piscina
+Piscina niños 
+Jacuzzi calefacción
+Cancha de fútbol
+Kiosco eventos 
+Billar 
+Billar Pool
+Asador 
+Fogón leña 
+Juegos infantiles 
+Despampanante paisajismo
+*No incluye: *
+Cilindro gas jacuzzi 
+Parlante Bluetooth
+Productos limpieza 
+Productos aseo personal
+Carbón o leña 
+Toallas",,,paquete_fin_de_semana,READY_FOR_OFFERING,precio_noche_base vacio; origen trae tarifa FDS/paquete
+PEREIRA_#14,MONTERREY,Eje cafetero,Pereira,false,127,,,,,,,false,"billar,cancha,empleada,jacuzzi,kiosco,piscina,rio,zonas_verdes",familiar,"*Ref. Pereira14*
+🤩👏🏻😁🥳🏡
+Espectacular finca vacacional para grupos grandes 🥳
+Ubicación: Vía Altagracia, Pereira
+Habitaciones: 10
+Cocina interior
+Kiosco cocina exterior
+Cabaña 
+Piscina
+Piscina niños
+Jacuzzi ( Climatizado...",https://drive.google.com/drive/folders/1ZPqJSGWh_XBGKHdwb6Psw-44aNWNcbSZ,,,,130,PEREIRA #14,PEREIRA,,,,,10,SI,"Habitación 4
+(4 - 6 Personas)
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 6
+(6 - 8 Personas)
+ 2 - Cama doble
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 7
+(6 - 8 Personas)
+ 2 - Cama doble
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 8
+(7 - 10 Personas)
+ 1 a 2 - Cama semidoble
+ 2 - Cama doble
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 9
+(18 - 27 Personas)
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 10
+(12 - 18 Personas)
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Baño social
+ - Baño completo
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño completo
+Nivel 2
+Habitación 1
+(4 - 5 Personas)
+ 2 - Cama doble
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 2
+(4 - 6 Personas)
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 3
+(4 - 6 Personas)
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Baño social","PLAN FAMILIAR, EVENTOS","*Ref. Pereira14*
+🤩👏🏻😁🥳🏡
+Espectacular finca vacacional para grupos grandes 🥳
+Ubicación: Vía Altagracia, Pereira
+Habitaciones: 10
+Cocina interior
+Kiosco cocina exterior
+Cabaña 
+Piscina
+Piscina niños
+Jacuzzi ( Climatizado de pago)
+Amplias zonas verdes 
+Cancha de 
+Billar",,,sin_tarifa_clara,INCOMPLETE,falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#15,,Eje cafetero,Pereira,false,128,,,,,,,false,"billar,empleada,jacuzzi,kiosco,piscina,zonas_verdes",familiar,"Ref. *Pereira15* 🤩👏🏻
+Ubicación: Morelia, Pereira
+Habitaciones: 7
+Piscina
+Jacuzzi (Chorros )
+Asador
+Kiosco
+Billar
+Amplias zonas verdes",https://drive.google.com/drive/folders/1xH4zN5sZ7vNAJrQKKq3owG1MW77TMYd4,,,,131,PEREIRA #15,PEREIRA,,,,,7,SI,"Habitación 1
+(12 - 20 Personas)
+ 4 - Litera doble
+ 2 a 4 - Litera Semidoble
+ 2 a 4 - Litera Semidoble
+ 2 a 4 - Litera Semidoble
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 2
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama king
+ - Baño completo
+Habitación 3
+(5 - 10 Personas)
+ 1 a 2 - Cama semidoble
+ 2 a 4 - Litera Semidoble
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Habitación 4
+(4 - 7 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Habitación 5
+(4 - 8 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Habitación 6
+(3 - 6 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ - Baño completo
+Habitación 7
+(4 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama king
+ - Baño completo
+Baño social",PLAN FAMILIAR,"Ref. *Pereira15* 🤩👏🏻
+Ubicación: Morelia, Pereira
+Habitaciones: 7
+Piscina
+Jacuzzi (Chorros )
+Asador
+Kiosco
+Billar
+Amplias zonas verdes",,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#16,,Eje cafetero,Pereira,false,129,,,,,,,false,"bbq,billar,cancha,empleada,jacuzzi,kiosco,piscina,wifi,zonas_verdes",familiar,"*Ref. Pereira16* 😃🤩
+Ubicación: Vía Condina, Pereira
+Habitaciones: 5
+Baños: 5
+Piscina
+Jacuzzi (Climatizado de pago)
+Kiosco remodelado de eventos
+Cancha de fútbol 
+BBQ 
+Wifi
+Agua caliente 
+Billar
+Zona picnic
+Amplias zonas...",https://drive.google.com/drive/folders/1u8n8rcH4KzrRUHsaAGGIUl8BrDWSz30j,,,,132,PEREIRA #16,PEREIRA,,,,,5,SI,"Habitación 1
+(5 - 6 Personas)
+ 2 - Litera sencilla
+ 1 - Nido sencillo
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+Habitación 2
+(5 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 1 - Nido sencillo
+Habitación 3
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 6
+(3 Personas)
+ 2 - Cama doble
+ 1 - Nido sencillo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 4
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Baño social
+Total
+ 17 Camas
+ 6 Baños",PLAN FAMILIAR,"*Ref. Pereira16* 😃🤩
+Ubicación: Vía Condina, Pereira
+Habitaciones: 5
+Baños: 5
+Piscina
+Jacuzzi (Climatizado de pago)
+Kiosco remodelado de eventos
+Cancha de fútbol 
+BBQ 
+Wifi
+Agua caliente 
+Billar
+Zona picnic
+Amplias zonas verdes",,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#19,,Eje cafetero,Pereira,false,130,,,,,,,false,"bbq,billar,cancha,empleada,jacuzzi,piscina,wifi",familiar,"*Ref. Pereira19* 👏🏻👨‍👩‍👧‍👦
+Categoría: Premium 
+Tipo: Finca privada 
+Ubicación: Combia, Pereira
+Acceso: 5 minutos carretera 
+ De vía principal 
+Habitaciones: 6
+Baños completos: 6
+Agua caliente 
+Piscina
+Jacuzzi...",https://drive.google.com/drive/folders/1ZEHkKTZk8a55y65DVKp8yiX7YHEckvK8,,,,133,PEREIRA #19,PEREIRA,,,,,5,SI,"Habitación 1
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(5 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Baño social
+Nivel 0
+Baño social
+Nivel 1
+Baño social
+ - Baño completo
+Nivel 2
+Habitación 4
+(6 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ 2 - Sofácama doble
+Habitación 5
+(2 - 4 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ - Baño completo
+Habitación 6
+(3 Personas)
+ 2 - Cama doble
+ 1 - Nido sencillo
+ - Baño completo
+Baño social",PLAN FAMILIAR,"*Ref. Pereira19* 👏🏻👨‍👩‍👧‍👦
+Categoría: Premium 
+Tipo: Finca privada 
+Ubicación: Combia, Pereira
+Acceso: 5 minutos carretera 
+ De vía principal 
+Habitaciones: 6
+Baños completos: 6
+Agua caliente 
+Piscina
+Jacuzzi calefacción 
+BBQ 
+Billar 
+Cancha de fútbol 
+Parlante Bluetooth 
+Despampanante paisajismo
+Diseño y decoración exclusiva 
+Propiedad a estrenar 
+*No incluye: *
+Wifi 
+Cilindro gas jacuzzi 
+Productos limpieza 
+Productos aseo personal
+Carbón o leña
+Toallas",,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#27,,Eje cafetero,Pereira,false,131,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1xc7vQMUqF1jIdv39qIPI_HFdvOThLYGz,,,,134,PEREIRA #27,PEREIRA,,,,,7,SI,"Habitación 1
+(3 - 5 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(2 - 4 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ - Baño completo
+Habitación 4
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 6
+(2 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 7
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#28,,Eje cafetero,Pereira,false,132,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1sHkRRBlIyhGVdv270KE_1-Lbz4GDK5fI,,,,135,PEREIRA #28,PEREIRA,,,,,9,SI,"Habitación 3
+(6 - 8 Personas)
+ 2 - Litera sencilla
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 4
+(5 - 6 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Baño social
+Nivel 0
+Baño social
+Nivel 1
+Habitación 1
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 2
+(3 - 4 Personas)
+ 1 a 2 - Cama semidoble
+ 2 - Litera sencilla
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño completo
+Nivel 2
+Habitación 5
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+Habitación 6
+(6 - 7 Personas)
+ 2 - Litera sencilla
+ 2 - Cama king
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+Habitación 7
+(3 - 5 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+Habitación 8
+(1 - 2 Personas)
+ 1 a 2 - Cama semidoble
+Habitación 9
+(5 - 6 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Litera sencilla
+ - Baño completo
+Baño social
+ - Baño completo
+ - Baño completo",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#29,,Eje cafetero,Pereira,false,133,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1Phxvu3Q62YMF68UNUc-ICPjLfv4DtpxL,,,,136,PEREIRA #29,PEREIRA,,,,,4,SI,"Habitación 1
+(1 - 2 Personas)
+ 1 a 2 - Cama semidoble
+ - Baño completo
+Habitación 2
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 4
+(3 - 4 Personas)
+ 2 - Cama queen
+ 1 a 2 - Sofa Cama Semidoble
+ - Baño completo
+Baños social
+ - Baño medio - sin ducha
+Total
+ 7 Camas
+ 5 Baños",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#30,,Eje cafetero,Pereira,false,134,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1PIWPHk5cw79Khbk4y7RoEd4ujV3yrnjX,,,,137,PEREIRA #30,PEREIRA,,,,,12,SI,"Habitación 1
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(6 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 2 - Cama doble
+ 1 - Nido sencillo
+ - Baño completo
+Habitación 3
+(3 - 5 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 4
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 6
+(3 - 4 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ 1 - Nido sencillo
+ - Baño completo
+Habitación 7
+(4 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama queen
+ - Baño completo
+Habitación 8
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama king
+ - Baño completo
+Habitación 9
+(4 - 6 Personas)
+ 1 a 2 - Cama semidoble
+ 1 a 2 - Cama semidoble
+ 1 - Cama sencilla
+ 1 - Nido sencillo
+ - Baño completo
+Habitación 10
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 11
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 1 - Nido sencillo
+ - Baño completo
+Habitación 12
+(3 Personas)
+ 2 - Cama doble
+ 1 - Nido sencillo
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#36,,Eje cafetero,Pereira,false,135,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1Xp2kBrZNxSWFB3aEinwtIJCG80NuyfnE,,,,138,PEREIRA #36,PEREIRA,,,,,5,SI,"Habitación 1
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 2
+(4 Personas)
+ 2 - Cama doble
+ 2 - Nido doble
+ - Baño completo
+Habitación 3
+(4 Personas)
+ 2 - Cama doble
+ 2 - Nido doble
+ - Baño completo
+Habitación 4
+(4 Personas)
+ 2 - Cama doble
+ 2 - Nido doble
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Baño social",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#37,,Eje cafetero,Pereira,false,136,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1UbFKBDmOzbQG0LqoFAmHVpVPAsbKOENG,,,,139,PEREIRA #37,PEREIRA,,,,,6,SI,"Habitación 6
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Baño social
+ - Baño completo
+Nivel 2
+Habitación 1
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 3
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Habitación 4
+(2 Personas)
+ 2 - Cama doble
+Habitación 5
+(4 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ - Baño completo
+Baño social",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#52,,Eje cafetero,Pereira,false,137,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1mBXPyHcMcqD-GUdSIySzQcZvvJWyn_Ql,,,,140,PEREIRA #52,PEREIRA,,,,,4,SI,"Habitación 1
+(3 Personas)
+ 2 - Cama doble
+ 1 - Sofácama sencillo
+ - Baño completo
+Habitación 2
+(4 - 6 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Sofácama sencillo
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 3
+(4 - 6 Personas)
+ 1 a 2 - Cama semidoble
+ 1 - Sofácama sencillo
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Habitación 4
+(3 - 5 Personas)
+ 1 a 2 - Cama semidoble
+ 2 a 3 - Litera semidoble inferior y sencilla superior
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#53,,Eje cafetero,Pereira,false,138,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1tb8GZkyyNZnJ84OQ1x4GnGdRI6KdLmNn,,,,141,PEREIRA #53,PEREIRA,,,,,7,SI,"Habitación 1
+(8 - 10 Personas)
+ 3 - Litera doble inferior y sencilla superior
+ 3 - Litera doble inferior y sencilla superior
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Habitación 2
+(8 - 10 Personas)
+ 3 - Litera doble inferior y sencilla superior
+ 3 - Litera doble inferior y sencilla superior
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 3
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 4
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 5
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 6
+(8 - 10 Personas)
+ 3 - Litera doble inferior y sencilla superior
+ 3 - Litera doble inferior y sencilla superior
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Habitación 7
+(8 - 10 Personas)
+ 3 - Litera doble inferior y sencilla superior
+ 3 - Litera doble inferior y sencilla superior
+ 2 a 4 - Litera Semidoble
+ - Baño completo
+Baño social",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+PEREIRA_#63,,Eje cafetero,Pereira,false,139,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/10P9LoPAWnNGYj_FMc_hARSuf5VXTlIlW,,,,142,PEREIRA #63,PEREIRA,,,,,4,SI,"Habitación 1
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(9 - 11 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 1 - Nido sencillo
+ 1 - Nido sencillo
+ 1 - Nido sencillo
+ 2 a 4 - Litera Semidoble
+Habitación 4
+(3 - 5 Personas)
+ 1 - Nido sencillo
+ 2 a 4 - Litera Semidoble
+Baños social
+ - Baño completo
+ - Baño completo
+ - Baño medio - sin ducha",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#01,,Eje cafetero,Quindio,false,140,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1fpqUsPqrWqG2oWoiTRjQIs-yqBwtLADp,,,,143,QUINDIO #01,QUINDIO,,,,,5,SI,"Habitación 5
+(1 - 2 Personas)
+ 1 a 2 - Cama semidoble
+ - Baño completo
+Baño social
+ - Baño completo
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 1
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 3
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Habitación 4
+(2 Personas)
+ 2 - Cama queen
+ - Baño completo
+Baño social",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#05,,Eje cafetero,Quindio,false,141,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1zT8fOPg0bEbyexDm1roJ3dbRpfjSN6xL,,,,144,QUINDIO #05,QUINDIO,,,,,5,SI,"Habitación 1
+(4 Personas)
+ 2 - Cama king
+ 1 - Nido sencillo
+ 1 - Nido sencillo
+Habitación 2
+(4 Personas)
+ 2 - Cama king
+ 1 - Nido sencillo
+ 1 - Nido sencillo
+Habitación 3
+(5 Personas)
+ 2 - Cama queen
+ 2 - Cama queen
+ 1 - Nido sencillo
+Habitación 4
+(5 Personas)
+ 2 - Cama queen
+ 2 - Cama queen
+ 1 - Nido sencillo
+Habitación 5
+(3 Personas)
+ 2 - Litera sencilla
+ 1 - Nido sencillo",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#09,,Eje cafetero,Quindio,false,142,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1ior1utM-_7nnC6ZMd_cGgXknWqqhUMT4,,,,145,QUINDIO #09,QUINDIO,,,,,6,SI,"Habitación 6
+(1 Personas)
+ 1 - Cama sencilla
+ - Baño completo
+Baño social
+Nivel 0
+Baño social
+Nivel 1
+Habitación 1
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 2
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 3
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 4
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#10,,Eje cafetero,Quindio,false,143,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1a4w3AR_3PrkTgAvBhXUehSeImcF0mQdl,,,,146,QUINDIO #10,QUINDIO,,,,,6,SI,"Habitación 1
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama queen
+ - Baño completo
+Habitación 2
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama queen
+ - Baño completo
+Habitación 3
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama queen
+ - Baño completo
+Baño social
+ - Baño medio - sin ducha
+ - Baño medio - sin ducha
+Nivel 2
+Habitación 4
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 5
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ - Baño completo
+Habitación 6
+(10 Personas)
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+ 2 - Litera sencilla
+Baño social",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#12,,Eje cafetero,Quindio,false,144,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/136ahKytDk1xrpxj01l13-Q3teqKuli_7,,,,147,QUINDIO #12,QUINDIO,,,,,4,SI,"Habitación 1
+(4 Personas)
+ 2 - Cama doble
+ 2 - Nido doble
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 3
+(4 Personas)
+ 2 - Cama doble
+ 2 - Nido doble
+ - Baño completo
+Sala
+(2 Personas)
+ 2 - Sofácama doble
+Total
+ 6 Camas
+ 3 Baños",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable
+QUINDIO_#20,,Eje cafetero,Quindio,false,145,,,,,,,false,empleada,familiar,PLAN FAMILIAR,https://drive.google.com/drive/folders/1tYUrmM6kHyJqaggtpxrWl70TfzqmfAgq,,,,148,QUINDIO #20,QUINDIO,,,,,10,SI,"Habitación 1
+(6 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 2
+(2 Personas)
+ 2 - Cama king
+ - Baño completo
+Habitación 3
+(6 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama doble
+ 2 - Cama doble
+Habitación 4
+(5 Personas)
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 1 - Cama sencilla
+ 2 - Cama doble
+ - Baño completo
+Habitación 5
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 6
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+Habitación 7
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Habitación 8
+(3 Personas)
+ 1 - Cama sencilla
+ 2 - Cama doble
+Habitación 9
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+ - Baño completo
+Habitación 10
+(4 Personas)
+ 2 - Cama doble
+ 2 - Cama doble
+Habitación 11
+(2 Personas)
+ 2 - Cama doble
+ - Baño completo
+Total
+ 24 Camas
+ 7 Baños",PLAN FAMILIAR,,,,sin_tarifa_clara,INCOMPLETE,falta nombre; falta capacidad_max; sin tarifa FDS normal usable

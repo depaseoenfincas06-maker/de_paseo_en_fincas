@@ -1,0 +1,354 @@
+{
+  "updatedAt": "2026-03-10T19:21:41.091Z",
+  "createdAt": "2026-03-10T04:54:50.601Z",
+  "id": "pLyrdDO3mneaCp7m",
+  "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "db299595-9290-4942-a758-faa1105280d8",
+      "name": "When outbound sender is called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($json.chatwoot_account_id || \"1\") + '/conversations/' + String($json.chatwoot_id) + '/messages' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "={{ $json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: String($json.message || '').trim(), message_type: 'outgoing', private: $json.private === true }) }}",
+        "options": {}
+      },
+      "id": "990ea5ce-1975-485c-87e6-f0ef93acd892",
+      "name": "Send Chatwoot message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        528,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5d2a7d75-a120-4a61-a927-a2ded8a30db1",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "bf57433f-a321-45a9-bc7c-2ce462c038e0",
+              "name": "chatwoot_id",
+              "value": "={{ $('When outbound sender is called').item.json.chatwoot_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3d398841-06fe-486a-84af-621ffe1556ac",
+              "name": "message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "b4679fb9-e8f7-4d9f-ac2d-d07ef56f3d9f",
+              "name": "sequence_index",
+              "value": "={{ $json.sequence_index }}",
+              "type": "number"
+            },
+            {
+              "id": "0d5afb47-3685-4749-911a-fee1bc62cda1",
+              "name": "response",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2b1607db-ba6a-4e1e-81be-362cd3b41c17",
+      "name": "Outbound send result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const parseSequence = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $('When outbound sender is called').item.json || {};\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst messages = sequence.length\n  ? sequence\n      .map((item) => ({\n        content: String(item?.content || '').trim(),\n        private: item?.private === true || input.private === true,\n      }))\n      .filter((item) => item.content)\n  : [\n      {\n        content: String(input.message || input.outbound_message || input.final_whatsapp_text || '').trim(),\n        private: input.private === true,\n      },\n    ].filter((item) => item.content);\n\nreturn messages.map((message, index) => ({\n  json: {\n    chatwoot_id: input.chatwoot_id,\n    chatwoot_account_id: input.chatwoot_account_id || '1',\n    chatwoot_api_token: input.chatwoot_api_token || null,\n    message: message.content,\n    private: message.private,\n    sequence_index: index,\n    sequence_count: messages.length,\n  },\n}));"
+      },
+      "id": "c53dfadb-f12e-4b91-b254-c4f9c25df908",
+      "name": "Expand outbound sequence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        392,
+        240
+      ]
+    }
+  ],
+  "connections": {
+    "When outbound sender is called": {
+      "main": [
+        [
+          {
+            "node": "Expand outbound sequence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Chatwoot message": {
+      "main": [
+        [
+          {
+            "node": "Outbound send result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outbound send result": {
+      "main": [
+        []
+      ]
+    },
+    "Expand outbound sequence": {
+      "main": [
+        [
+          {
+            "node": "Send Chatwoot message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+  "activeVersionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+  "versionCounter": 22,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T04:54:50.601Z",
+      "createdAt": "2026-03-10T04:54:50.601Z",
+      "role": "workflow:owner",
+      "workflowId": "pLyrdDO3mneaCp7m",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-10T19:21:41.094Z",
+    "createdAt": "2026-03-10T19:21:41.094Z",
+    "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+    "workflowId": "pLyrdDO3mneaCp7m",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "db299595-9290-4942-a758-faa1105280d8",
+        "name": "When outbound sender is called",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          240,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($json.chatwoot_account_id || \"1\") + '/conversations/' + String($json.chatwoot_id) + '/messages' }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "api_access_token",
+                "value": "={{ $json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
+              },
+              {
+                "name": "content-type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ content: String($json.message || '').trim(), message_type: 'outgoing', private: $json.private === true }) }}",
+          "options": {}
+        },
+        "id": "990ea5ce-1975-485c-87e6-f0ef93acd892",
+        "name": "Send Chatwoot message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          528,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "5d2a7d75-a120-4a61-a927-a2ded8a30db1",
+                "name": "ok",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "bf57433f-a321-45a9-bc7c-2ce462c038e0",
+                "name": "chatwoot_id",
+                "value": "={{ $('When outbound sender is called').item.json.chatwoot_id }}",
+                "type": "string"
+              },
+              {
+                "id": "3d398841-06fe-486a-84af-621ffe1556ac",
+                "name": "message",
+                "value": "={{ $json.message }}",
+                "type": "string"
+              },
+              {
+                "id": "b4679fb9-e8f7-4d9f-ac2d-d07ef56f3d9f",
+                "name": "sequence_index",
+                "value": "={{ $json.sequence_index }}",
+                "type": "number"
+              },
+              {
+                "id": "0d5afb47-3685-4749-911a-fee1bc62cda1",
+                "name": "response",
+                "value": "={{ $json }}",
+                "type": "object"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "2b1607db-ba6a-4e1e-81be-362cd3b41c17",
+        "name": "Outbound send result",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          768,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const parseSequence = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $('When outbound sender is called').item.json || {};\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst messages = sequence.length\n  ? sequence\n      .map((item) => ({\n        content: String(item?.content || '').trim(),\n        private: item?.private === true || input.private === true,\n      }))\n      .filter((item) => item.content)\n  : [\n      {\n        content: String(input.message || input.outbound_message || input.final_whatsapp_text || '').trim(),\n        private: input.private === true,\n      },\n    ].filter((item) => item.content);\n\nreturn messages.map((message, index) => ({\n  json: {\n    chatwoot_id: input.chatwoot_id,\n    chatwoot_account_id: input.chatwoot_account_id || '1',\n    chatwoot_api_token: input.chatwoot_api_token || null,\n    message: message.content,\n    private: message.private,\n    sequence_index: index,\n    sequence_count: messages.length,\n  },\n}));"
+        },
+        "id": "c53dfadb-f12e-4b91-b254-c4f9c25df908",
+        "name": "Expand outbound sequence",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          392,
+          240
+        ]
+      }
+    ],
+    "connections": {
+      "When outbound sender is called": {
+        "main": [
+          [
+            {
+              "node": "Expand outbound sequence",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Chatwoot message": {
+        "main": [
+          [
+            {
+              "node": "Outbound send result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Outbound send result": {
+        "main": [
+          []
+        ]
+      },
+      "Expand outbound sequence": {
+        "main": [
+          [
+            {
+              "node": "Send Chatwoot message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-10T19:21:41.455Z",
+        "id": 269,
+        "workflowId": "pLyrdDO3mneaCp7m",
+        "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

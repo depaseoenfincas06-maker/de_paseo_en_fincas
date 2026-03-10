@@ -1,0 +1,488 @@
+{
+  "updatedAt": "2026-03-10T20:41:58.645Z",
+  "createdAt": "2026-03-10T20:30:40.934Z",
+  "id": "Hhi5fOUfIEecPqJ0",
+  "name": "WhatsApp Selection Notification Sender - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "bf697ab7-1c91-4b1a-9f89-15426d9785f7",
+      "name": "When selection sender is called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const parseBatch = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $json || {};\nconst batch = parseBatch(\n  input.selection_notification_batch_json ||\n    input.selection_notification_batch ||\n    input.batch_json ||\n    input.batch,\n);\n\nreturn batch\n  .filter((item) => item && item.conversation_id && item.selected_finca_id && item.recipient_phone)\n  .map((item, index) => ({\n    json: {\n      ...item,\n      sequence_index: index,\n    },\n  }));"
+      },
+      "id": "5c68a78b-2431-4f87-b022-20db11eac7c5",
+      "name": "Expand selection notification batch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with input as (\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_id,\n    {{ \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" }}::text as recipient_phone,\n    {{ \"'\" + String($json.template_name || 'staff_finca_selected_v1').replace(/'/g, \"''\") + \"'\" }}::text as template_name,\n    {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }}::text as template_language,\n    {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as payload\n),\ninserted as (\n  insert into public.selection_notifications (\n    conversation_id,\n    selected_finca_id,\n    recipient_phone,\n    template_name,\n    template_language,\n    status,\n    payload\n  )\n  select\n    input.conversation_id,\n    input.selected_finca_id,\n    input.recipient_phone,\n    input.template_name,\n    input.template_language,\n    'pending',\n    input.payload\n  from input\n  on conflict (conversation_id, selected_finca_id, recipient_phone)\n  where status in ('pending', 'sent')\n  do nothing\n  returning *\n)\nselect * from inserted;",
+        "options": {}
+      },
+      "id": "e8150ca8-b3a8-4c10-a5cd-412cc901042a",
+      "name": "Insert pending selection notification",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst payload = input.payload || {};\nconst text = (value) => {\n  const normalized = String(value ?? '').trim();\n  return normalized || 'Sin dato';\n};\n\nconst detail = [\n  'Teléfono: ' + text(payload.wa_id),\n  'Finca: ' + text(payload.selected_finca_name || payload.selected_finca_id),\n  'Fechas: ' + text(payload.fechas),\n  'Personas: ' + text(payload.personas),\n  'Zona: ' + text(payload.zona),\n  'Chatwoot: ' + text(payload.chatwoot_link),\n].join(' | ');\n\nconst bodyParameters = [\n  { type: 'text', parameter_name: 'cliente', text: text(payload.client_name) },\n  { type: 'text', parameter_name: 'detalle', text: text(detail) },\n];\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\ntry {\n  const response = await fetch('https://api.kapso.ai/meta/whatsapp/v24.0/1032537143273895/messages', {\n    method: 'POST',\n    headers: {\n      'X-API-Key': '667a2e651151354252ac88e88e9036476542f2265e280769873caeed14c88c37',\n      'Content-Type': 'application/json',\n      Accept: 'application/json',\n    },\n    body: JSON.stringify({\n      messaging_product: 'whatsapp',\n      to: String(input.recipient_phone || '').trim(),\n      type: 'template',\n      template: {\n        name: String(input.template_name || 'staff_finca_selected_v1').trim(),\n        language: {\n          code: String(input.template_language || 'es_CO').trim(),\n        },\n        components: [\n          {\n            type: 'body',\n            parameters: bodyParameters,\n          },\n        ],\n      },\n    }),\n  });\n\n  responseStatus = response.status;\n  const raw = await response.text();\n  try {\n    responseBody = raw ? JSON.parse(raw) : null;\n  } catch {\n    responseBody = { raw };\n  }\n\n  providerMessageId =\n    responseBody?.messages?.[0]?.id ||\n    responseBody?.message_id ||\n    responseBody?.messages?.[0]?.message_id ||\n    null;\n\n  if (!response.ok) {\n    errorMessage =\n      responseBody?.error?.message ||\n      responseBody?.message ||\n      raw ||\n      'Kapso template send failed';\n  }\n} catch (error) {\n  errorMessage = error.message;\n  responseBody = { error: error.message };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n    },\n  },\n];"
+      },
+      "id": "101a87f2-2170-4bd1-8e49-598c65c9d997",
+      "name": "Send WhatsApp selection template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4480db2a-6a74-4345-97b3-c45cc90c9d18",
+              "leftValue": "={{ $json.ok === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "87cd6b79-1911-4182-ba46-49eea4919197",
+      "name": "Selection delivery ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.selection_notifications\nset\n  status = 'sent',\n  provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  sent_at = now(),\n  error_message = null\nwhere id = {{ Number($json.id) }}\nreturning id, status;",
+        "options": {}
+      },
+      "id": "297b5b91-b82d-4465-a827-8acfe818f70e",
+      "name": "Mark selection notification sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.selection_notifications\nset\n  status = 'failed',\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'Unknown error'\" }}\nwhere id = {{ Number($json.id) }}\nreturning id, status;",
+        "options": {}
+      },
+      "id": "a2bf574b-05f5-418e-9679-1b72fcb5dc2d",
+      "name": "Mark selection notification failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        336
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When selection sender is called": {
+      "main": [
+        [
+          {
+            "node": "Expand selection notification batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand selection notification batch": {
+      "main": [
+        [
+          {
+            "node": "Insert pending selection notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert pending selection notification": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp selection template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp selection template": {
+      "main": [
+        [
+          {
+            "node": "Selection delivery ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Selection delivery ok?": {
+      "main": [
+        [
+          {
+            "node": "Mark selection notification sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark selection notification failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark selection notification sent": {
+      "main": [
+        []
+      ]
+    },
+    "Mark selection notification failed": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "525ddefc-a1e6-4bd3-9789-bd22250293f7",
+  "activeVersionId": "525ddefc-a1e6-4bd3-9789-bd22250293f7",
+  "versionCounter": 27,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T20:30:40.934Z",
+      "createdAt": "2026-03-10T20:30:40.934Z",
+      "role": "workflow:owner",
+      "workflowId": "Hhi5fOUfIEecPqJ0",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-10T20:41:58.647Z",
+    "createdAt": "2026-03-10T20:41:58.647Z",
+    "versionId": "525ddefc-a1e6-4bd3-9789-bd22250293f7",
+    "workflowId": "Hhi5fOUfIEecPqJ0",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "bf697ab7-1c91-4b1a-9f89-15426d9785f7",
+        "name": "When selection sender is called",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          240,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const parseBatch = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $json || {};\nconst batch = parseBatch(\n  input.selection_notification_batch_json ||\n    input.selection_notification_batch ||\n    input.batch_json ||\n    input.batch,\n);\n\nreturn batch\n  .filter((item) => item && item.conversation_id && item.selected_finca_id && item.recipient_phone)\n  .map((item, index) => ({\n    json: {\n      ...item,\n      sequence_index: index,\n    },\n  }));"
+        },
+        "id": "5c68a78b-2431-4f87-b022-20db11eac7c5",
+        "name": "Expand selection notification batch",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with input as (\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_id,\n    {{ \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" }}::text as recipient_phone,\n    {{ \"'\" + String($json.template_name || 'staff_finca_selected_v1').replace(/'/g, \"''\") + \"'\" }}::text as template_name,\n    {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }}::text as template_language,\n    {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as payload\n),\ninserted as (\n  insert into public.selection_notifications (\n    conversation_id,\n    selected_finca_id,\n    recipient_phone,\n    template_name,\n    template_language,\n    status,\n    payload\n  )\n  select\n    input.conversation_id,\n    input.selected_finca_id,\n    input.recipient_phone,\n    input.template_name,\n    input.template_language,\n    'pending',\n    input.payload\n  from input\n  on conflict (conversation_id, selected_finca_id, recipient_phone)\n  where status in ('pending', 'sent')\n  do nothing\n  returning *\n)\nselect * from inserted;",
+          "options": {}
+        },
+        "id": "e8150ca8-b3a8-4c10-a5cd-412cc901042a",
+        "name": "Insert pending selection notification",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          720,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst payload = input.payload || {};\nconst text = (value) => {\n  const normalized = String(value ?? '').trim();\n  return normalized || 'Sin dato';\n};\n\nconst detail = [\n  'Teléfono: ' + text(payload.wa_id),\n  'Finca: ' + text(payload.selected_finca_name || payload.selected_finca_id),\n  'Fechas: ' + text(payload.fechas),\n  'Personas: ' + text(payload.personas),\n  'Zona: ' + text(payload.zona),\n  'Chatwoot: ' + text(payload.chatwoot_link),\n].join(' | ');\n\nconst bodyParameters = [\n  { type: 'text', parameter_name: 'cliente', text: text(payload.client_name) },\n  { type: 'text', parameter_name: 'detalle', text: text(detail) },\n];\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\ntry {\n  const response = await fetch('https://api.kapso.ai/meta/whatsapp/v24.0/1032537143273895/messages', {\n    method: 'POST',\n    headers: {\n      'X-API-Key': '667a2e651151354252ac88e88e9036476542f2265e280769873caeed14c88c37',\n      'Content-Type': 'application/json',\n      Accept: 'application/json',\n    },\n    body: JSON.stringify({\n      messaging_product: 'whatsapp',\n      to: String(input.recipient_phone || '').trim(),\n      type: 'template',\n      template: {\n        name: String(input.template_name || 'staff_finca_selected_v1').trim(),\n        language: {\n          code: String(input.template_language || 'es_CO').trim(),\n        },\n        components: [\n          {\n            type: 'body',\n            parameters: bodyParameters,\n          },\n        ],\n      },\n    }),\n  });\n\n  responseStatus = response.status;\n  const raw = await response.text();\n  try {\n    responseBody = raw ? JSON.parse(raw) : null;\n  } catch {\n    responseBody = { raw };\n  }\n\n  providerMessageId =\n    responseBody?.messages?.[0]?.id ||\n    responseBody?.message_id ||\n    responseBody?.messages?.[0]?.message_id ||\n    null;\n\n  if (!response.ok) {\n    errorMessage =\n      responseBody?.error?.message ||\n      responseBody?.message ||\n      raw ||\n      'Kapso template send failed';\n  }\n} catch (error) {\n  errorMessage = error.message;\n  responseBody = { error: error.message };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n    },\n  },\n];"
+        },
+        "id": "101a87f2-2170-4bd1-8e49-598c65c9d997",
+        "name": "Send WhatsApp selection template",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          960,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4480db2a-6a74-4345-97b3-c45cc90c9d18",
+                "leftValue": "={{ $json.ok === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "87cd6b79-1911-4182-ba46-49eea4919197",
+        "name": "Selection delivery ok?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1200,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.selection_notifications\nset\n  status = 'sent',\n  provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  sent_at = now(),\n  error_message = null\nwhere id = {{ Number($json.id) }}\nreturning id, status;",
+          "options": {}
+        },
+        "id": "297b5b91-b82d-4465-a827-8acfe818f70e",
+        "name": "Mark selection notification sent",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          160
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.selection_notifications\nset\n  status = 'failed',\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'Unknown error'\" }}\nwhere id = {{ Number($json.id) }}\nreturning id, status;",
+          "options": {}
+        },
+        "id": "a2bf574b-05f5-418e-9679-1b72fcb5dc2d",
+        "name": "Mark selection notification failed",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          336
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When selection sender is called": {
+        "main": [
+          [
+            {
+              "node": "Expand selection notification batch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Expand selection notification batch": {
+        "main": [
+          [
+            {
+              "node": "Insert pending selection notification",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert pending selection notification": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp selection template",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send WhatsApp selection template": {
+        "main": [
+          [
+            {
+              "node": "Selection delivery ok?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Selection delivery ok?": {
+        "main": [
+          [
+            {
+              "node": "Mark selection notification sent",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Mark selection notification failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark selection notification sent": {
+        "main": [
+          []
+        ]
+      },
+      "Mark selection notification failed": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-10T20:41:58.952Z",
+        "id": 294,
+        "workflowId": "Hhi5fOUfIEecPqJ0",
+        "versionId": "525ddefc-a1e6-4bd3-9789-bd22250293f7",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

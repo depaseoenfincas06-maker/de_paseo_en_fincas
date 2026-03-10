@@ -1,0 +1,556 @@
+{
+  "updatedAt": "2026-03-10T18:53:31.517Z",
+  "createdAt": "2026-03-10T04:18:49.459Z",
+  "id": "yXF0Egl61b548yzv",
+  "name": "Follow on scheduler",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "b42967e8-4939-43d5-9e7c-cec83bbcd94a",
+      "name": "Every 30 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.follow_on f\nset\n  status = 'cancelada',\n  cancelled_at = now(),\n  cancel_reason = 'conversation_not_eligible',\n  updated_at = now()\nfrom public.conversations c\nwhere f.conversation_id = c.wa_id\n  and f.status = 'pendiente'\n  and f.scheduled_for <= now()\n  and (\n    c.agente_activo = false\n    or coalesce(c.waiting_for, 'CLIENT') <> 'CLIENT'\n    or c.chatwoot_id is null\n  )\nreturning f.id;",
+        "options": {}
+      },
+      "id": "ea666395-71f8-4381-b1b5-798b27ec78a7",
+      "name": "Cancel ineligible follow on",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        464,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with settings as (\n  with defaults as (\n    select\n      time '08:00' as window_start,\n      time '22:00' as window_end\n  )\n  select\n    coalesce(s.followup_window_start, d.window_start) as window_start,\n    coalesce(s.followup_window_end, d.window_end) as window_end\n  from defaults d\n  left join public.agent_settings s on s.id = 1\n)\nselect\n  f.id,\n  f.conversation_id,\n  f.message,\n  f.scheduled_for,\n  c.chatwoot_id,\n  c.current_state\nfrom public.follow_on f\njoin public.conversations c on c.wa_id = f.conversation_id\ncross join settings s\nwhere f.status = 'pendiente'\n  and f.scheduled_for <= now()\n  and c.agente_activo = true\n  and coalesce(c.waiting_for, 'CLIENT') = 'CLIENT'\n  and c.chatwoot_id is not null\n  and ((now() AT TIME ZONE 'America/Bogota')::time >= s.window_start)\n  and ((now() AT TIME ZONE 'America/Bogota')::time < s.window_end)\norder by f.scheduled_for asc;",
+        "options": {}
+      },
+      "id": "9ff6c968-e3bd-4b9a-862b-4618511cf253",
+      "name": "Select due follow on",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        704,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cd131ccc-1e1c-4151-a3cc-be5cd7a68d4b",
+      "name": "Loop due follow on",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        944,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "pLyrdDO3mneaCp7m",
+          "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+          "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "0190f75e-112b-41c3-96b1-391dfb135fc3",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_id }}"
+            },
+            {
+              "id": "3c326744-a604-4295-92cf-012b6a14cae9",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.message }}"
+            },
+            {
+              "id": "6bade9ab-5f4a-40a6-af42-1a94f63e54f3",
+              "displayName": "private",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false,
+              "boolValue": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "554b7588-1316-4fc6-864a-90e22a5a4921",
+      "name": "Send follow on via Chatwoot",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with marked as (\n  update public.follow_on\n  set\n    status = 'enviada',\n    sent_at = now(),\n    updated_at = now()\n  where id = {{ Number($('Loop due follow on').item.json.id) }}\n    and status = 'pendiente'\n  returning id, conversation_id\n),\ninserted_message as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data\n  )\n  select\n    m.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    {{ \"'\" + String($('Loop due follow on').item.json.message).replace(/'/g, \"''\") + \"'\" }},\n    null,\n    {{ \"'\" + String($('Loop due follow on').item.json.current_state || 'QUALIFYING').replace(/'/g, \"''\") + \"'\" }},\n    'follow_on_scheduler',\n    '{}'::jsonb\n  from marked m\n  returning conversation_id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now(),\n  next_followup_at = null,\n  followup_count = coalesce(followup_count, 0) + 1\nwhere wa_id = (\n  select conversation_id\n  from marked\n  limit 1\n)\nreturning wa_id;",
+        "options": {}
+      },
+      "id": "94067f06-7a13-4bc3-8028-816ddba1f08f",
+      "name": "Mark follow on sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 30 minutes": {
+      "main": [
+        [
+          {
+            "node": "Cancel ineligible follow on",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel ineligible follow on": {
+      "main": [
+        [
+          {
+            "node": "Select due follow on",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select due follow on": {
+      "main": [
+        [
+          {
+            "node": "Loop due follow on",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop due follow on": {
+      "main": [
+        [
+          {
+            "node": "Send follow on via Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send follow on via Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Mark follow on sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark follow on sent": {
+      "main": [
+        [
+          {
+            "node": "Loop due follow on",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Every 30 minutes": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+  "activeVersionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+  "versionCounter": 33,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T04:18:49.459Z",
+      "createdAt": "2026-03-10T04:18:49.459Z",
+      "role": "workflow:owner",
+      "workflowId": "yXF0Egl61b548yzv",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-10T17:22:54.169Z",
+    "createdAt": "2026-03-10T17:22:54.169Z",
+    "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+    "workflowId": "yXF0Egl61b548yzv",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 30
+              }
+            ]
+          }
+        },
+        "id": "b42967e8-4939-43d5-9e7c-cec83bbcd94a",
+        "name": "Every 30 minutes",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          208,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.follow_on f\nset\n  status = 'cancelada',\n  cancelled_at = now(),\n  cancel_reason = 'conversation_not_eligible',\n  updated_at = now()\nfrom public.conversations c\nwhere f.conversation_id = c.wa_id\n  and f.status = 'pendiente'\n  and f.scheduled_for <= now()\n  and (\n    c.agente_activo = false\n    or coalesce(c.waiting_for, 'CLIENT') <> 'CLIENT'\n    or c.chatwoot_id is null\n  )\nreturning f.id;",
+          "options": {}
+        },
+        "id": "ea666395-71f8-4381-b1b5-798b27ec78a7",
+        "name": "Cancel ineligible follow on",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          464,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with settings as (\n  with defaults as (\n    select\n      time '08:00' as window_start,\n      time '22:00' as window_end\n  )\n  select\n    coalesce(s.followup_window_start, d.window_start) as window_start,\n    coalesce(s.followup_window_end, d.window_end) as window_end\n  from defaults d\n  left join public.agent_settings s on s.id = 1\n)\nselect\n  f.id,\n  f.conversation_id,\n  f.message,\n  f.scheduled_for,\n  c.chatwoot_id,\n  c.current_state\nfrom public.follow_on f\njoin public.conversations c on c.wa_id = f.conversation_id\ncross join settings s\nwhere f.status = 'pendiente'\n  and f.scheduled_for <= now()\n  and c.agente_activo = true\n  and coalesce(c.waiting_for, 'CLIENT') = 'CLIENT'\n  and c.chatwoot_id is not null\n  and ((now() AT TIME ZONE 'America/Bogota')::time >= s.window_start)\n  and ((now() AT TIME ZONE 'America/Bogota')::time < s.window_end)\norder by f.scheduled_for asc;",
+          "options": {}
+        },
+        "id": "9ff6c968-e3bd-4b9a-862b-4618511cf253",
+        "name": "Select due follow on",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          704,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "cd131ccc-1e1c-4151-a3cc-be5cd7a68d4b",
+        "name": "Loop due follow on",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          944,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "pLyrdDO3mneaCp7m",
+            "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+            "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "0190f75e-112b-41c3-96b1-391dfb135fc3",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_id }}"
+              },
+              {
+                "id": "3c326744-a604-4295-92cf-012b6a14cae9",
+                "displayName": "message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.message }}"
+              },
+              {
+                "id": "6bade9ab-5f4a-40a6-af42-1a94f63e54f3",
+                "displayName": "private",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "boolean",
+                "removed": false,
+                "boolValue": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "554b7588-1316-4fc6-864a-90e22a5a4921",
+        "name": "Send follow on via Chatwoot",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          1184,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with marked as (\n  update public.follow_on\n  set\n    status = 'enviada',\n    sent_at = now(),\n    updated_at = now()\n  where id = {{ Number($('Loop due follow on').item.json.id) }}\n    and status = 'pendiente'\n  returning id, conversation_id\n),\ninserted_message as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data\n  )\n  select\n    m.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    {{ \"'\" + String($('Loop due follow on').item.json.message).replace(/'/g, \"''\") + \"'\" }},\n    null,\n    {{ \"'\" + String($('Loop due follow on').item.json.current_state || 'QUALIFYING').replace(/'/g, \"''\") + \"'\" }},\n    'follow_on_scheduler',\n    '{}'::jsonb\n  from marked m\n  returning conversation_id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now(),\n  next_followup_at = null,\n  followup_count = coalesce(followup_count, 0) + 1\nwhere wa_id = (\n  select conversation_id\n  from marked\n  limit 1\n)\nreturning wa_id;",
+          "options": {}
+        },
+        "id": "94067f06-7a13-4bc3-8028-816ddba1f08f",
+        "name": "Mark follow on sent",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          1424,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Every 30 minutes": {
+        "main": [
+          [
+            {
+              "node": "Cancel ineligible follow on",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cancel ineligible follow on": {
+        "main": [
+          [
+            {
+              "node": "Select due follow on",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select due follow on": {
+        "main": [
+          [
+            {
+              "node": "Loop due follow on",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop due follow on": {
+        "main": [
+          [
+            {
+              "node": "Send follow on via Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "Send follow on via Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Mark follow on sent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark follow on sent": {
+        "main": [
+          [
+            {
+              "node": "Loop due follow on",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-10T17:22:54.442Z",
+        "id": 257,
+        "workflowId": "yXF0Egl61b548yzv",
+        "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      },
+      {
+        "createdAt": "2026-03-10T18:49:01.693Z",
+        "id": 260,
+        "workflowId": "yXF0Egl61b548yzv",
+        "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+        "event": "deactivated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      },
+      {
+        "createdAt": "2026-03-10T18:49:02.209Z",
+        "id": 261,
+        "workflowId": "yXF0Egl61b548yzv",
+        "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      },
+      {
+        "createdAt": "2026-03-10T18:53:31.292Z",
+        "id": 264,
+        "workflowId": "yXF0Egl61b548yzv",
+        "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+        "event": "deactivated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      },
+      {
+        "createdAt": "2026-03-10T18:53:31.781Z",
+        "id": 265,
+        "workflowId": "yXF0Egl61b548yzv",
+        "versionId": "605ef84a-2787-4a6f-9997-b4d2e70ef64e",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

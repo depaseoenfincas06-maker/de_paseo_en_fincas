@@ -1,0 +1,1170 @@
+{
+  "updatedAt": "2026-03-10T04:56:23.711Z",
+  "createdAt": "2026-03-10T04:54:51.630Z",
+  "id": "6q5tiU8ifk9N0whF",
+  "name": "Chatwoot Inbound - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot/de-paseo-en-fincas/inbound",
+        "responseMode": "onReceived",
+        "responseData": "noData",
+        "options": {}
+      },
+      "id": "acf1d46e-1b53-417e-bcc4-a4621cf4abfd",
+      "name": "Chatwoot Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        240
+      ],
+      "webhookId": "4134b875-58d7-4c65-9bd9-e49a5aa99455"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\n\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\n\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\n\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n];\n\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageType = String(payload.message_type || '').toLowerCase();\nconst event = String(payload.event || '').toLowerCase();\nconst privateMessage = payload.private === true;\n\nconst incoming =\n  messageType === 'incoming' ||\n  messageType === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\n\nlet ignoreReason = null;\n\nif (event && event !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content) {\n  ignoreReason = 'empty_content';\n} else if (!waId) {\n  ignoreReason = 'missing_phone_number';\n} else if (!conversationId) {\n  ignoreReason = 'missing_chatwoot_conversation_id';\n}\n\nreturn [\n  {\n    json: {\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      event: event || 'message_created',\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      wa_id: waId,\n      client_name:\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.conversation?.meta?.sender?.name ||\n        null,\n      private: privateMessage,\n      sender_type: senderType || null,\n      raw: payload,\n      message_type: 'TEXT',\n    },\n  },\n];"
+      },
+      "id": "1aa1a2db-a700-4450-9233-1fffb31de75a",
+      "name": "Normalize Chatwoot Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d5101f0e-bd1f-4eef-bdf7-ca81bcb3cdb5",
+              "leftValue": "={{ $json.eligible === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "8d880077-aff2-4ad3-abd4-7244e7e37f6e",
+      "name": "Eligible inbound event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with incoming as (\n  select {{ \"'\" + String($('Normalize Chatwoot Event').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}::text as wa_id\n)\nselect\n  i.wa_id as incoming_wa_id,\n  c.wa_id,\n  c.chatwoot_id,\n  c.agente_activo,\n  c.current_state\nfrom incoming i\nleft join public.conversations c on c.wa_id = i.wa_id\nlimit 1;",
+        "options": {}
+      },
+      "id": "dcad0c74-ee83-4f71-be4f-b714baf78807",
+      "name": "Resolve existing phone mapping",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        944,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalized = $('Normalize Chatwoot Event').item.json;\nconst existing = $json || {};\n\nconst incomingChatwootId = String(normalized.chatwoot_id || '');\nconst storedChatwootId = existing.chatwoot_id ? String(existing.chatwoot_id) : null;\nlet allow = false;\nlet ignoreReason = normalized.ignore_reason || null;\n\nif (!ignoreReason) {\n  if (!incomingChatwootId) {\n    ignoreReason = 'missing_chatwoot_id';\n  } else if (!storedChatwootId) {\n    allow = true;\n  } else if (storedChatwootId === incomingChatwootId) {\n    allow = true;\n  } else if (existing.agente_activo === false) {\n    allow = true;\n  } else {\n    ignoreReason = 'thread_conflict_active_chatwoot_conversation';\n  }\n}\n\nreturn [\n  {\n    json: {\n      ...normalized,\n      allow_automation: allow,\n      ignore_reason: ignoreReason,\n      stored_chatwoot_id: storedChatwootId,\n    },\n  },\n];"
+      },
+      "id": "8e0c70f4-510a-466d-8a53-aa40fda73a1d",
+      "name": "Resolve thread policy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "923ad38c-9c73-44d9-9d51-81f88b2690e9",
+              "leftValue": "={{ $json.allow_automation === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "116e451f-c1c8-4a83-a1b3-41d434cfcc7f",
+      "name": "Allow automation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1424,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "RrIniaNJCUC72nfI",
+          "cachedResultName": "De paseo en fincas engine",
+          "cachedResultUrl": "/workflow/RrIniaNJCUC72nfI"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "d02c01bb-246a-4cfd-8a41-5309ae6e0c49",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $('Resolve thread policy').item.json.chatInput }}"
+            },
+            {
+              "id": "141fd6c4-f832-4557-a0a4-65dd142e632a",
+              "displayName": "wa_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $('Resolve thread policy').item.json.wa_id }}"
+            },
+            {
+              "id": "6ae6a443-7aa1-4268-b6ec-487b87610e26",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $('Resolve thread policy').item.json.chatwoot_id }}"
+            },
+            {
+              "id": "386eb9e4-715e-48e1-b4d5-8a041ed8fb01",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $('Resolve thread policy').item.json.client_name }}"
+            },
+            {
+              "id": "2a54f974-8205-400d-85d2-e987cf0e5560",
+              "displayName": "message_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "TEXT"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d90a952f-0c8d-4b92-822c-94e7fa697fd7",
+      "name": "Run sales engine",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1664,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9e40fda2-46fe-4a39-9e78-f0c8802f2f59",
+              "leftValue": "={{ $json.send_to_customer === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "6d3e5ebf-63dd-48bb-b8b8-11a2abaf1959",
+              "leftValue": "={{ Boolean($json.chatwoot_id) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "8a957150-5e05-43fa-b9c8-9f33e52c6f8d",
+      "name": "Should send outbound?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1904,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "pLyrdDO3mneaCp7m",
+          "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+          "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "a13d5682-29ae-40d7-af67-69f1bd95fe5e",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_id }}"
+            },
+            {
+              "id": "7ab7547e-19bf-4488-9e75-b2b317c3a77b",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.outbound_message }}"
+            },
+            {
+              "id": "063eb0fd-a89f-40d4-805b-1ea7f7de1311",
+              "displayName": "private",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false,
+              "boolValue": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0630542c-cb1e-4dac-b19b-46a939353498",
+      "name": "Send outbound via Chatwoot",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2144,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f79fa83a-474f-4360-ad3e-2a6cf69cd471",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "8561d868-9e16-422e-84a6-6bb1458b5006",
+              "name": "processed",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b96d82e5-2c2f-407c-9ec6-7ba6ca44d585",
+              "name": "wa_id",
+              "value": "={{ $('Resolve thread policy').item.json.wa_id }}",
+              "type": "string"
+            },
+            {
+              "id": "92970a69-4505-4668-8fe0-4f54f75ec2fb",
+              "name": "chatwoot_id",
+              "value": "={{ $('Resolve thread policy').item.json.chatwoot_id }}",
+              "type": "string"
+            },
+            {
+              "id": "daf9e42f-c424-4840-82c6-a9cd9947423c",
+              "name": "sent",
+              "value": "={{ $('Should send outbound?').item.json.send_to_customer === true && Boolean($('Should send outbound?').item.json.chatwoot_id) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2457a626-c7b6-4497-8151-71857b2b8661",
+      "name": "Webhook ACK",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2384,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7cffe4ee-1728-429e-b78f-7d63e9a0d231",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "898cd670-0c96-4323-89ed-34ee59881426",
+              "name": "processed",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "769268ff-9c80-4e92-8c6d-8e338e0bf8f0",
+              "name": "reason",
+              "value": "={{ $json.ignore_reason || 'ignored' }}",
+              "type": "string"
+            },
+            {
+              "id": "64885ae2-9cb1-45c9-ad9a-cf698fcf0adb",
+              "name": "wa_id",
+              "value": "={{ $json.wa_id || null }}",
+              "type": "string"
+            },
+            {
+              "id": "9fc266e2-a687-4fa3-bf88-73ddd3b4cd17",
+              "name": "chatwoot_id",
+              "value": "={{ $json.chatwoot_id || null }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1d966acb-71af-4f6b-97a5-198df2422d30",
+      "name": "Webhook Ignored",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        416
+      ]
+    }
+  ],
+  "connections": {
+    "Chatwoot Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Chatwoot Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Chatwoot Event": {
+      "main": [
+        [
+          {
+            "node": "Eligible inbound event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eligible inbound event?": {
+      "main": [
+        [
+          {
+            "node": "Resolve existing phone mapping",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve existing phone mapping": {
+      "main": [
+        [
+          {
+            "node": "Resolve thread policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve thread policy": {
+      "main": [
+        [
+          {
+            "node": "Allow automation?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Allow automation?": {
+      "main": [
+        [
+          {
+            "node": "Run sales engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run sales engine": {
+      "main": [
+        [
+          {
+            "node": "Should send outbound?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should send outbound?": {
+      "main": [
+        [
+          {
+            "node": "Send outbound via Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send outbound via Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Webhook ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook ACK": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook Ignored": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "412fafe3-b00f-4525-a3c2-f918e1dd37b7",
+  "activeVersionId": "412fafe3-b00f-4525-a3c2-f918e1dd37b7",
+  "versionCounter": 11,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T04:54:51.630Z",
+      "createdAt": "2026-03-10T04:54:51.630Z",
+      "role": "workflow:owner",
+      "workflowId": "6q5tiU8ifk9N0whF",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-10T04:56:23.713Z",
+    "createdAt": "2026-03-10T04:56:23.713Z",
+    "versionId": "412fafe3-b00f-4525-a3c2-f918e1dd37b7",
+    "workflowId": "6q5tiU8ifk9N0whF",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "chatwoot/de-paseo-en-fincas/inbound",
+          "responseMode": "onReceived",
+          "responseData": "noData",
+          "options": {}
+        },
+        "id": "acf1d46e-1b53-417e-bcc4-a4621cf4abfd",
+        "name": "Chatwoot Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          208,
+          240
+        ],
+        "webhookId": "4134b875-58d7-4c65-9bd9-e49a5aa99455"
+      },
+      {
+        "parameters": {
+          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\n\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\n\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\n\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n];\n\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageType = String(payload.message_type || '').toLowerCase();\nconst event = String(payload.event || '').toLowerCase();\nconst privateMessage = payload.private === true;\n\nconst incoming =\n  messageType === 'incoming' ||\n  messageType === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\n\nlet ignoreReason = null;\n\nif (event && event !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content) {\n  ignoreReason = 'empty_content';\n} else if (!waId) {\n  ignoreReason = 'missing_phone_number';\n} else if (!conversationId) {\n  ignoreReason = 'missing_chatwoot_conversation_id';\n}\n\nreturn [\n  {\n    json: {\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      event: event || 'message_created',\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      wa_id: waId,\n      client_name:\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.conversation?.meta?.sender?.name ||\n        null,\n      private: privateMessage,\n      sender_type: senderType || null,\n      raw: payload,\n      message_type: 'TEXT',\n    },\n  },\n];"
+        },
+        "id": "1aa1a2db-a700-4450-9233-1fffb31de75a",
+        "name": "Normalize Chatwoot Event",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          464,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d5101f0e-bd1f-4eef-bdf7-ca81bcb3cdb5",
+                "leftValue": "={{ $json.eligible === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "8d880077-aff2-4ad3-abd4-7244e7e37f6e",
+        "name": "Eligible inbound event?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          704,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with incoming as (\n  select {{ \"'\" + String($('Normalize Chatwoot Event').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}::text as wa_id\n)\nselect\n  i.wa_id as incoming_wa_id,\n  c.wa_id,\n  c.chatwoot_id,\n  c.agente_activo,\n  c.current_state\nfrom incoming i\nleft join public.conversations c on c.wa_id = i.wa_id\nlimit 1;",
+          "options": {}
+        },
+        "id": "dcad0c74-ee83-4f71-be4f-b714baf78807",
+        "name": "Resolve existing phone mapping",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          944,
+          128
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const normalized = $('Normalize Chatwoot Event').item.json;\nconst existing = $json || {};\n\nconst incomingChatwootId = String(normalized.chatwoot_id || '');\nconst storedChatwootId = existing.chatwoot_id ? String(existing.chatwoot_id) : null;\nlet allow = false;\nlet ignoreReason = normalized.ignore_reason || null;\n\nif (!ignoreReason) {\n  if (!incomingChatwootId) {\n    ignoreReason = 'missing_chatwoot_id';\n  } else if (!storedChatwootId) {\n    allow = true;\n  } else if (storedChatwootId === incomingChatwootId) {\n    allow = true;\n  } else if (existing.agente_activo === false) {\n    allow = true;\n  } else {\n    ignoreReason = 'thread_conflict_active_chatwoot_conversation';\n  }\n}\n\nreturn [\n  {\n    json: {\n      ...normalized,\n      allow_automation: allow,\n      ignore_reason: ignoreReason,\n      stored_chatwoot_id: storedChatwootId,\n    },\n  },\n];"
+        },
+        "id": "8e0c70f4-510a-466d-8a53-aa40fda73a1d",
+        "name": "Resolve thread policy",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1184,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "923ad38c-9c73-44d9-9d51-81f88b2690e9",
+                "leftValue": "={{ $json.allow_automation === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "116e451f-c1c8-4a83-a1b3-41d434cfcc7f",
+        "name": "Allow automation?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1424,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "RrIniaNJCUC72nfI",
+            "cachedResultName": "De paseo en fincas engine",
+            "cachedResultUrl": "/workflow/RrIniaNJCUC72nfI"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "d02c01bb-246a-4cfd-8a41-5309ae6e0c49",
+                "displayName": "chatInput",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $('Resolve thread policy').item.json.chatInput }}"
+              },
+              {
+                "id": "141fd6c4-f832-4557-a0a4-65dd142e632a",
+                "displayName": "wa_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $('Resolve thread policy').item.json.wa_id }}"
+              },
+              {
+                "id": "6ae6a443-7aa1-4268-b6ec-487b87610e26",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $('Resolve thread policy').item.json.chatwoot_id }}"
+              },
+              {
+                "id": "386eb9e4-715e-48e1-b4d5-8a041ed8fb01",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $('Resolve thread policy').item.json.client_name }}"
+              },
+              {
+                "id": "2a54f974-8205-400d-85d2-e987cf0e5560",
+                "displayName": "message_type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "TEXT"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "d90a952f-0c8d-4b92-822c-94e7fa697fd7",
+        "name": "Run sales engine",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          1664,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "9e40fda2-46fe-4a39-9e78-f0c8802f2f59",
+                "leftValue": "={{ $json.send_to_customer === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "6d3e5ebf-63dd-48bb-b8b8-11a2abaf1959",
+                "leftValue": "={{ Boolean($json.chatwoot_id) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "8a957150-5e05-43fa-b9c8-9f33e52c6f8d",
+        "name": "Should send outbound?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1904,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "pLyrdDO3mneaCp7m",
+            "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+            "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "a13d5682-29ae-40d7-af67-69f1bd95fe5e",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_id }}"
+              },
+              {
+                "id": "7ab7547e-19bf-4488-9e75-b2b317c3a77b",
+                "displayName": "message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.outbound_message }}"
+              },
+              {
+                "id": "063eb0fd-a89f-40d4-805b-1ea7f7de1311",
+                "displayName": "private",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "boolean",
+                "removed": false,
+                "boolValue": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "0630542c-cb1e-4dac-b19b-46a939353498",
+        "name": "Send outbound via Chatwoot",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          2144,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f79fa83a-474f-4360-ad3e-2a6cf69cd471",
+                "name": "ok",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "8561d868-9e16-422e-84a6-6bb1458b5006",
+                "name": "processed",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "b96d82e5-2c2f-407c-9ec6-7ba6ca44d585",
+                "name": "wa_id",
+                "value": "={{ $('Resolve thread policy').item.json.wa_id }}",
+                "type": "string"
+              },
+              {
+                "id": "92970a69-4505-4668-8fe0-4f54f75ec2fb",
+                "name": "chatwoot_id",
+                "value": "={{ $('Resolve thread policy').item.json.chatwoot_id }}",
+                "type": "string"
+              },
+              {
+                "id": "daf9e42f-c424-4840-82c6-a9cd9947423c",
+                "name": "sent",
+                "value": "={{ $('Should send outbound?').item.json.send_to_customer === true && Boolean($('Should send outbound?').item.json.chatwoot_id) }}",
+                "type": "boolean"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "2457a626-c7b6-4497-8151-71857b2b8661",
+        "name": "Webhook ACK",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2384,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "7cffe4ee-1728-429e-b78f-7d63e9a0d231",
+                "name": "ok",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "898cd670-0c96-4323-89ed-34ee59881426",
+                "name": "processed",
+                "value": false,
+                "type": "boolean"
+              },
+              {
+                "id": "769268ff-9c80-4e92-8c6d-8e338e0bf8f0",
+                "name": "reason",
+                "value": "={{ $json.ignore_reason || 'ignored' }}",
+                "type": "string"
+              },
+              {
+                "id": "64885ae2-9cb1-45c9-ad9a-cf698fcf0adb",
+                "name": "wa_id",
+                "value": "={{ $json.wa_id || null }}",
+                "type": "string"
+              },
+              {
+                "id": "9fc266e2-a687-4fa3-bf88-73ddd3b4cd17",
+                "name": "chatwoot_id",
+                "value": "={{ $json.chatwoot_id || null }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "1d966acb-71af-4f6b-97a5-198df2422d30",
+        "name": "Webhook Ignored",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          944,
+          416
+        ]
+      }
+    ],
+    "connections": {
+      "Chatwoot Webhook": {
+        "main": [
+          [
+            {
+              "node": "Normalize Chatwoot Event",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize Chatwoot Event": {
+        "main": [
+          [
+            {
+              "node": "Eligible inbound event?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Eligible inbound event?": {
+        "main": [
+          [
+            {
+              "node": "Resolve existing phone mapping",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Webhook Ignored",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve existing phone mapping": {
+        "main": [
+          [
+            {
+              "node": "Resolve thread policy",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve thread policy": {
+        "main": [
+          [
+            {
+              "node": "Allow automation?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Allow automation?": {
+        "main": [
+          [
+            {
+              "node": "Run sales engine",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Webhook Ignored",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run sales engine": {
+        "main": [
+          [
+            {
+              "node": "Should send outbound?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Should send outbound?": {
+        "main": [
+          [
+            {
+              "node": "Send outbound via Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Webhook ACK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send outbound via Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Webhook ACK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook ACK": {
+        "main": [
+          []
+        ]
+      },
+      "Webhook Ignored": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-10T04:56:24.027Z",
+        "id": 218,
+        "workflowId": "6q5tiU8ifk9N0whF",
+        "versionId": "412fafe3-b00f-4525-a3c2-f918e1dd37b7",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

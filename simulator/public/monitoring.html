@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoreo · De Paseo en Fincas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="monitor-shell">
+      <header class="monitor-header">
+        <div class="brand">
+          <div class="brand__avatar">DP</div>
+          <div>
+            <p class="eyebrow">Control Room</p>
+            <h1>Monitoreo comercial</h1>
+          </div>
+        </div>
+        <div class="monitor-header__right">
+          <div class="page-switcher">
+            <a href="/simulator" class="page-switcher__link">Simulador</a>
+            <a href="/monitoring" class="page-switcher__link page-switcher__link--active">Monitoreo</a>
+          </div>
+          <div id="monitoring-hours" class="chat-panel__badge">08:00-22:00 · America/Bogota</div>
+        </div>
+      </header>
+
+      <section class="monitor-toolbar">
+        <div class="monitor-toolbar__search">
+          <label class="monitor-field">
+            <span>Buscar</span>
+            <input id="monitor-search" type="search" placeholder="Teléfono, nombre, finca o mensaje" />
+          </label>
+        </div>
+        <div class="monitor-toolbar__filters">
+          <label class="monitor-field">
+            <span>Timeframe</span>
+            <select id="monitor-timeframe">
+              <option value="all">Todo</option>
+              <option value="today">Hoy</option>
+              <option value="yesterday">Ayer</option>
+              <option value="last7">Últimos 7 días</option>
+            </select>
+          </label>
+          <label class="monitor-field">
+            <span>Bot</span>
+            <select id="monitor-agent">
+              <option value="all">Todos</option>
+              <option value="active">Bot activo</option>
+              <option value="hitl">HITL</option>
+            </select>
+          </label>
+          <label class="monitor-field">
+            <span>Esperando</span>
+            <select id="monitor-waiting">
+              <option value="all">Todos</option>
+              <option value="client">Cliente</option>
+              <option value="owner">Propietario</option>
+            </select>
+          </label>
+          <label class="monitor-field">
+            <span>Conversión</span>
+            <select id="monitor-converted">
+              <option value="all">Todos</option>
+              <option value="converted">Cerrados / elegida</option>
+              <option value="open">Abiertos</option>
+            </select>
+          </label>
+          <label class="monitor-field">
+            <span>Follow on</span>
+            <select id="monitor-follow-on">
+              <option value="all">Todos</option>
+              <option value="pending">Pendiente</option>
+              <option value="due">Vencido</option>
+              <option value="none">Sin follow on</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section id="monitor-summary" class="monitor-summary"></section>
+
+      <section class="monitor-layout">
+        <div class="monitor-table-card">
+          <div class="monitor-table-card__header">
+            <div>
+              <p class="eyebrow">Pipeline vivo</p>
+              <h2>Conversaciones</h2>
+            </div>
+            <div id="monitor-count" class="chat-panel__badge">0 conversaciones</div>
+          </div>
+          <div class="monitor-table-wrap">
+            <table class="monitor-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Etapa</th>
+                  <th>Bot</th>
+                  <th>Esperando</th>
+                  <th>Finca</th>
+                  <th>Follow on</th>
+                  <th>Última actividad</th>
+                </tr>
+              </thead>
+              <tbody id="monitor-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside class="monitor-detail-card">
+          <header class="monitor-detail-card__header">
+            <div>
+              <p class="eyebrow">Detalle</p>
+              <h2 id="monitor-detail-title">Selecciona una conversación</h2>
+            </div>
+          </header>
+          <div id="monitor-detail-body" class="monitor-detail-card__body">
+            <div class="inspector-empty">
+              <p>Selecciona una conversación para ver contexto, follow ons y mensajes recientes.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </div>
+
+    <script type="module" src="/monitoring.js"></script>
+  </body>
+</html>

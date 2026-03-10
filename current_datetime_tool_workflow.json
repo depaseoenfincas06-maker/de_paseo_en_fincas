@@ -1,0 +1,134 @@
+{
+  "updatedAt": "2026-03-10T05:53:26.244Z",
+  "createdAt": "2026-03-10T05:52:58.228Z",
+  "id": "4eNXsaeDXqBBqJNd",
+  "name": "Current Datetime Tool - De Paseo en Fincas",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "ea54d8e3-b8a8-4c5b-a636-2c9bd313d001",
+      "name": "When current datetime tool is called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "now_iso",
+              "value": "={{ $now.setZone('America/Bogota').toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "today_iso_date",
+              "value": "={{ $now.setZone('America/Bogota').toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "current_time_24h",
+              "value": "={{ $now.setZone('America/Bogota').toFormat('HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "timezone",
+              "value": "America/Bogota",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "utc_offset",
+              "value": "-05:00",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "timezone_label",
+              "value": "GMT-5",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "weekday_es",
+              "value": "={{ $now.setZone('America/Bogota').setLocale('es').toFormat('cccc') }}",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "human_readable_es",
+              "value": "={{ $now.setZone('America/Bogota').setLocale('es').toFormat(\"cccc d 'de' LLLL 'de' yyyy, HH:mm\") }}",
+              "type": "string"
+            },
+            {
+              "id": "9",
+              "name": "request_context",
+              "value": "={{ $json.reason || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "10",
+              "name": "notes",
+              "value": "Usa estos valores como referencia única de fecha y hora actual de Colombia (GMT-5) en esta ejecución.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ea54d8e3-b8a8-4c5b-a636-2c9bd313d002",
+      "name": "Build Current Datetime Tool Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        240
+      ]
+    }
+  ],
+  "connections": {
+    "When current datetime tool is called": {
+      "main": [
+        [
+          {
+            "node": "Build Current Datetime Tool Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Current Datetime Tool Response": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "cab2a7bd-9d50-427c-9b87-5cd1b8d1d49a",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 0,
+  "tags": [],
+  "activeVersion": null
+}

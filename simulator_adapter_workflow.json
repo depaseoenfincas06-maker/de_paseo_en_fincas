@@ -1,0 +1,668 @@
+{
+  "updatedAt": "2026-03-10T04:56:25.457Z",
+  "createdAt": "2026-03-10T04:54:52.549Z",
+  "id": "xxMqwcxLFXkcFpDx",
+  "name": "Simulator Adapter - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simulator/de-paseo-en-fincas/inbound",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryJson",
+        "options": {}
+      },
+      "id": "e920f0e4-880d-43b0-baf3-7f47e0811e73",
+      "name": "Simulator Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        240
+      ],
+      "webhookId": "686bae4a-fe59-4da7-9e3d-218db24abba4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\nconst chatInput = String(payload.chatInput || payload.text || '').trim();\nconst clientName = String(payload.client_name || payload.clientName || waId || '').trim() || null;\n\nif (!waId || !chatInput) {\n  return [\n    {\n      json: {\n        valid: false,\n        error: 'wa_id and text are required',\n        wa_id: waId || null,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      valid: true,\n      wa_id: waId,\n      chatInput,\n      client_name: clientName,\n      message_type: 'TEXT',\n      chatwoot_id: payload.chatwoot_id || null,\n    },\n  },\n];"
+      },
+      "id": "c5f3f37d-f012-4e03-a1f3-4a81cbae0ba5",
+      "name": "Normalize simulator payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fec75d74-8c55-44b5-bb5f-f8508a4d2867",
+              "leftValue": "={{ $json.valid === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ae0f2487-98d3-41b9-b0c9-f8e99ca71817",
+      "name": "Valid simulator request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "RrIniaNJCUC72nfI",
+          "cachedResultName": "De paseo en fincas engine",
+          "cachedResultUrl": "/workflow/RrIniaNJCUC72nfI"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "285d0601-cef7-44c8-84f3-801e6f1f5d92",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatInput }}"
+            },
+            {
+              "id": "04594724-a2b7-4efe-99bc-c8ebf0d564bb",
+              "displayName": "wa_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.wa_id }}"
+            },
+            {
+              "id": "2780a7ef-0f1d-4df7-9f4b-c07a7110998d",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_id }}"
+            },
+            {
+              "id": "e158d9e5-155f-407c-87df-7a27ab4c8edb",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.client_name }}"
+            },
+            {
+              "id": "ac4c9a20-ec99-4c07-b43c-2cb45b580e70",
+              "displayName": "message_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "TEXT"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c27f50ac-b479-4e1d-a078-06e2a2d8fbff",
+      "name": "Run sales engine",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef03c442-da81-425d-a99a-259e09bf670d",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "e26836ac-c057-4569-8e13-25e116cf7762",
+              "name": "wa_id",
+              "value": "={{ $json.wa_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b1ea6761-1c10-4134-8f55-e72b0638cb8a",
+              "name": "replyText",
+              "value": "={{ $json.outbound_message || $json.final_whatsapp_text || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "54d6d67f-51e6-4d0f-bdd3-c488558f68f8",
+              "name": "toolChosen",
+              "value": "={{ $json.tool_chosen || 'NONE' }}",
+              "type": "string"
+            },
+            {
+              "id": "377603bd-c6fd-48b6-9a7b-7d7d319d3a34",
+              "name": "action",
+              "value": "={{ $json.action || 'RUN_TOOL' }}",
+              "type": "string"
+            },
+            {
+              "id": "83f15768-4c9d-4422-bd90-476ff4f9bc92",
+              "name": "stateAfter",
+              "value": "={{ $json.current_state || null }}",
+              "type": "string"
+            },
+            {
+              "id": "4dd4b299-9041-49a1-88d0-01d6ec208956",
+              "name": "agenteActivo",
+              "value": "={{ $json.agente_activo }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "524ac103-6817-4758-bfb7-89c164f76627",
+      "name": "Simulator response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9c4e70c4-fd41-49d0-a8e1-67ce1174d485",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "3c4ff6c9-7998-4bba-b21a-c3f473ad3443",
+              "name": "error",
+              "value": "={{ $json.error || 'invalid_request' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "079d9287-41d7-4773-9d0c-871cbf2198eb",
+      "name": "Simulator error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        416
+      ]
+    }
+  ],
+  "connections": {
+    "Simulator Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize simulator payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize simulator payload": {
+      "main": [
+        [
+          {
+            "node": "Valid simulator request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid simulator request?": {
+      "main": [
+        [
+          {
+            "node": "Run sales engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Simulator error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run sales engine": {
+      "main": [
+        [
+          {
+            "node": "Simulator response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simulator response": {
+      "main": [
+        []
+      ]
+    },
+    "Simulator error": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "656eb271-d883-4024-ac50-0f808b875dd1",
+  "activeVersionId": "656eb271-d883-4024-ac50-0f808b875dd1",
+  "versionCounter": 11,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-10T04:54:52.549Z",
+      "createdAt": "2026-03-10T04:54:52.549Z",
+      "role": "workflow:owner",
+      "workflowId": "xxMqwcxLFXkcFpDx",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-10T04:56:25.460Z",
+    "createdAt": "2026-03-10T04:56:25.460Z",
+    "versionId": "656eb271-d883-4024-ac50-0f808b875dd1",
+    "workflowId": "xxMqwcxLFXkcFpDx",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "simulator/de-paseo-en-fincas/inbound",
+          "responseMode": "lastNode",
+          "responseData": "firstEntryJson",
+          "options": {}
+        },
+        "id": "e920f0e4-880d-43b0-baf3-7f47e0811e73",
+        "name": "Simulator Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          208,
+          240
+        ],
+        "webhookId": "686bae4a-fe59-4da7-9e3d-218db24abba4"
+      },
+      {
+        "parameters": {
+          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\nconst chatInput = String(payload.chatInput || payload.text || '').trim();\nconst clientName = String(payload.client_name || payload.clientName || waId || '').trim() || null;\n\nif (!waId || !chatInput) {\n  return [\n    {\n      json: {\n        valid: false,\n        error: 'wa_id and text are required',\n        wa_id: waId || null,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      valid: true,\n      wa_id: waId,\n      chatInput,\n      client_name: clientName,\n      message_type: 'TEXT',\n      chatwoot_id: payload.chatwoot_id || null,\n    },\n  },\n];"
+        },
+        "id": "c5f3f37d-f012-4e03-a1f3-4a81cbae0ba5",
+        "name": "Normalize simulator payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          464,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "fec75d74-8c55-44b5-bb5f-f8508a4d2867",
+                "leftValue": "={{ $json.valid === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "ae0f2487-98d3-41b9-b0c9-f8e99ca71817",
+        "name": "Valid simulator request?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          704,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "RrIniaNJCUC72nfI",
+            "cachedResultName": "De paseo en fincas engine",
+            "cachedResultUrl": "/workflow/RrIniaNJCUC72nfI"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "285d0601-cef7-44c8-84f3-801e6f1f5d92",
+                "displayName": "chatInput",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatInput }}"
+              },
+              {
+                "id": "04594724-a2b7-4efe-99bc-c8ebf0d564bb",
+                "displayName": "wa_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.wa_id }}"
+              },
+              {
+                "id": "2780a7ef-0f1d-4df7-9f4b-c07a7110998d",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_id }}"
+              },
+              {
+                "id": "e158d9e5-155f-407c-87df-7a27ab4c8edb",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.client_name }}"
+              },
+              {
+                "id": "ac4c9a20-ec99-4c07-b43c-2cb45b580e70",
+                "displayName": "message_type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "TEXT"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "c27f50ac-b479-4e1d-a078-06e2a2d8fbff",
+        "name": "Run sales engine",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          944,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "ef03c442-da81-425d-a99a-259e09bf670d",
+                "name": "ok",
+                "value": true,
+                "type": "boolean"
+              },
+              {
+                "id": "e26836ac-c057-4569-8e13-25e116cf7762",
+                "name": "wa_id",
+                "value": "={{ $json.wa_id }}",
+                "type": "string"
+              },
+              {
+                "id": "b1ea6761-1c10-4134-8f55-e72b0638cb8a",
+                "name": "replyText",
+                "value": "={{ $json.outbound_message || $json.final_whatsapp_text || '' }}",
+                "type": "string"
+              },
+              {
+                "id": "54d6d67f-51e6-4d0f-bdd3-c488558f68f8",
+                "name": "toolChosen",
+                "value": "={{ $json.tool_chosen || 'NONE' }}",
+                "type": "string"
+              },
+              {
+                "id": "377603bd-c6fd-48b6-9a7b-7d7d319d3a34",
+                "name": "action",
+                "value": "={{ $json.action || 'RUN_TOOL' }}",
+                "type": "string"
+              },
+              {
+                "id": "83f15768-4c9d-4422-bd90-476ff4f9bc92",
+                "name": "stateAfter",
+                "value": "={{ $json.current_state || null }}",
+                "type": "string"
+              },
+              {
+                "id": "4dd4b299-9041-49a1-88d0-01d6ec208956",
+                "name": "agenteActivo",
+                "value": "={{ $json.agente_activo }}",
+                "type": "boolean"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "524ac103-6817-4758-bfb7-89c164f76627",
+        "name": "Simulator response",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1184,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "9c4e70c4-fd41-49d0-a8e1-67ce1174d485",
+                "name": "ok",
+                "value": false,
+                "type": "boolean"
+              },
+              {
+                "id": "3c4ff6c9-7998-4bba-b21a-c3f473ad3443",
+                "name": "error",
+                "value": "={{ $json.error || 'invalid_request' }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "079d9287-41d7-4773-9d0c-871cbf2198eb",
+        "name": "Simulator error",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          944,
+          416
+        ]
+      }
+    ],
+    "connections": {
+      "Simulator Webhook": {
+        "main": [
+          [
+            {
+              "node": "Normalize simulator payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize simulator payload": {
+        "main": [
+          [
+            {
+              "node": "Valid simulator request?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Valid simulator request?": {
+        "main": [
+          [
+            {
+              "node": "Run sales engine",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Simulator error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run sales engine": {
+        "main": [
+          [
+            {
+              "node": "Simulator response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simulator response": {
+        "main": [
+          []
+        ]
+      },
+      "Simulator error": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-10T04:56:25.778Z",
+        "id": 220,
+        "workflowId": "xxMqwcxLFXkcFpDx",
+        "versionId": "656eb271-d883-4024-ac50-0f808b875dd1",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}
