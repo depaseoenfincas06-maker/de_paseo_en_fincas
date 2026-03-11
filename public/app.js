@@ -11,6 +11,8 @@ const tabToRoute = {
   settings: '/settings',
 };
 
+const sendQueueByConversation = new Map();
+
 const appState = {
   activeTab: routeToTab[window.location.pathname] || 'simulator',
   timezone: 'America/Bogota',
@@ -126,6 +128,23 @@ function escapeHtml(value) {
 
 function compactText(value) {
   return String(value ?? '').trim();
+}
+
+function enqueueConversationSend(conversationId, task) {
+  const previous = sendQueueByConversation.get(conversationId) || Promise.resolve();
+  const next = previous.catch(() => null).then(task);
+  const settled = next.catch(() => null);
+
+  sendQueueByConversation.set(
+    conversationId,
+    settled.finally(() => {
+      if (sendQueueByConversation.get(conversationId) === settled) {
+        sendQueueByConversation.delete(conversationId);
+      }
+    }),
+  );
+
+  return next;
 }
 
 function formatDateTime(value, options = {}) {
@@ -986,10 +1005,12 @@ async function sendMessage(event) {
   renderSimulator();
 
   try {
-    const payload = await api(`/api/conversations/${conversation.id}/messages`, {
-      method: 'POST',
-      body: JSON.stringify({ text, clientMessageId: localId, localSequence }),
-    });
+    const payload = await enqueueConversationSend(conversation.id, () =>
+      api(`/api/conversations/${conversation.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ text, clientMessageId: localId, localSequence }),
+      }),
+    );
 
     const queuedAt = payload.queuedAt || new Date().toISOString();
     updatePendingMessage(conversation.id, localId, {

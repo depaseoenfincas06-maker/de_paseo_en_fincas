@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,14 +18,13 @@ const PORT = Number(process.env.SIMULATOR_PORT || 3101);
 const N8N_BASE_URL = process.env.N8N_BASE_URL;
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
 const BOGOTA_TIMEZONE = 'America/Bogota';
+const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 
 if (!N8N_BASE_URL) {
   throw new Error('Missing N8N_BASE_URL in .env');
 }
 
-const dataDir = path.join(rootDir, 'simulator', 'data');
-const storePath = path.join(dataDir, 'conversations.json');
-const publicDir = path.join(rootDir, 'simulator', 'public');
+const publicDir = path.join(rootDir, 'public');
 
 const pool = new Pool({
   host: process.env.SUPABASE_DB_HOST,
@@ -450,25 +449,110 @@ async function saveAgentSettings(payload) {
   return serializeSettings(rows[0] || next);
 }
 
-async function ensureStorage() {
-  await fs.mkdir(dataDir, { recursive: true });
+function isMissingRelationError(error, relationName) {
+  const message = String(error?.message || '');
+  return (
+    message.includes(`relation "${relationName}" does not exist`) ||
+    message.includes(`relation '${relationName}' does not exist`) ||
+    message.includes(`relation "${relationName.split('.').pop()}" does not exist`) ||
+    message.includes(`relation '${relationName.split('.').pop()}' does not exist`)
+  );
+}
+
+function serializeSimulatorConversation(row = {}) {
+  return {
+    id: String(row.id || ''),
+    title: compactText(row.title || row.id || ''),
+    createdAt: toIsoString(row.created_at || row.createdAt || new Date()),
+    updatedAt: toIsoString(row.updated_at || row.updatedAt || row.created_at || row.createdAt || new Date()),
+  };
+}
+
+function createConversationId() {
+  const suffix = String(Date.now()).slice(-7);
+  const nonce = crypto.randomInt(100, 1000);
+  return `57300${nonce}${suffix}`;
+}
+
+async function listSimulatorConversationRecords() {
   try {
-    await fs.access(storePath);
-  } catch {
-    await fs.writeFile(storePath, JSON.stringify({ conversations: [] }, null, 2));
+    const { rows } = await pool.query(
+      `
+        select
+          id,
+          title,
+          created_at,
+          updated_at
+        from public.simulator_conversations
+        order by updated_at desc, created_at desc
+        limit 500
+      `,
+    );
+
+    return rows.map(serializeSimulatorConversation);
+  } catch (error) {
+    if (isMissingRelationError(error, 'public.simulator_conversations')) {
+      return [];
+    }
+    throw error;
   }
 }
 
-async function readStore() {
-  await ensureStorage();
-  const raw = await fs.readFile(storePath, 'utf8');
-  const parsed = JSON.parse(raw);
-  return Array.isArray(parsed.conversations) ? parsed : { conversations: [] };
+async function getSimulatorConversationRecord(conversationId) {
+  const { rows } = await pool.query(
+    `
+      select
+        id,
+        title,
+        created_at,
+        updated_at
+      from public.simulator_conversations
+      where id = $1
+      limit 1
+    `,
+    [conversationId],
+  );
+
+  return rows[0] ? serializeSimulatorConversation(rows[0]) : null;
 }
 
-async function writeStore(store) {
-  await ensureStorage();
-  await fs.writeFile(storePath, JSON.stringify(store, null, 2));
+async function createSimulatorConversationRecord() {
+  const record = {
+    id: createConversationId(),
+    title: null,
+  };
+
+  const { rows } = await pool.query(
+    `
+      insert into public.simulator_conversations (
+        id,
+        title
+      )
+      values (
+        $1,
+        $2
+      )
+      returning
+        id,
+        title,
+        created_at,
+        updated_at
+    `,
+    [record.id, record.title],
+  );
+
+  return serializeSimulatorConversation(rows[0] || record);
+}
+
+async function touchSimulatorConversationRecord(conversationId) {
+  await pool.query(
+    `
+      update public.simulator_conversations
+      set updated_at = now()
+      where id = $1
+    `,
+    [conversationId],
+  );
 }
 
 function rememberClientMessage(conversationId, clientMessageId) {
@@ -848,7 +932,7 @@ async function getConversationSnapshot(record) {
     id: record.id,
     title: record.title,
     createdAt: record.createdAt,
-    updatedAt: conversation?.updated_at || record.createdAt,
+    updatedAt: conversation?.updated_at || record.updatedAt || record.createdAt,
     stage: conversation?.current_state || 'NEW',
     waitingFor: conversation?.waiting_for || 'CLIENT',
     agenteActivo: conversation?.agente_activo ?? true,
@@ -874,8 +958,8 @@ async function getConversationSnapshot(record) {
 }
 
 async function listConversationSnapshots() {
-  const store = await readStore();
-  const snapshots = await Promise.all(store.conversations.map((record) => getConversationSnapshot(record)));
+  const records = await listSimulatorConversationRecords();
+  const snapshots = await Promise.all(records.map((record) => getConversationSnapshot(record)));
   return snapshots.sort((a, b) => {
     const aTime = new Date(a.updatedAt || a.createdAt).getTime();
     const bTime = new Date(b.updatedAt || b.createdAt).getTime();
@@ -883,23 +967,13 @@ async function listConversationSnapshots() {
   });
 }
 
-function createConversationRecord(existingCount) {
-  const suffix = String(Date.now()).slice(-7);
-  const seed = String(existingCount + 1).padStart(3, '0');
-  const id = `57300${seed}${suffix}`;
-  return {
-    id,
-    title: id,
-    createdAt: new Date().toISOString(),
-  };
-}
+function createApp() {
+  const app = express();
 
-const app = express();
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.static(publicDir));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.static(publicDir));
-
-app.get('/api/bootstrap', async (_req, res) => {
+  app.get('/api/bootstrap', async (_req, res) => {
   try {
     const [conversations, settings] = await Promise.all([listConversationSnapshots(), getAgentSettings()]);
 
@@ -917,9 +991,9 @@ app.get('/api/bootstrap', async (_req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.get('/api/settings', async (_req, res) => {
+  app.get('/api/settings', async (_req, res) => {
   try {
     const settings = await getAgentSettings();
     res.json({
@@ -932,9 +1006,9 @@ app.get('/api/settings', async (_req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.put('/api/settings', async (req, res) => {
+  app.put('/api/settings', async (req, res) => {
   try {
     const settings = await saveAgentSettings(req.body || {});
     res.json({
@@ -947,14 +1021,11 @@ app.put('/api/settings', async (req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.post('/api/conversations', async (_req, res) => {
+  app.post('/api/conversations', async (_req, res) => {
   try {
-    const store = await readStore();
-    const record = createConversationRecord(store.conversations.length);
-    store.conversations.unshift(record);
-    await writeStore(store);
+    const record = await createSimulatorConversationRecord();
     const snapshot = await getConversationSnapshot(record);
     res.status(201).json(snapshot);
   } catch (error) {
@@ -962,9 +1033,9 @@ app.post('/api/conversations', async (_req, res) => {
       message: error.message,
     });
   }
-});
+  });
 
-app.get('/api/conversations', async (_req, res) => {
+  app.get('/api/conversations', async (_req, res) => {
   try {
     const conversations = await listConversationSnapshots();
     res.json(conversations);
@@ -973,12 +1044,11 @@ app.get('/api/conversations', async (_req, res) => {
       message: error.message,
     });
   }
-});
+  });
 
-app.get('/api/conversations/:id', async (req, res) => {
+  app.get('/api/conversations/:id', async (req, res) => {
   try {
-    const store = await readStore();
-    const record = store.conversations.find((item) => item.id === req.params.id);
+    const record = await getSimulatorConversationRecord(req.params.id);
 
     if (!record) {
       res.status(404).json({ message: 'Conversation not found' });
@@ -992,9 +1062,9 @@ app.get('/api/conversations/:id', async (req, res) => {
       message: error.message,
     });
   }
-});
+  });
 
-app.get('/api/monitoring', async (req, res) => {
+  app.get('/api/monitoring', async (req, res) => {
   try {
     const filters = {
       search: compactText(req.query.search).toLowerCase(),
@@ -1026,9 +1096,9 @@ app.get('/api/monitoring', async (req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.get('/api/monitoring/conversations/:id', async (req, res) => {
+  app.get('/api/monitoring/conversations/:id', async (req, res) => {
   try {
     const [conversation, settings] = await Promise.all([getConversationRow(req.params.id), getAgentSettings()]);
 
@@ -1090,9 +1160,9 @@ app.get('/api/monitoring/conversations/:id', async (req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.post('/api/conversations/:id/messages', async (req, res) => {
+  app.post('/api/conversations/:id/messages', async (req, res) => {
   const text = String(req.body?.text || '').trim();
   const clientMessageId = compactText(req.body?.clientMessageId);
   const localSequence = Number(req.body?.localSequence || 0) || 0;
@@ -1101,8 +1171,7 @@ app.post('/api/conversations/:id/messages', async (req, res) => {
     return;
   }
 
-  const store = await readStore();
-  const record = store.conversations.find((item) => item.id === req.params.id);
+  const record = await getSimulatorConversationRecord(req.params.id);
 
   if (!record) {
     res.status(404).json({ message: 'Conversation not found' });
@@ -1123,20 +1192,31 @@ app.post('/api/conversations/:id/messages', async (req, res) => {
     }
 
     rememberClientMessage(record.id, clientMessageId);
+    await touchSimulatorConversationRecord(record.id);
 
-    void enqueueWebhookMessage({
-      waId: record.id,
-      chatInput: text,
-      clientName: record.title,
-      clientMessageId,
-      localSequence,
-    }).catch((error) => {
-      console.error('Simulator background webhook failed', {
-        conversationId: record.id,
-        message: error.message,
-        details: error.payload || null,
+    if (IS_VERCEL) {
+      await enqueueWebhookMessage({
+        waId: record.id,
+        chatInput: text,
+        clientName: record.title,
+        clientMessageId,
+        localSequence,
       });
-    });
+    } else {
+      void enqueueWebhookMessage({
+        waId: record.id,
+        chatInput: text,
+        clientName: record.title,
+        clientMessageId,
+        localSequence,
+      }).catch((error) => {
+        console.error('Simulator background webhook failed', {
+          conversationId: record.id,
+          message: error.message,
+          details: error.payload || null,
+        });
+      });
+    }
 
     res.status(202).json({
       accepted: true,
@@ -1149,18 +1229,26 @@ app.post('/api/conversations/:id/messages', async (req, res) => {
       details: error.payload || null,
     });
   }
-});
+  });
 
-app.get(['/', '/simulator', '/monitoring', '/settings'], (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
-});
+  app.get(['/', '/simulator', '/monitoring', '/settings'], (_req, res) => {
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
 
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
-});
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
 
-await ensureStorage();
+  return app;
+}
 
-app.listen(PORT, () => {
-  console.log(`Simulator running at http://localhost:${PORT}`);
-});
+const app = createApp();
+
+export { app, createApp };
+export default app;
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  app.listen(PORT, () => {
+    console.log(`Simulator running at http://localhost:${PORT}`);
+  });
+}

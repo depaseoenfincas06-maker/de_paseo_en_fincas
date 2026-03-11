@@ -2,5 +2,6 @@
 .env
 .env.local
 .env.*.local
+.vercel/
 node_modules/
 simulator/data/conversations.json
