@@ -19,24 +19,40 @@ const N8N_BASE_URL = process.env.N8N_BASE_URL;
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
 const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
+const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
+const RAW_SUPABASE_DB_PORT = Number(process.env.SUPABASE_DB_PORT || 0);
+const SUPABASE_DB_PORT =
+  /\.pooler\.supabase\.com$/i.test(String(SUPABASE_DB_HOST || '')) && RAW_SUPABASE_DB_PORT === 5432
+    ? 6543
+    : RAW_SUPABASE_DB_PORT || 5432;
 
 if (!N8N_BASE_URL) {
   throw new Error('Missing N8N_BASE_URL in .env');
 }
 
 const publicDir = path.join(rootDir, 'public');
+const POOL_SYMBOL = Symbol.for('depaseo.simulator.pg.pool');
 
-const pool = new Pool({
-  host: process.env.SUPABASE_DB_HOST,
-  port: Number(process.env.SUPABASE_DB_PORT || 5432),
-  database: process.env.SUPABASE_DB_NAME,
-  user: process.env.SUPABASE_DB_USER,
-  password: process.env.SUPABASE_DB_PASSWORD,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  max: 10,
-});
+function createPool() {
+  return new Pool({
+    host: SUPABASE_DB_HOST,
+    port: SUPABASE_DB_PORT,
+    database: process.env.SUPABASE_DB_NAME,
+    user: process.env.SUPABASE_DB_USER,
+    password: process.env.SUPABASE_DB_PASSWORD,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+    max: IS_VERCEL ? 1 : 2,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+  });
+}
+
+const pool = globalThis[POOL_SYMBOL] || createPool();
+if (!globalThis[POOL_SYMBOL]) {
+  globalThis[POOL_SYMBOL] = pool;
+}
 
 const simulatorWebhookUrl = `${N8N_BASE_URL.replace(/\/$/, '')}/webhook/${SIMULATOR_WEBHOOK_PATH}`;
 const outboundQueueByConversation = new Map();
@@ -116,6 +132,21 @@ function matchesTimeframe(value, timeframe = 'all') {
 
 function compactText(value) {
   return String(value || '').trim();
+}
+
+function presentApiError(error) {
+  const rawMessage = String(error?.message || 'Unexpected error');
+  if (rawMessage.includes('MaxClientsInSessionMode: max clients reached')) {
+    return {
+      message: 'El pool de conexiones a Supabase está saturado temporalmente. Vuelve a intentar en unos segundos.',
+      details: null,
+    };
+  }
+
+  return {
+    message: rawMessage,
+    details: error?.payload || null,
+  };
 }
 
 function normalizeBoolean(value, fallback = false) {
@@ -959,7 +990,10 @@ async function getConversationSnapshot(record) {
 
 async function listConversationSnapshots() {
   const records = await listSimulatorConversationRecords();
-  const snapshots = await Promise.all(records.map((record) => getConversationSnapshot(record)));
+  const snapshots = [];
+  for (const record of records) {
+    snapshots.push(await getConversationSnapshot(record));
+  }
   return snapshots.sort((a, b) => {
     const aTime = new Date(a.updatedAt || a.createdAt).getTime();
     const bTime = new Date(b.updatedAt || b.createdAt).getTime();
@@ -986,9 +1020,10 @@ function createApp() {
       conversations,
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
@@ -1001,9 +1036,10 @@ function createApp() {
       settings,
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
@@ -1016,9 +1052,10 @@ function createApp() {
       settings,
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
@@ -1029,8 +1066,9 @@ function createApp() {
     const snapshot = await getConversationSnapshot(record);
     res.status(201).json(snapshot);
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
+      message: apiError.message,
     });
   }
   });
@@ -1040,8 +1078,9 @@ function createApp() {
     const conversations = await listConversationSnapshots();
     res.json(conversations);
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
+      message: apiError.message,
     });
   }
   });
@@ -1058,8 +1097,9 @@ function createApp() {
     const snapshot = await getConversationSnapshot(record);
     res.json(snapshot);
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
+      message: apiError.message,
     });
   }
   });
@@ -1091,9 +1131,10 @@ function createApp() {
       conversations,
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
@@ -1155,9 +1196,10 @@ function createApp() {
       })),
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
@@ -1224,9 +1266,10 @@ function createApp() {
       queuedAt,
     });
   } catch (error) {
+    const apiError = presentApiError(error);
     res.status(500).json({
-      message: error.message,
-      details: error.payload || null,
+      message: apiError.message,
+      details: apiError.details,
     });
   }
   });
