@@ -1,20 +1,24 @@
 :root {
-  --bg: #0b141a;
-  --panel: #111b21;
-  --panel-2: #202c33;
-  --panel-3: #16242d;
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #e9edef;
-  --muted: #8696a0;
-  --accent: #25d366;
-  --accent-deep: #103529;
-  --bubble-in: #202c33;
-  --bubble-out: #d9fdd3;
-  --bubble-out-text: #111b21;
-  --thread-bg: #efeae2;
-  --thread-pattern: rgba(17, 27, 33, 0.05);
-  --shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
-  --radius: 18px;
+  --bg: #ece4d5;
+  --panel: #f9f3e8;
+  --panel-2: #fffaf1;
+  --panel-3: #ece3d2;
+  --border: rgba(102, 88, 62, 0.22);
+  --text: #2f2618;
+  --muted: #756a55;
+  --accent: #3568b2;
+  --accent-2: #d85863;
+  --accent-soft: #dfeaff;
+  --accent-deep: #eff4ff;
+  --bubble-in: #fffaf1;
+  --bubble-out: #e7efff;
+  --bubble-out-text: #243147;
+  --thread-bg: #f4ecde;
+  --thread-pattern: rgba(118, 100, 69, 0.08);
+  --shadow: 0 26px 60px rgba(94, 77, 47, 0.16);
+  --radius: 20px;
+  --bevel-light: rgba(255, 255, 255, 0.88);
+  --bevel-dark: rgba(143, 123, 89, 0.16);
 }
 
 * {
@@ -26,8 +30,20 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgba(37, 211, 102, 0.14), transparent 26%),
-    linear-gradient(180deg, #0e1b22 0%, #0a1419 100%);
+    linear-gradient(
+      90deg,
+      rgba(243, 201, 102, 0.88) 0 12%,
+      rgba(228, 130, 101, 0.88) 12% 24%,
+      rgba(205, 114, 165, 0.88) 24% 36%,
+      rgba(115, 137, 226, 0.88) 36% 48%,
+      rgba(112, 187, 202, 0.88) 48% 60%,
+      rgba(138, 195, 138, 0.88) 60% 72%,
+      rgba(239, 192, 133, 0.88) 72% 84%,
+      rgba(243, 201, 102, 0.88) 84% 100%
+    )
+    top / 100% 12px no-repeat,
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.65), transparent 36%),
+    linear-gradient(180deg, #f4efe5 0%, #e7dfd1 100%);
   color: var(--text);
   font-family: 'IBM Plex Sans', sans-serif;
 }
@@ -52,8 +68,21 @@ select {
   grid-template-rows: auto auto minmax(0, 1fr);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
-  background: rgba(11, 20, 26, 0.96);
+  box-shadow: var(--shadow);
+  background: rgba(249, 243, 232, 0.96);
+  border: 1px solid rgba(114, 97, 70, 0.18);
+  position: relative;
+}
+
+.workspace-shell::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 18px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 var(--bevel-light),
+    inset 0 -1px 0 rgba(181, 165, 139, 0.28);
 }
 
 .workspace-header,
@@ -65,8 +94,9 @@ select {
 .monitor-table-card__header,
 .monitor-detail-card__header,
 .settings-header {
-  background: rgba(17, 27, 33, 0.94);
-  backdrop-filter: blur(12px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 68%),
+    linear-gradient(180deg, #fbf6ec 0%, #efe6d7 100%);
 }
 
 .workspace-header,
@@ -80,6 +110,7 @@ select {
   align-items: center;
   gap: 16px;
   padding: 18px 22px 14px;
+  box-shadow: inset 0 1px 0 var(--bevel-light);
 }
 
 .workspace-header__status {
@@ -102,17 +133,20 @@ select {
   min-height: 40px;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(99, 85, 58, 0.24);
   color: var(--muted);
   text-decoration: none;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, #fffdf8 0%, #efe5d4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 3px 10px rgba(122, 101, 67, 0.08);
 }
 
 .workspace-tab--active {
-  background: rgba(37, 211, 102, 0.12);
-  color: #b7ffd1;
-  border-color: rgba(37, 211, 102, 0.28);
+  background: linear-gradient(180deg, #f6fbff 0%, #dfeaff 100%);
+  color: #264784;
+  border-color: rgba(53, 104, 178, 0.24);
 }
 
 .workspace-content {
@@ -151,19 +185,26 @@ select {
   place-items: center;
   width: 46px;
   height: 46px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-  color: #052e1c;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(221, 232, 255, 0.58)),
+    linear-gradient(135deg, #f1d07b 0%, #f38c7c 24%, #d675b1 48%, #7d92e6 72%, #81c88c 100%);
+  color: #3a2d17;
   font-weight: 700;
   letter-spacing: 0.08em;
+  border: 1px solid rgba(110, 93, 61, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 8px 18px rgba(119, 97, 59, 0.12);
 }
 
 .eyebrow {
   margin: 0 0 4px;
   color: var(--accent);
-  font-size: 0.73rem;
+  font-size: 0.69rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .brand h1,
@@ -172,21 +213,25 @@ select {
 .chat-user h2,
 .settings-header h2 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.12rem;
+  font-weight: 400;
+  font-family: 'Instrument Serif', serif;
+  letter-spacing: 0.02em;
 }
 
 .primary-btn,
 .send-btn {
-  border: 0;
+  border: 1px solid rgba(88, 102, 138, 0.28);
   border-radius: 999px;
-  background: var(--accent);
-  color: #062513;
+  background: linear-gradient(180deg, #fafdff 0%, #dce8ff 100%);
+  color: #244073;
   font-weight: 700;
   padding: 12px 16px;
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease;
-  box-shadow: 0 10px 24px rgba(37, 211, 102, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 8px 18px rgba(80, 98, 145, 0.16);
 }
 
 .primary-btn:hover,
@@ -248,12 +293,13 @@ select {
 .settings-field select,
 .settings-field textarea {
   width: 100%;
-  border: 1px solid transparent;
+  border: 1px solid rgba(106, 90, 62, 0.18);
   border-radius: 12px;
-  background: var(--panel-2);
+  background: linear-gradient(180deg, #fffdf8 0%, #f6efe2 100%);
   color: var(--text);
   padding: 12px 14px;
   outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
 .conversation-list {
@@ -270,14 +316,14 @@ select {
   background: transparent;
   color: inherit;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(110, 94, 66, 0.1);
   cursor: pointer;
   text-align: left;
 }
 
 .conversation-item:hover,
 .conversation-item.is-active {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(53, 104, 178, 0.08);
 }
 
 .conversation-item__content {
@@ -324,27 +370,30 @@ select {
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .conversation-item__stage,
 .stage-chip {
-  background: rgba(37, 211, 102, 0.12);
-  color: #98f7bc;
+  background: rgba(53, 104, 178, 0.1);
+  color: #2b4f8f;
+  border: 1px solid rgba(53, 104, 178, 0.12);
 }
 
 .chat-panel__badge {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.48);
   color: var(--muted);
+  border: 1px solid rgba(110, 94, 66, 0.14);
 }
 
 .badge-warn {
-  background: rgba(255, 183, 77, 0.14);
-  color: #ffd9a3;
+  background: rgba(233, 178, 89, 0.18);
+  color: #8f5c18;
 }
 
 .badge-success {
-  background: rgba(37, 211, 102, 0.14);
-  color: #b9ffd3;
+  background: rgba(126, 190, 137, 0.18);
+  color: #315c39;
 }
 
 .chat-panel {
@@ -367,6 +416,7 @@ select {
   min-height: 0;
   padding: 12px 14px 10px;
   background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 24%),
     radial-gradient(circle at center, transparent 0, transparent 5px, var(--thread-pattern) 5px, var(--thread-pattern) 5.6px, transparent 5.6px) 0 0/30px 30px,
     var(--thread-bg);
 }
@@ -389,10 +439,13 @@ select {
   max-width: min(63%, 460px);
   padding: 4px 8px 3px;
   border-radius: 9px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 5px 10px rgba(118, 96, 62, 0.1);
   white-space: pre-wrap;
   line-height: 1.34;
   position: relative;
+  border: 1px solid rgba(111, 92, 61, 0.14);
 }
 
 .message-bubble--inbound {
@@ -417,8 +470,8 @@ select {
 }
 
 .message-bubble--typing {
-  background: rgba(255, 255, 255, 0.86);
-  color: #2d3439;
+  background: rgba(255, 252, 246, 0.92);
+  color: #504739;
   border-top-left-radius: 2px;
 }
 
@@ -432,7 +485,7 @@ select {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(17, 27, 33, 0.35);
+  background: rgba(88, 73, 48, 0.34);
   animation: typing-bounce 1s infinite ease-in-out;
 }
 
@@ -466,6 +519,7 @@ select {
   padding: 8px 12px 10px;
   background: var(--panel);
   border-top: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.66);
 }
 
 .composer textarea {
@@ -493,9 +547,12 @@ select {
 .info-card,
 .settings-card {
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.66), transparent 36%),
+    rgba(255, 252, 245, 0.76);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
 .info-card h3,
@@ -528,7 +585,7 @@ select {
 
 .context-chip {
   background: var(--accent-deep);
-  color: #b2ffd0;
+  color: #315492;
 }
 
 pre.json-block {
@@ -537,8 +594,9 @@ pre.json-block {
   overflow: auto;
   padding: 14px;
   border-radius: 14px;
-  background: #081117;
-  color: #bcebd0;
+  background: #fff8ec;
+  color: #3d3324;
+  border: 1px solid rgba(114, 98, 70, 0.14);
   font-size: 0.78rem;
 }
 
@@ -548,7 +606,7 @@ pre.json-block {
   place-items: center;
   min-height: 100%;
   text-align: center;
-  color: #4f5f69;
+  color: #8c7a61;
 }
 
 .empty-state h3,
@@ -600,14 +658,17 @@ pre.json-block {
   gap: 12px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(7, 18, 23, 0.92), rgba(11, 20, 26, 0.98));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 40%),
+    linear-gradient(180deg, #f5ecdc 0%, #ece2d3 100%);
 }
 
 .metric-card {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 245, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
 }
 
 .metric-card__label {
@@ -658,7 +719,7 @@ pre.json-block {
 .monitor-table th,
 .monitor-table td {
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(109, 92, 62, 0.1);
   text-align: left;
   vertical-align: top;
 }
@@ -667,11 +728,12 @@ pre.json-block {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #122029;
+  background: #f2e7d6;
   color: var(--muted);
   font-size: 0.79rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .monitor-row {
@@ -680,7 +742,7 @@ pre.json-block {
 
 .monitor-row:hover,
 .monitor-row--active {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(53, 104, 178, 0.08);
 }
 
 .monitor-primary {
@@ -706,13 +768,13 @@ pre.json-block {
 }
 
 .monitor-badge--active {
-  background: rgba(37, 211, 102, 0.12);
-  color: #b8ffd1;
+  background: rgba(53, 104, 178, 0.12);
+  color: #2f5393;
 }
 
 .monitor-badge--hitl {
-  background: rgba(255, 183, 77, 0.12);
-  color: #ffd9a3;
+  background: rgba(233, 178, 89, 0.18);
+  color: #86571c;
 }
 
 .monitor-follow-list,
@@ -727,7 +789,7 @@ pre.json-block {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 245, 0.72);
 }
 
 .monitor-follow-card strong,
@@ -761,7 +823,7 @@ pre.json-block {
   border-radius: 16px;
   padding: 14px 16px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 251, 245, 0.82);
   color: var(--text);
 }
 
@@ -773,22 +835,22 @@ pre.json-block {
 }
 
 .settings-alert--info {
-  background: rgba(57, 155, 255, 0.1);
+  background: rgba(53, 104, 178, 0.12);
 }
 
 .settings-alert--warn {
-  background: rgba(255, 183, 77, 0.12);
-  color: #ffd9a3;
+  background: rgba(233, 178, 89, 0.18);
+  color: #875d20;
 }
 
 .settings-alert--success {
-  background: rgba(37, 211, 102, 0.12);
-  color: #b8ffd1;
+  background: rgba(126, 190, 137, 0.18);
+  color: #315c39;
 }
 
 .settings-alert--error {
-  background: rgba(255, 99, 132, 0.12);
-  color: #ffd5df;
+  background: rgba(216, 88, 99, 0.14);
+  color: #8f2e39;
 }
 
 .settings-grid {
