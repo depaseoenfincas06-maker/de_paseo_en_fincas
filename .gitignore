@@ -5,3 +5,4 @@
 .vercel/
 node_modules/
 simulator/data/conversations.json
+scripts/tmp-audio/
