@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-10T19:21:41.091Z",
+  "updatedAt": "2026-03-18T21:39:03.496Z",
   "createdAt": "2026-03-10T04:54:50.601Z",
   "id": "pLyrdDO3mneaCp7m",
   "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
@@ -49,41 +49,36 @@
       "position": [
         528,
         240
-      ]
+      ],
+      "disabled": true
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "5d2a7d75-a120-4a61-a927-a2ded8a30db1",
+              "id": "fcec8753-9404-4517-b17a-1b48f1b51251",
               "name": "ok",
-              "value": true,
+              "value": "={{ $json.ok === true }}",
               "type": "boolean"
             },
             {
-              "id": "bf57433f-a321-45a9-bc7c-2ce462c038e0",
+              "id": "d213dfe5-3f8d-4bce-b46c-2e05116f2132",
               "name": "chatwoot_id",
               "value": "={{ $('When outbound sender is called').item.json.chatwoot_id }}",
               "type": "string"
             },
             {
-              "id": "3d398841-06fe-486a-84af-621ffe1556ac",
-              "name": "message",
-              "value": "={{ $json.message }}",
-              "type": "string"
-            },
-            {
-              "id": "b4679fb9-e8f7-4d9f-ac2d-d07ef56f3d9f",
-              "name": "sequence_index",
-              "value": "={{ $json.sequence_index }}",
+              "id": "30435673-a4cf-4463-985d-fc8650095baf",
+              "name": "sent_count",
+              "value": "={{ Number($json.sent_count || 0) }}",
               "type": "number"
             },
             {
-              "id": "0d5afb47-3685-4749-911a-fee1bc62cda1",
-              "name": "response",
-              "value": "={{ $json }}",
-              "type": "object"
+              "id": "369eff67-e6ac-4b57-9e44-95f5953c1e7a",
+              "name": "results",
+              "value": "={{ $json.results || [] }}",
+              "type": "array"
             }
           ]
         },
@@ -100,10 +95,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const parseSequence = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $('When outbound sender is called').item.json || {};\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst messages = sequence.length\n  ? sequence\n      .map((item) => ({\n        content: String(item?.content || '').trim(),\n        private: item?.private === true || input.private === true,\n      }))\n      .filter((item) => item.content)\n  : [\n      {\n        content: String(input.message || input.outbound_message || input.final_whatsapp_text || '').trim(),\n        private: input.private === true,\n      },\n    ].filter((item) => item.content);\n\nreturn messages.map((message, index) => ({\n  json: {\n    chatwoot_id: input.chatwoot_id,\n    chatwoot_account_id: input.chatwoot_account_id || '1',\n    chatwoot_api_token: input.chatwoot_api_token || null,\n    message: message.content,\n    private: message.private,\n    sequence_index: index,\n    sequence_count: messages.length,\n  },\n}));"
+        "jsCode": "const input = $('When outbound sender is called').item.json || {};\n\nconst CHATWOOT_BASE_URL = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst CHATWOOT_ACCOUNT_ID = String(input.chatwoot_account_id || \"1\");\nconst CHATWOOT_API_TOKEN = String(input.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\");\nconst MAX_RETRIES = 3;\nconst RETRY_BASE_MS = 900;\n\nconst compact = (value) => String(value || '').trim();\nconst sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction inferFilenameFromUrl(url, fallback = 'asset.bin') {\n  try {\n    const parsed = new URL(url);\n    const pathname = parsed.pathname || '';\n    const candidate = decodeURIComponent(pathname.split('/').pop() || '').trim();\n    return candidate || fallback;\n  } catch {\n    return fallback;\n  }\n}\n\nfunction inferExtensionFromContentType(contentType) {\n  const normalized = compact(contentType).toLowerCase();\n  const map = new Map([\n    ['image/jpeg', '.jpg'],\n    ['image/jpg', '.jpg'],\n    ['image/png', '.png'],\n    ['image/webp', '.webp'],\n    ['image/gif', '.gif'],\n    ['video/mp4', '.mp4'],\n    ['video/quicktime', '.mov'],\n    ['video/webm', '.webm'],\n    ['video/x-msvideo', '.avi'],\n    ['application/pdf', '.pdf'],\n  ]);\n  return map.get(normalized) || '';\n}\n\nfunction inferContentTypeFromFilename(filename, fallback = 'application/octet-stream') {\n  const lower = compact(filename).toLowerCase();\n  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';\n  if (lower.endsWith('.png')) return 'image/png';\n  if (lower.endsWith('.webp')) return 'image/webp';\n  if (lower.endsWith('.gif')) return 'image/gif';\n  if (lower.endsWith('.mp4')) return 'video/mp4';\n  if (lower.endsWith('.mov')) return 'video/quicktime';\n  if (lower.endsWith('.webm')) return 'video/webm';\n  if (lower.endsWith('.avi')) return 'video/x-msvideo';\n  if (lower.endsWith('.pdf')) return 'application/pdf';\n  return fallback;\n}\n\nfunction normalizeBinaryBody(value) {\n  if (value == null) return null;\n  if (Buffer.isBuffer(value)) return value;\n  if (value instanceof Uint8Array) return Buffer.from(value);\n  if (value instanceof ArrayBuffer) return Buffer.from(new Uint8Array(value));\n  if (Array.isArray(value)) return Buffer.from(value);\n  if (typeof value === 'string') return Buffer.from(value, 'utf8');\n  if (typeof value === 'object') {\n    if (value.type === 'Buffer' && Array.isArray(value.data)) {\n      return Buffer.from(value.data);\n    }\n    try {\n      return Buffer.from(JSON.stringify(value), 'utf8');\n    } catch {\n      return Buffer.from(String(value), 'utf8');\n    }\n  }\n  return Buffer.from(String(value), 'utf8');\n}\n\nasync function requestRaw(options) {\n  let headers = { ...(options.headers || {}) };\n  let requestBody = options.body;\n  if (Array.isArray(options.multipartParts) && options.multipartParts.length) {\n    const multipart = buildMultipartBody(options.multipartParts);\n    headers = {\n      ...headers,\n      'Content-Type': 'multipart/form-data; boundary=' + multipart.boundary,\n      'Content-Length': String(multipart.body.length),\n    };\n    requestBody = multipart.body;\n  }\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url: options.url,\n        method: options.method || 'GET',\n        headers,\n        body: requestBody,\n        formData: options.formData,\n        json: false,\n        encoding: null,\n        timeout: Number(options.timeout || 120000),\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    return {\n      statusCode: Number(response.statusCode || response.status || 0),\n      headers: response.headers || {},\n      body: normalizeBinaryBody(response.body ?? response.data) || Buffer.from(''),\n    };\n  }\n\n  throw new Error('$httpRequest helper is not available in this n8n Code node');\n}\n\nasync function requestWithRetry(options, label, maxAttempts = MAX_RETRIES) {\n  let lastError = null;\n  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {\n    try {\n      const response = await requestRaw(options);\n      if (response.statusCode >= 200 && response.statusCode < 300) return response;\n      lastError = new Error(label + '_http_' + response.statusCode + ': ' + response.body.toString('utf8').slice(0, 500));\n    } catch (error) {\n      lastError = error;\n    }\n\n    if (attempt < maxAttempts) {\n      await sleep(RETRY_BASE_MS * attempt);\n    }\n  }\n\n  throw lastError || new Error(label + '_failed');\n}\n\nfunction buildMultipartBody(parts) {\n  const boundary = '----codex-' + Date.now().toString(16) + '-' + Math.random().toString(16).slice(2);\n  const chunks = [];\n\n  for (const part of parts) {\n    if (!part?.name) continue;\n    chunks.push(Buffer.from('--' + boundary + '\\r\\n'));\n\n    if (part.filename) {\n      chunks.push(\n        Buffer.from(\n          'Content-Disposition: form-data; name=\"' +\n            String(part.name).replace(/\"/g, '\\\\\"') +\n            '\"; filename=\"' +\n            String(part.filename).replace(/\"/g, '\\\\\"') +\n            '\"\\r\\n',\n        ),\n      );\n      chunks.push(Buffer.from('Content-Type: ' + String(part.contentType || 'application/octet-stream') + '\\r\\n\\r\\n'));\n      chunks.push(normalizeBinaryBody(part.value) || Buffer.from(''));\n      chunks.push(Buffer.from('\\r\\n'));\n    } else {\n      chunks.push(Buffer.from('Content-Disposition: form-data; name=\"' + String(part.name).replace(/\"/g, '\\\\\"') + '\"\\r\\n\\r\\n'));\n      chunks.push(Buffer.from(String(part.value ?? '')));\n      chunks.push(Buffer.from('\\r\\n'));\n    }\n  }\n\n  chunks.push(Buffer.from('--' + boundary + '--\\r\\n'));\n  return {\n    boundary,\n    body: Buffer.concat(chunks),\n  };\n}\n\nfunction extractDriveFolderId(url) {\n  const match =\n    compact(url).match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    compact(url).match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const match =\n    compact(url).match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    compact(url).match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(compact(url)) || (/drive\\.google\\.com/i.test(compact(url)) && /[?&]id=/.test(compact(url)));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nfunction inferMediaKind(contentType) {\n  const normalized = compact(contentType).toLowerCase();\n  if (normalized.startsWith('video/')) return 'video';\n  if (normalized.startsWith('image/')) return 'image';\n  return 'file';\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) throw new Error('drive_folder_id_not_found');\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const response = await requestWithRetry(\n    {\n      method: 'GET',\n      url: embedUrl,\n      headers: { Accept: 'text/html,application/xhtml+xml' },\n      timeout: 120000,\n    },\n    'drive_folder_listing',\n  );\n  const html = response.body.toString('utf8');\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nasync function downloadAsset(asset) {\n  const response = await requestWithRetry(\n    {\n      method: 'GET',\n      url: asset.download_url,\n      headers: { Accept: '*/*' },\n      timeout: 180000,\n    },\n    'media_download',\n  );\n\n  const contentTypeHeader = Array.isArray(response.headers['content-type'])\n    ? response.headers['content-type'][0]\n    : response.headers['content-type'] || response.headers['Content-Type'] || '';\n  const contentDisposition = Array.isArray(response.headers['content-disposition'])\n    ? response.headers['content-disposition'][0]\n    : response.headers['content-disposition'] || response.headers['Content-Disposition'] || '';\n\n  let filename =\n    (contentDisposition.match(/filename\\\\*=UTF-8''([^;]+)/i)?.[1] || '').trim() ||\n    (contentDisposition.match(/filename=\\\"?([^\\\";]+)\\\"?/i)?.[1] || '').trim() ||\n    inferFilenameFromUrl(asset.download_url, '');\n\n  const fallbackName = inferFilenameFromUrl(asset.source_url || asset.download_url, 'asset');\n  if (!filename) filename = fallbackName;\n  const extension = inferExtensionFromContentType(contentTypeHeader);\n  if (extension && !filename.toLowerCase().endsWith(extension)) {\n    filename += extension;\n  }\n\n  const contentType = compact(contentTypeHeader) || inferContentTypeFromFilename(filename);\n  return {\n    buffer: response.body,\n    filename,\n    contentType,\n    mediaKind: inferMediaKind(contentType),\n    sourceUrl: asset.source_url || asset.download_url,\n  };\n}\n\nasync function sendChatwootTextMessage({ chatwootId, message, privateMessage }) {\n  const payload = {\n    content: compact(message),\n    message_type: 'outgoing',\n    private: privateMessage === true,\n  };\n  return requestWithRetry(\n    {\n      method: 'POST',\n      url:\n        CHATWOOT_BASE_URL +\n        '/api/v1/accounts/' +\n        String(CHATWOOT_ACCOUNT_ID) +\n        '/conversations/' +\n        String(chatwootId) +\n        '/messages',\n      headers: {\n        api_access_token: CHATWOOT_API_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: Buffer.from(JSON.stringify(payload)),\n      timeout: 120000,\n    },\n    'chatwoot_text_send',\n  );\n}\n\nasync function sendChatwootAttachmentMessage({ chatwootId, file, privateMessage }) {\n  return requestWithRetry(\n    {\n      method: 'POST',\n      url:\n        CHATWOOT_BASE_URL +\n        '/api/v1/accounts/' +\n        String(CHATWOOT_ACCOUNT_ID) +\n        '/conversations/' +\n        String(chatwootId) +\n        '/messages',\n      headers: {\n        api_access_token: CHATWOOT_API_TOKEN,\n        Accept: 'application/json',\n      },\n      multipartParts: [\n        { name: 'content', value: '' },\n        { name: 'message_type', value: 'outgoing' },\n        { name: 'private', value: privateMessage === true ? 'true' : 'false' },\n        {\n          name: 'attachments[]',\n          value: file.buffer,\n          filename: file.filename,\n          contentType: file.contentType,\n        },\n      ],\n      timeout: 180000,\n    },\n    'chatwoot_attachment_send',\n  );\n}\n\nfunction describeError(error) {\n  if (!error) return 'unknown_error';\n  if (error instanceof Error && compact(error.message)) return compact(error.message);\n  return compact(error) || 'unknown_error';\n}\n\nasync function safeTextSend({ chatwootId, message, privateMessage }) {\n  try {\n    await sendChatwootTextMessage({ chatwootId, message, privateMessage });\n    return { ok: true, error: null };\n  } catch (error) {\n    return { ok: false, error: describeError(error) };\n  }\n}\n\nasync function safeAttachmentSend({ chatwootId, file, privateMessage }) {\n  try {\n    await sendChatwootAttachmentMessage({ chatwootId, file, privateMessage });\n    return { ok: true, error: null };\n  } catch (error) {\n    return { ok: false, error: describeError(error) };\n  }\n}\n\nasync function sendMediaGroup(item, results) {\n  const assets = await resolveSequenceAssets(item);\n  if (!assets.length) {\n    if (compact(item.content)) {\n      const sendResult = await safeTextSend({\n        chatwootId: input.chatwoot_id,\n        message: compact(item.content) + '\\n' + uniqueStrings([item.media_url, ...(item.media_urls || [])]).join('\\n'),\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: sendResult.ok,\n        type: 'text_fallback',\n        property_title: item.property_title || null,\n        error: sendResult.error,\n      });\n    }\n    return;\n  }\n\n  for (const asset of assets) {\n    try {\n      const file = await downloadAsset(asset);\n      const sendResult = await safeAttachmentSend({\n        chatwootId: input.chatwoot_id,\n        file,\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: sendResult.ok,\n        type: 'media',\n        media_kind: file.mediaKind,\n        filename: file.filename,\n        property_title: item.property_title || null,\n        source_url: file.sourceUrl,\n        error: sendResult.error,\n      });\n    } catch (error) {\n      const fallbackResult = await safeTextSend({\n        chatwootId: input.chatwoot_id,\n        message:\n          'No pude adjuntar uno de los assets de ' +\n          String(item.property_title || 'la finca') +\n          ' en este momento. Te comparto el enlace:\\n' +\n          String(asset.source_url || asset.download_url),\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: false,\n        type: 'media_fallback',\n        error: describeError(error),\n        source_url: asset.source_url || asset.download_url,\n        property_title: item.property_title || null,\n        fallback_sent: fallbackResult.ok,\n        fallback_error: fallbackResult.error,\n      });\n    }\n  }\n}\n\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst queue = sequence.length\n  ? sequence\n  : [createFallbackMessage()].filter(Boolean);\n\nfunction createFallbackMessage() {\n  const content = compact(input.message || input.outbound_message || input.final_whatsapp_text || '');\n  if (!content) return null;\n  return {\n    type: 'text',\n    content,\n    private: input.private === true,\n  };\n}\n\nconst results = [];\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n  const type = compact(item.type || '');\n  if (type === 'media_group' || (item.media_url && type !== 'text')) {\n    await sendMediaGroup(item, results);\n    continue;\n  }\n\n  const content = compact(item.content);\n  if (!content) continue;\n  const sendResult = await safeTextSend({\n    chatwootId: input.chatwoot_id,\n    message: content,\n    privateMessage: item.private === true || input.private === true,\n  });\n  results.push({\n    ok: sendResult.ok,\n    type: 'text',\n    content,\n    error: sendResult.error,\n  });\n}\n\nreturn [\n  {\n    json: {\n      ok: results.every((entry) => entry.ok !== false),\n      chatwoot_id: input.chatwoot_id,\n      sent_count: results.length,\n      results,\n    },\n  },\n];"
       },
       "id": "c53dfadb-f12e-4b91-b254-c4f9c25df908",
-      "name": "Expand outbound sequence",
+      "name": "Process outbound queue",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -117,18 +112,7 @@
       "main": [
         [
           {
-            "node": "Expand outbound sequence",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Chatwoot message": {
-      "main": [
-        [
-          {
-            "node": "Outbound send result",
+            "node": "Process outbound queue",
             "type": "main",
             "index": 0
           }
@@ -140,11 +124,11 @@
         []
       ]
     },
-    "Expand outbound sequence": {
+    "Process outbound queue": {
       "main": [
         [
           {
-            "node": "Send Chatwoot message",
+            "node": "Outbound send result",
             "type": "main",
             "index": 0
           }
@@ -161,9 +145,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
-  "activeVersionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
-  "versionCounter": 22,
+  "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
+  "activeVersionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
+  "versionCounter": 119,
   "triggerCount": 0,
   "shared": [
     {
@@ -186,9 +170,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-10T19:21:41.094Z",
-    "createdAt": "2026-03-10T19:21:41.094Z",
-    "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+    "updatedAt": "2026-03-18T21:39:03.498Z",
+    "createdAt": "2026-03-18T21:39:03.498Z",
+    "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
     "workflowId": "pLyrdDO3mneaCp7m",
     "nodes": [
       {
@@ -233,41 +217,36 @@
         "position": [
           528,
           240
-        ]
+        ],
+        "disabled": true
       },
       {
         "parameters": {
           "assignments": {
             "assignments": [
               {
-                "id": "5d2a7d75-a120-4a61-a927-a2ded8a30db1",
+                "id": "fcec8753-9404-4517-b17a-1b48f1b51251",
                 "name": "ok",
-                "value": true,
+                "value": "={{ $json.ok === true }}",
                 "type": "boolean"
               },
               {
-                "id": "bf57433f-a321-45a9-bc7c-2ce462c038e0",
+                "id": "d213dfe5-3f8d-4bce-b46c-2e05116f2132",
                 "name": "chatwoot_id",
                 "value": "={{ $('When outbound sender is called').item.json.chatwoot_id }}",
                 "type": "string"
               },
               {
-                "id": "3d398841-06fe-486a-84af-621ffe1556ac",
-                "name": "message",
-                "value": "={{ $json.message }}",
-                "type": "string"
-              },
-              {
-                "id": "b4679fb9-e8f7-4d9f-ac2d-d07ef56f3d9f",
-                "name": "sequence_index",
-                "value": "={{ $json.sequence_index }}",
+                "id": "30435673-a4cf-4463-985d-fc8650095baf",
+                "name": "sent_count",
+                "value": "={{ Number($json.sent_count || 0) }}",
                 "type": "number"
               },
               {
-                "id": "0d5afb47-3685-4749-911a-fee1bc62cda1",
-                "name": "response",
-                "value": "={{ $json }}",
-                "type": "object"
+                "id": "369eff67-e6ac-4b57-9e44-95f5953c1e7a",
+                "name": "results",
+                "value": "={{ $json.results || [] }}",
+                "type": "array"
               }
             ]
           },
@@ -284,10 +263,10 @@
       },
       {
         "parameters": {
-          "jsCode": "const parseSequence = (value) => {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n};\n\nconst input = $('When outbound sender is called').item.json || {};\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst messages = sequence.length\n  ? sequence\n      .map((item) => ({\n        content: String(item?.content || '').trim(),\n        private: item?.private === true || input.private === true,\n      }))\n      .filter((item) => item.content)\n  : [\n      {\n        content: String(input.message || input.outbound_message || input.final_whatsapp_text || '').trim(),\n        private: input.private === true,\n      },\n    ].filter((item) => item.content);\n\nreturn messages.map((message, index) => ({\n  json: {\n    chatwoot_id: input.chatwoot_id,\n    chatwoot_account_id: input.chatwoot_account_id || '1',\n    chatwoot_api_token: input.chatwoot_api_token || null,\n    message: message.content,\n    private: message.private,\n    sequence_index: index,\n    sequence_count: messages.length,\n  },\n}));"
+          "jsCode": "const input = $('When outbound sender is called').item.json || {};\n\nconst CHATWOOT_BASE_URL = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst CHATWOOT_ACCOUNT_ID = String(input.chatwoot_account_id || \"1\");\nconst CHATWOOT_API_TOKEN = String(input.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\");\nconst MAX_RETRIES = 3;\nconst RETRY_BASE_MS = 900;\n\nconst compact = (value) => String(value || '').trim();\nconst sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction inferFilenameFromUrl(url, fallback = 'asset.bin') {\n  try {\n    const parsed = new URL(url);\n    const pathname = parsed.pathname || '';\n    const candidate = decodeURIComponent(pathname.split('/').pop() || '').trim();\n    return candidate || fallback;\n  } catch {\n    return fallback;\n  }\n}\n\nfunction inferExtensionFromContentType(contentType) {\n  const normalized = compact(contentType).toLowerCase();\n  const map = new Map([\n    ['image/jpeg', '.jpg'],\n    ['image/jpg', '.jpg'],\n    ['image/png', '.png'],\n    ['image/webp', '.webp'],\n    ['image/gif', '.gif'],\n    ['video/mp4', '.mp4'],\n    ['video/quicktime', '.mov'],\n    ['video/webm', '.webm'],\n    ['video/x-msvideo', '.avi'],\n    ['application/pdf', '.pdf'],\n  ]);\n  return map.get(normalized) || '';\n}\n\nfunction inferContentTypeFromFilename(filename, fallback = 'application/octet-stream') {\n  const lower = compact(filename).toLowerCase();\n  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';\n  if (lower.endsWith('.png')) return 'image/png';\n  if (lower.endsWith('.webp')) return 'image/webp';\n  if (lower.endsWith('.gif')) return 'image/gif';\n  if (lower.endsWith('.mp4')) return 'video/mp4';\n  if (lower.endsWith('.mov')) return 'video/quicktime';\n  if (lower.endsWith('.webm')) return 'video/webm';\n  if (lower.endsWith('.avi')) return 'video/x-msvideo';\n  if (lower.endsWith('.pdf')) return 'application/pdf';\n  return fallback;\n}\n\nfunction normalizeBinaryBody(value) {\n  if (value == null) return null;\n  if (Buffer.isBuffer(value)) return value;\n  if (value instanceof Uint8Array) return Buffer.from(value);\n  if (value instanceof ArrayBuffer) return Buffer.from(new Uint8Array(value));\n  if (Array.isArray(value)) return Buffer.from(value);\n  if (typeof value === 'string') return Buffer.from(value, 'utf8');\n  if (typeof value === 'object') {\n    if (value.type === 'Buffer' && Array.isArray(value.data)) {\n      return Buffer.from(value.data);\n    }\n    try {\n      return Buffer.from(JSON.stringify(value), 'utf8');\n    } catch {\n      return Buffer.from(String(value), 'utf8');\n    }\n  }\n  return Buffer.from(String(value), 'utf8');\n}\n\nasync function requestRaw(options) {\n  let headers = { ...(options.headers || {}) };\n  let requestBody = options.body;\n  if (Array.isArray(options.multipartParts) && options.multipartParts.length) {\n    const multipart = buildMultipartBody(options.multipartParts);\n    headers = {\n      ...headers,\n      'Content-Type': 'multipart/form-data; boundary=' + multipart.boundary,\n      'Content-Length': String(multipart.body.length),\n    };\n    requestBody = multipart.body;\n  }\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url: options.url,\n        method: options.method || 'GET',\n        headers,\n        body: requestBody,\n        formData: options.formData,\n        json: false,\n        encoding: null,\n        timeout: Number(options.timeout || 120000),\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    return {\n      statusCode: Number(response.statusCode || response.status || 0),\n      headers: response.headers || {},\n      body: normalizeBinaryBody(response.body ?? response.data) || Buffer.from(''),\n    };\n  }\n\n  throw new Error('$httpRequest helper is not available in this n8n Code node');\n}\n\nasync function requestWithRetry(options, label, maxAttempts = MAX_RETRIES) {\n  let lastError = null;\n  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {\n    try {\n      const response = await requestRaw(options);\n      if (response.statusCode >= 200 && response.statusCode < 300) return response;\n      lastError = new Error(label + '_http_' + response.statusCode + ': ' + response.body.toString('utf8').slice(0, 500));\n    } catch (error) {\n      lastError = error;\n    }\n\n    if (attempt < maxAttempts) {\n      await sleep(RETRY_BASE_MS * attempt);\n    }\n  }\n\n  throw lastError || new Error(label + '_failed');\n}\n\nfunction buildMultipartBody(parts) {\n  const boundary = '----codex-' + Date.now().toString(16) + '-' + Math.random().toString(16).slice(2);\n  const chunks = [];\n\n  for (const part of parts) {\n    if (!part?.name) continue;\n    chunks.push(Buffer.from('--' + boundary + '\\r\\n'));\n\n    if (part.filename) {\n      chunks.push(\n        Buffer.from(\n          'Content-Disposition: form-data; name=\"' +\n            String(part.name).replace(/\"/g, '\\\\\"') +\n            '\"; filename=\"' +\n            String(part.filename).replace(/\"/g, '\\\\\"') +\n            '\"\\r\\n',\n        ),\n      );\n      chunks.push(Buffer.from('Content-Type: ' + String(part.contentType || 'application/octet-stream') + '\\r\\n\\r\\n'));\n      chunks.push(normalizeBinaryBody(part.value) || Buffer.from(''));\n      chunks.push(Buffer.from('\\r\\n'));\n    } else {\n      chunks.push(Buffer.from('Content-Disposition: form-data; name=\"' + String(part.name).replace(/\"/g, '\\\\\"') + '\"\\r\\n\\r\\n'));\n      chunks.push(Buffer.from(String(part.value ?? '')));\n      chunks.push(Buffer.from('\\r\\n'));\n    }\n  }\n\n  chunks.push(Buffer.from('--' + boundary + '--\\r\\n'));\n  return {\n    boundary,\n    body: Buffer.concat(chunks),\n  };\n}\n\nfunction extractDriveFolderId(url) {\n  const match =\n    compact(url).match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    compact(url).match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const match =\n    compact(url).match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    compact(url).match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(compact(url)) || (/drive\\.google\\.com/i.test(compact(url)) && /[?&]id=/.test(compact(url)));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nfunction inferMediaKind(contentType) {\n  const normalized = compact(contentType).toLowerCase();\n  if (normalized.startsWith('video/')) return 'video';\n  if (normalized.startsWith('image/')) return 'image';\n  return 'file';\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) throw new Error('drive_folder_id_not_found');\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const response = await requestWithRetry(\n    {\n      method: 'GET',\n      url: embedUrl,\n      headers: { Accept: 'text/html,application/xhtml+xml' },\n      timeout: 120000,\n    },\n    'drive_folder_listing',\n  );\n  const html = response.body.toString('utf8');\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nasync function downloadAsset(asset) {\n  const response = await requestWithRetry(\n    {\n      method: 'GET',\n      url: asset.download_url,\n      headers: { Accept: '*/*' },\n      timeout: 180000,\n    },\n    'media_download',\n  );\n\n  const contentTypeHeader = Array.isArray(response.headers['content-type'])\n    ? response.headers['content-type'][0]\n    : response.headers['content-type'] || response.headers['Content-Type'] || '';\n  const contentDisposition = Array.isArray(response.headers['content-disposition'])\n    ? response.headers['content-disposition'][0]\n    : response.headers['content-disposition'] || response.headers['Content-Disposition'] || '';\n\n  let filename =\n    (contentDisposition.match(/filename\\\\*=UTF-8''([^;]+)/i)?.[1] || '').trim() ||\n    (contentDisposition.match(/filename=\\\"?([^\\\";]+)\\\"?/i)?.[1] || '').trim() ||\n    inferFilenameFromUrl(asset.download_url, '');\n\n  const fallbackName = inferFilenameFromUrl(asset.source_url || asset.download_url, 'asset');\n  if (!filename) filename = fallbackName;\n  const extension = inferExtensionFromContentType(contentTypeHeader);\n  if (extension && !filename.toLowerCase().endsWith(extension)) {\n    filename += extension;\n  }\n\n  const contentType = compact(contentTypeHeader) || inferContentTypeFromFilename(filename);\n  return {\n    buffer: response.body,\n    filename,\n    contentType,\n    mediaKind: inferMediaKind(contentType),\n    sourceUrl: asset.source_url || asset.download_url,\n  };\n}\n\nasync function sendChatwootTextMessage({ chatwootId, message, privateMessage }) {\n  const payload = {\n    content: compact(message),\n    message_type: 'outgoing',\n    private: privateMessage === true,\n  };\n  return requestWithRetry(\n    {\n      method: 'POST',\n      url:\n        CHATWOOT_BASE_URL +\n        '/api/v1/accounts/' +\n        String(CHATWOOT_ACCOUNT_ID) +\n        '/conversations/' +\n        String(chatwootId) +\n        '/messages',\n      headers: {\n        api_access_token: CHATWOOT_API_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: Buffer.from(JSON.stringify(payload)),\n      timeout: 120000,\n    },\n    'chatwoot_text_send',\n  );\n}\n\nasync function sendChatwootAttachmentMessage({ chatwootId, file, privateMessage }) {\n  return requestWithRetry(\n    {\n      method: 'POST',\n      url:\n        CHATWOOT_BASE_URL +\n        '/api/v1/accounts/' +\n        String(CHATWOOT_ACCOUNT_ID) +\n        '/conversations/' +\n        String(chatwootId) +\n        '/messages',\n      headers: {\n        api_access_token: CHATWOOT_API_TOKEN,\n        Accept: 'application/json',\n      },\n      multipartParts: [\n        { name: 'content', value: '' },\n        { name: 'message_type', value: 'outgoing' },\n        { name: 'private', value: privateMessage === true ? 'true' : 'false' },\n        {\n          name: 'attachments[]',\n          value: file.buffer,\n          filename: file.filename,\n          contentType: file.contentType,\n        },\n      ],\n      timeout: 180000,\n    },\n    'chatwoot_attachment_send',\n  );\n}\n\nfunction describeError(error) {\n  if (!error) return 'unknown_error';\n  if (error instanceof Error && compact(error.message)) return compact(error.message);\n  return compact(error) || 'unknown_error';\n}\n\nasync function safeTextSend({ chatwootId, message, privateMessage }) {\n  try {\n    await sendChatwootTextMessage({ chatwootId, message, privateMessage });\n    return { ok: true, error: null };\n  } catch (error) {\n    return { ok: false, error: describeError(error) };\n  }\n}\n\nasync function safeAttachmentSend({ chatwootId, file, privateMessage }) {\n  try {\n    await sendChatwootAttachmentMessage({ chatwootId, file, privateMessage });\n    return { ok: true, error: null };\n  } catch (error) {\n    return { ok: false, error: describeError(error) };\n  }\n}\n\nasync function sendMediaGroup(item, results) {\n  const assets = await resolveSequenceAssets(item);\n  if (!assets.length) {\n    if (compact(item.content)) {\n      const sendResult = await safeTextSend({\n        chatwootId: input.chatwoot_id,\n        message: compact(item.content) + '\\n' + uniqueStrings([item.media_url, ...(item.media_urls || [])]).join('\\n'),\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: sendResult.ok,\n        type: 'text_fallback',\n        property_title: item.property_title || null,\n        error: sendResult.error,\n      });\n    }\n    return;\n  }\n\n  for (const asset of assets) {\n    try {\n      const file = await downloadAsset(asset);\n      const sendResult = await safeAttachmentSend({\n        chatwootId: input.chatwoot_id,\n        file,\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: sendResult.ok,\n        type: 'media',\n        media_kind: file.mediaKind,\n        filename: file.filename,\n        property_title: item.property_title || null,\n        source_url: file.sourceUrl,\n        error: sendResult.error,\n      });\n    } catch (error) {\n      const fallbackResult = await safeTextSend({\n        chatwootId: input.chatwoot_id,\n        message:\n          'No pude adjuntar uno de los assets de ' +\n          String(item.property_title || 'la finca') +\n          ' en este momento. Te comparto el enlace:\\n' +\n          String(asset.source_url || asset.download_url),\n        privateMessage: item.private === true || input.private === true,\n      });\n      results.push({\n        ok: false,\n        type: 'media_fallback',\n        error: describeError(error),\n        source_url: asset.source_url || asset.download_url,\n        property_title: item.property_title || null,\n        fallback_sent: fallbackResult.ok,\n        fallback_error: fallbackResult.error,\n      });\n    }\n  }\n}\n\nconst sequence = parseSequence(input.outbound_sequence_json || input.outbound_sequence);\nconst queue = sequence.length\n  ? sequence\n  : [createFallbackMessage()].filter(Boolean);\n\nfunction createFallbackMessage() {\n  const content = compact(input.message || input.outbound_message || input.final_whatsapp_text || '');\n  if (!content) return null;\n  return {\n    type: 'text',\n    content,\n    private: input.private === true,\n  };\n}\n\nconst results = [];\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n  const type = compact(item.type || '');\n  if (type === 'media_group' || (item.media_url && type !== 'text')) {\n    await sendMediaGroup(item, results);\n    continue;\n  }\n\n  const content = compact(item.content);\n  if (!content) continue;\n  const sendResult = await safeTextSend({\n    chatwootId: input.chatwoot_id,\n    message: content,\n    privateMessage: item.private === true || input.private === true,\n  });\n  results.push({\n    ok: sendResult.ok,\n    type: 'text',\n    content,\n    error: sendResult.error,\n  });\n}\n\nreturn [\n  {\n    json: {\n      ok: results.every((entry) => entry.ok !== false),\n      chatwoot_id: input.chatwoot_id,\n      sent_count: results.length,\n      results,\n    },\n  },\n];"
         },
         "id": "c53dfadb-f12e-4b91-b254-c4f9c25df908",
-        "name": "Expand outbound sequence",
+        "name": "Process outbound queue",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
@@ -301,18 +280,7 @@
         "main": [
           [
             {
-              "node": "Expand outbound sequence",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send Chatwoot message": {
-        "main": [
-          [
-            {
-              "node": "Outbound send result",
+              "node": "Process outbound queue",
               "type": "main",
               "index": 0
             }
@@ -324,11 +292,11 @@
           []
         ]
       },
-      "Expand outbound sequence": {
+      "Process outbound queue": {
         "main": [
           [
             {
-              "node": "Send Chatwoot message",
+              "node": "Outbound send result",
               "type": "main",
               "index": 0
             }
@@ -342,10 +310,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-10T19:21:41.455Z",
-        "id": 269,
+        "createdAt": "2026-03-18T21:39:03.819Z",
+        "id": 493,
         "workflowId": "pLyrdDO3mneaCp7m",
-        "versionId": "fb375e0b-fd34-4b73-9201-98ccce2716cc",
+        "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }
