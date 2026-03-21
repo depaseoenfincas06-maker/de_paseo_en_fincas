@@ -793,6 +793,7 @@ function normalizeBinaryBody(value) {
 async function requestRaw(options) {
   let headers = { ...(options.headers || {}) };
   let requestBody = options.body;
+  let useJsonBody = Object.prototype.hasOwnProperty.call(options, 'jsonBody');
   if (Array.isArray(options.multipartParts) && options.multipartParts.length) {
     const multipart = buildMultipartBody(options.multipartParts);
     headers = {
@@ -801,6 +802,7 @@ async function requestRaw(options) {
       'Content-Length': String(multipart.body.length),
     };
     requestBody = multipart.body;
+    useJsonBody = false;
   }
   if (helperRequest) {
     let response;
@@ -809,9 +811,9 @@ async function requestRaw(options) {
         url: options.url,
         method: options.method || 'GET',
         headers,
-        body: requestBody,
+        body: useJsonBody ? options.jsonBody : requestBody,
         formData: options.formData,
-        json: false,
+        json: useJsonBody,
         encoding: null,
         timeout: Number(options.timeout || 120000),
         ignoreHttpStatusErrors: true,
@@ -1039,7 +1041,7 @@ async function sendChatwootTextMessage({ chatwootId, message, privateMessage }) 
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: Buffer.from(JSON.stringify(payload)),
+      jsonBody: payload,
       timeout: 120000,
     },
     'chatwoot_text_send',
