@@ -1265,7 +1265,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chatwoot/de-paseo-en-fincas/inbound",
-        "responseMode": "lastNode",
+        "responseMode": "onReceived",
         "options": {}
       },
       "id": "9dcb7d3e-9b19-4fe5-a4e9-ff60f9f90e26",
@@ -3691,7 +3691,8 @@
     "availableInMCP": false,
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner",
-    "timezone": "America/Bogota"
+    "timezone": "America/Bogota",
+    "maxExecutionConcurrency": 5
   },
   "staticData": null,
   "meta": null,
