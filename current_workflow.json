@@ -1427,72 +1427,12 @@
     },
     {
       "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "mode": "id",
-          "value": "pLyrdDO3mneaCp7m",
-          "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
-          "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "aee41546-aa86-4929-870c-758a10ca6b8d",
-              "displayName": "chatwoot_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false,
-              "stringValue": "={{ $json.chatwoot_id }}"
-            },
-            {
-              "id": "900962f8-7c1e-4819-b75e-95f353dd17d4",
-              "displayName": "message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false,
-              "stringValue": "={{ $json.outbound_message }}"
-            },
-            {
-              "id": "4ed907af-7db7-41a5-a1de-03f025ffcf48",
-              "displayName": "private",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "boolean",
-              "removed": false,
-              "boolValue": false
-            },
-            {
-              "id": "7f125067-d965-43f4-91ad-6f23e7cfbd54",
-              "displayName": "outbound_sequence_json",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false,
-              "stringValue": "={{ $json.outbound_sequence_json || '[]' }}"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
+        "jsCode": "const prevData = $input.first().json;\nconst chatwootId = String(prevData.chatwoot_id || '');\nconst CHATWOOT_BASE_URL = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst CHATWOOT_ACCOUNT_ID = \"1\";\nconst CHATWOOT_API_TOKEN = \"7paF3kLsjSEPvXqgHPEgPTEq\";\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try { return JSON.parse(String(value)); } catch { return []; }\n}\n\nasync function sendText(content) {\n  if (!helperRequest) throw new Error('httpRequest helper not available');\n  return helperRequest({\n    url: CHATWOOT_BASE_URL + '/api/v1/accounts/' + CHATWOOT_ACCOUNT_ID + '/conversations/' + chatwootId + '/messages',\n    method: 'POST',\n    headers: { api_access_token: CHATWOOT_API_TOKEN, 'Content-Type': 'application/json' },\n    body: { content: String(content).trim(), message_type: 'outgoing', private: false },\n    json: true,\n    timeout: 15000,\n  });\n}\n\nconst sequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence || '[]');\nconst textItems = [];\nconst mediaItems = [];\n\nfor (const item of sequence) {\n  if (!item || typeof item !== 'object') continue;\n  const type = String(item.type || '').trim();\n  if (type === 'media_group' || (item.media_url && type !== 'text')) {\n    mediaItems.push(item);\n  } else if (type === 'text' && String(item.content || '').trim()) {\n    textItems.push(item);\n  }\n}\n\nconst results = [];\nfor (const item of textItems) {\n  try {\n    await sendText(item.content);\n    results.push({ ok: true, type: 'text' });\n  } catch (e) {\n    results.push({ ok: false, type: 'text', error: e.message || 'unknown' });\n  }\n}\n\nif (textItems.length === 0 && prevData.outbound_message) {\n  try {\n    await sendText(prevData.outbound_message);\n    results.push({ ok: true, type: 'text_fallback' });\n  } catch (e) {\n    results.push({ ok: false, type: 'text_fallback', error: e.message || 'unknown' });\n  }\n}\n\nreturn [{\n  json: {\n    ...prevData,\n    texts_sent: results.length,\n    texts_ok: results.every(r => r.ok),\n    media_groups_pending: mediaItems,\n    has_media: mediaItems.length > 0,\n    chatwoot_id: chatwootId,\n    text_results: results,\n  }\n}];"
       },
-      "id": "62761566-3357-409c-b75e-9d346efc6728",
-      "name": "Send outbound via Chatwoot",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.2,
+      "id": "sync-text-sender-node-001",
+      "name": "Send texts sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1424,
         80
@@ -2125,7 +2065,7 @@
         "promptType": "define",
         "text": "=CONTEXT:\n{{ JSON.stringify($('Get Context-conversations1').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Si la pregunta es sobre una propiedad concreta, llama inventory_reader_tool con operation=\"get_finca_details\".\n- Si necesitas aclarar si hay opciones por zona o capacidad, llama inventory_reader_tool con operation=\"list_matching_fincas\".\n- Si la respuesta ya esta en context o en mensajes recientes, responde sin llamar el tool.\n\nSTATE_TO_RESUME:\n{{ JSON.stringify($('Get Context-conversations1').item.json.current_state || null, null, 2) }}",
         "options": {
-          "systemMessage": "=Eres el agente QA flotante del sistema comercial.\n\nOBJETIVO\n- Responder preguntas puntuales sobre fincas, amenidades, mascotas, parqueadero, horarios o proceso.\n- No cambies el estado de la conversacion.\n- No cambies el estado de la conversación.\n- Responde solo la pregunta puntual.\n- No reencarriles el hilo comercial al final; el workflow retomará el estado después de tu respuesta.\n\nREGLAS\n- Si la respuesta depende de la fecha u hora actual, consulta current_datetime_tool en vez de asumirla.\n{{ $('config').item.json.tono }}\n- Usa inventory_reader_tool solo cuando la pregunta dependa del inventario real.\n- Si inventory_reader_tool devuelve error = true, responde con intent = \"HITL_REQUEST\".\n- Si el dato no aparece en inventory_reader_tool o context, dilo y ofrece ayuda parcial.\n- Si la respuesta trata sobre una finca concreta y ya tienes el objeto del inventario, inclúyelo en selected_finca para que el sistema pueda formatear la ficha.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Si además de la pregunta el cliente está refinando la búsqueda, devuelve search_criteria_update con el ajuste correspondiente.\n- Usa amenidades_excluidas, zonas_excluidas, municipios_excluidos o fincas_excluidas cuando el cliente exprese restricciones negativas.\n- Si el cliente levanta una restricción previa, devuelve el array correspondiente vacío para limpiarlo.\n- No amplíes restricciones que el cliente no pidió. \"Sin jacuzzi\" no significa \"sin jacuzzi o piscina\".\n\nOUTPUT\nDevuelve EXCLUSIVAMENTE JSON valido:\n{\n  \"respuesta\": \"texto para el cliente\",\n  \"intent\": \"QA_ANSWERED\",\n  \"selected_finca\": null | {\n    \"finca_id\": \"string\",\n    \"nombre\": \"string\",\n    \"codigo_original\": \"string\",\n    \"zona\": \"string\",\n    \"municipio\": \"string\",\n    \"capacidad_max\": number,\n    \"habitaciones\": number,\n    \"precio_noche_base\": number,\n    \"precio_fin_semana\": number,\n    \"amenidades\": [],\n    \"descripcion_corta\": \"string\",\n    \"foto_url\": \"string\",\n    \"observaciones_originales\": \"string\",\n    \"caracteristicas_originales\": \"string\"\n  },\n  \"search_criteria_update\": {\n    \"zona\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": []\n  }\n}",
+          "systemMessage": "=Eres el agente QA flotante del sistema comercial.\n\nOBJETIVO\n- Responder preguntas puntuales sobre fincas, amenidades, mascotas, parqueadero, horarios o proceso.\n- No cambies el estado de la conversacion.\n- No cambies el estado de la conversación.\n- Responde solo la pregunta puntual.\n- No reencarriles el hilo comercial al final; el workflow retomará el estado después de tu respuesta.\n- NUNCA termines tu respuesta con preguntas como \"¿En qué más puedo ayudarte?\", \"¿Tienes alguna otra duda?\", \"¿Necesitas algo más?\" ni ninguna otra pregunta de cierre. Solo responde la pregunta puntual y punto.\n\nREGLAS\n- Si la respuesta depende de la fecha u hora actual, consulta current_datetime_tool en vez de asumirla.\n{{ $('config').item.json.tono }}\n- Usa inventory_reader_tool solo cuando la pregunta dependa del inventario real.\n- Si inventory_reader_tool devuelve error = true, responde con intent = \"HITL_REQUEST\".\n- Si el dato no aparece en inventory_reader_tool o context, dilo y ofrece ayuda parcial.\n- Si la respuesta trata sobre una finca concreta y ya tienes el objeto del inventario, inclúyelo en selected_finca para que el sistema pueda formatear la ficha.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Si además de la pregunta el cliente está refinando la búsqueda, devuelve search_criteria_update con el ajuste correspondiente.\n- Usa amenidades_excluidas, zonas_excluidas, municipios_excluidos o fincas_excluidas cuando el cliente exprese restricciones negativas.\n- Si el cliente levanta una restricción previa, devuelve el array correspondiente vacío para limpiarlo.\n- No amplíes restricciones que el cliente no pidió. \"Sin jacuzzi\" no significa \"sin jacuzzi o piscina\".\n\nOUTPUT\nDevuelve EXCLUSIVAMENTE JSON valido:\n{\n  \"respuesta\": \"texto para el cliente\",\n  \"intent\": \"QA_ANSWERED\",\n  \"selected_finca\": null | {\n    \"finca_id\": \"string\",\n    \"nombre\": \"string\",\n    \"codigo_original\": \"string\",\n    \"zona\": \"string\",\n    \"municipio\": \"string\",\n    \"capacidad_max\": number,\n    \"habitaciones\": number,\n    \"precio_noche_base\": number,\n    \"precio_fin_semana\": number,\n    \"amenidades\": [],\n    \"descripcion_corta\": \"string\",\n    \"foto_url\": \"string\",\n    \"observaciones_originales\": \"string\",\n    \"caracteristicas_originales\": \"string\"\n  },\n  \"search_criteria_update\": {\n    \"zona\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": []\n  }\n}",
           "maxIterations": 4
         }
       },
@@ -2720,6 +2660,27 @@
         3344,
         832
       ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/outbound-sender/async",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: JSON.stringify($json.media_groups_pending || []), private: false }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "fire-async-media-node-002",
+      "name": "Fire async media sender",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1674,
+        80
+      ],
+      "continueOnFail": true
     }
   ],
   "connections": {
@@ -3100,22 +3061,11 @@
       "main": [
         [
           {
-            "node": "Send outbound via Chatwoot",
+            "node": "Send texts sync",
             "type": "main",
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Prepare selection notifications",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send outbound via Chatwoot": {
-      "main": [
         [
           {
             "node": "Prepare selection notifications",
@@ -3678,6 +3628,28 @@
         [
           {
             "node": "Execution Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send texts sync": {
+      "main": [
+        [
+          {
+            "node": "Fire async media sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fire async media sender": {
+      "main": [
+        [
+          {
+            "node": "Prepare selection notifications",
             "type": "main",
             "index": 0
           }
