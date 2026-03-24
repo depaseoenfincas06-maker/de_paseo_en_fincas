@@ -25,7 +25,7 @@
         336
       ],
       "id": "26143f31-3558-4673-a4de-07bf659d6815",
-      "name": "Execution Data1"
+      "name": "Set execution metadata"
     },
     {
       "parameters": {
@@ -449,16 +449,16 @@
         144
       ],
       "id": "398fbeb8-0824-4158-9859-62ccdf4af669",
-      "name": "Merge Sets1"
+      "name": "Merge config + context"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::varchar as wa_id,\n    {{\n      $('Merge Sets1').item.json.chatwoot_id\n        ? \"'\" + String($('Merge Sets1').item.json.chatwoot_id).replace(/'/g, \"''\") + \"'\"\n        : \"null\"\n    }}::integer as chatwoot_id,\n    {{\n      $('Merge Sets1').item.json.client_name\n        ? \"'\" + String($('Merge Sets1').item.json.client_name).replace(/'/g, \"''\") + \"'\"\n        : \"null\"\n    }}::varchar as client_name\n),\nupserted as (\n  insert into public.conversations (\n    wa_id,\n    chatwoot_id,\n    client_name,\n    current_state,\n    state_changed_at,\n    last_interaction,\n    last_message_from,\n    agente_activo,\n    search_criteria,\n    extras,\n    huespedes,\n    shown_fincas,\n    owner_response,\n    followup_count,\n    followup_enabled,\n    waiting_for,\n    confirmacion_enviada,\n    confirmacion_aceptada,\n    confirmacion_version,\n    huespedes_completos\n  )\n  select\n    p.wa_id,\n    p.chatwoot_id,\n    p.client_name,\n    'QUALIFYING',\n    now(),\n    now(),\n    'CLIENT',\n    true,\n    '{\n      \"fecha_inicio\": null,\n      \"fecha_fin\": null,\n      \"personas\": null,\n      \"zona\": null,\n      \"presupuesto_max\": null,\n      \"tipo_evento\": null,\n      \"amenidades\": [],\n      \"amenidades_excluidas\": [],\n      \"zonas_excluidas\": [],\n      \"municipios_excluidos\": [],\n      \"fincas_excluidas\": [],\n      \"mascotas\": null\n    }'::jsonb,\n    '{\n      \"personas_adicionales\": { \"cantidad\": 0, \"precio_unitario\": 0, \"subtotal\": 0 },\n      \"check_in_temprano\": { \"aplica\": false, \"costo\": 0 },\n      \"late_checkout\": { \"aplica\": false, \"costo\": 0 },\n      \"servicio_empleada\": { \"dias\": 0, \"costo_dia\": 0, \"subtotal\": 0 }\n    }'::jsonb,\n    '[]'::jsonb,\n    '{}'::text[],\n    null,\n    0,\n    true,\n    'CLIENT',\n    false,\n    false,\n    0,\n    false\n  from payload p\n  on conflict (wa_id)\n  do update set\n    chatwoot_id = case\n    when excluded.chatwoot_id is null then public.conversations.chatwoot_id\n    when public.conversations.chatwoot_id is null then excluded.chatwoot_id\n    when public.conversations.chatwoot_id = excluded.chatwoot_id then public.conversations.chatwoot_id\n    when public.conversations.agente_activo = false then excluded.chatwoot_id\n    else public.conversations.chatwoot_id\n  end,\n    client_name = coalesce(excluded.client_name, public.conversations.client_name),\n    last_interaction = now(),\n    last_message_from = 'CLIENT',\n    updated_at = now()\n  returning *\n)\nselect\n  u.*,\n  jsonb_build_object(\n    'conversation', jsonb_build_object(\n      'id', u.wa_id,\n      'client_name', u.client_name,\n      'current_state', u.current_state,\n      'previous_state', u.previous_state,\n      'started_at', u.created_at,\n      'channel', 'WHATSAPP'\n    ),\n    'search_criteria', (\n      '{\n        \"fecha_inicio\": null,\n        \"fecha_fin\": null,\n        \"personas\": null,\n        \"zona\": null,\n        \"presupuesto_max\": null,\n        \"tipo_evento\": null,\n        \"amenidades\": [],\n        \"amenidades_excluidas\": [],\n        \"zonas_excluidas\": [],\n        \"municipios_excluidos\": [],\n        \"fincas_excluidas\": [],\n        \"mascotas\": null\n      }'::jsonb\n      || coalesce(u.search_criteria, '{}'::jsonb)\n    )\n    || jsonb_build_object(\n      'datos_faltantes', to_jsonb(array_remove(array[\n        case when coalesce(u.search_criteria->>'fecha_inicio', '') = ''\n               or coalesce(u.search_criteria->>'fecha_fin', '') = ''\n          then 'fechas' else null end,\n        case when coalesce(u.search_criteria->>'personas', '') = ''\n          then 'personas' else null end,\n        case when coalesce(u.search_criteria->>'zona', '') = ''\n          then 'zona' else null end\n      ], null)),\n      'datos_completos', (\n        jsonb_array_length(\n          to_jsonb(array_remove(array[\n            case when coalesce(u.search_criteria->>'fecha_inicio', '') = ''\n                   or coalesce(u.search_criteria->>'fecha_fin', '') = ''\n              then 'fechas' else null end,\n            case when coalesce(u.search_criteria->>'personas', '') = ''\n              then 'personas' else null end,\n            case when coalesce(u.search_criteria->>'zona', '') = ''\n              then 'zona' else null end\n          ], null))\n        ) = 0\n      )\n    ),\n    'selected_finca_id', to_jsonb(u.selected_finca_id),\n    'selected_finca', coalesce(u.selected_finca, 'null'::jsonb),\n    'shown_fincas', to_jsonb(coalesce(u.shown_fincas, '{}'::text[])),\n    'owner_response', coalesce(u.owner_response, 'null'::jsonb),\n    'pricing', jsonb_build_object(\n      'precio_noche', u.precio_noche,\n      'noches', u.noches,\n      'subtotal', u.subtotal,\n      'deposito_seguridad', u.deposito_seguridad,\n      'total', u.total,\n      'anticipo_requerido', u.anticipo_requerido,\n      'anticipo_pagado', u.anticipo_pagado,\n      'saldo_pagado', u.saldo_pagado,\n      'metodo_pago', u.metodo_pago,\n      'comprobante_url', u.comprobante_url\n    ),\n    'extras', coalesce(u.extras, '{}'::jsonb),\n    'followup', jsonb_build_object(\n      'count', u.followup_count,\n      'enabled', u.followup_enabled,\n      'next_followup_at', u.next_followup_at,\n      'waiting_for', u.waiting_for\n    ),\n    'agente_activo', u.agente_activo,\n    'hitl_reason', u.hitl_reason\n  ) as context\nfrom upserted u;",
+        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::varchar as wa_id,\n    {{\n      $('Merge config + context').item.json.chatwoot_id\n        ? \"'\" + String($('Merge config + context').item.json.chatwoot_id).replace(/'/g, \"''\") + \"'\"\n        : \"null\"\n    }}::integer as chatwoot_id,\n    {{\n      $('Merge config + context').item.json.client_name\n        ? \"'\" + String($('Merge config + context').item.json.client_name).replace(/'/g, \"''\") + \"'\"\n        : \"null\"\n    }}::varchar as client_name\n),\nupserted as (\n  insert into public.conversations (\n    wa_id,\n    chatwoot_id,\n    client_name,\n    current_state,\n    state_changed_at,\n    last_interaction,\n    last_message_from,\n    agente_activo,\n    search_criteria,\n    extras,\n    huespedes,\n    shown_fincas,\n    owner_response,\n    followup_count,\n    followup_enabled,\n    waiting_for,\n    confirmacion_enviada,\n    confirmacion_aceptada,\n    confirmacion_version,\n    huespedes_completos\n  )\n  select\n    p.wa_id,\n    p.chatwoot_id,\n    p.client_name,\n    'QUALIFYING',\n    now(),\n    now(),\n    'CLIENT',\n    true,\n    '{\n      \"fecha_inicio\": null,\n      \"fecha_fin\": null,\n      \"personas\": null,\n      \"zona\": null,\n      \"presupuesto_max\": null,\n      \"tipo_evento\": null,\n      \"amenidades\": [],\n      \"amenidades_excluidas\": [],\n      \"zonas_excluidas\": [],\n      \"municipios_excluidos\": [],\n      \"fincas_excluidas\": [],\n      \"mascotas\": null\n    }'::jsonb,\n    '{\n      \"personas_adicionales\": { \"cantidad\": 0, \"precio_unitario\": 0, \"subtotal\": 0 },\n      \"check_in_temprano\": { \"aplica\": false, \"costo\": 0 },\n      \"late_checkout\": { \"aplica\": false, \"costo\": 0 },\n      \"servicio_empleada\": { \"dias\": 0, \"costo_dia\": 0, \"subtotal\": 0 }\n    }'::jsonb,\n    '[]'::jsonb,\n    '{}'::text[],\n    null,\n    0,\n    true,\n    'CLIENT',\n    false,\n    false,\n    0,\n    false\n  from payload p\n  on conflict (wa_id)\n  do update set\n    chatwoot_id = case\n    when excluded.chatwoot_id is null then public.conversations.chatwoot_id\n    when public.conversations.chatwoot_id is null then excluded.chatwoot_id\n    when public.conversations.chatwoot_id = excluded.chatwoot_id then public.conversations.chatwoot_id\n    when public.conversations.agente_activo = false then excluded.chatwoot_id\n    else public.conversations.chatwoot_id\n  end,\n    client_name = coalesce(excluded.client_name, public.conversations.client_name),\n    last_interaction = now(),\n    last_message_from = 'CLIENT',\n    updated_at = now()\n  returning *\n)\nselect\n  u.*,\n  jsonb_build_object(\n    'conversation', jsonb_build_object(\n      'id', u.wa_id,\n      'client_name', u.client_name,\n      'current_state', u.current_state,\n      'previous_state', u.previous_state,\n      'started_at', u.created_at,\n      'channel', 'WHATSAPP'\n    ),\n    'search_criteria', (\n      '{\n        \"fecha_inicio\": null,\n        \"fecha_fin\": null,\n        \"personas\": null,\n        \"zona\": null,\n        \"presupuesto_max\": null,\n        \"tipo_evento\": null,\n        \"amenidades\": [],\n        \"amenidades_excluidas\": [],\n        \"zonas_excluidas\": [],\n        \"municipios_excluidos\": [],\n        \"fincas_excluidas\": [],\n        \"mascotas\": null\n      }'::jsonb\n      || coalesce(u.search_criteria, '{}'::jsonb)\n    )\n    || jsonb_build_object(\n      'datos_faltantes', to_jsonb(array_remove(array[\n        case when coalesce(u.search_criteria->>'fecha_inicio', '') = ''\n               or coalesce(u.search_criteria->>'fecha_fin', '') = ''\n          then 'fechas' else null end,\n        case when coalesce(u.search_criteria->>'personas', '') = ''\n          then 'personas' else null end,\n        case when coalesce(u.search_criteria->>'zona', '') = ''\n          then 'zona' else null end\n      ], null)),\n      'datos_completos', (\n        jsonb_array_length(\n          to_jsonb(array_remove(array[\n            case when coalesce(u.search_criteria->>'fecha_inicio', '') = ''\n                   or coalesce(u.search_criteria->>'fecha_fin', '') = ''\n              then 'fechas' else null end,\n            case when coalesce(u.search_criteria->>'personas', '') = ''\n              then 'personas' else null end,\n            case when coalesce(u.search_criteria->>'zona', '') = ''\n              then 'zona' else null end\n          ], null))\n        ) = 0\n      )\n    ),\n    'selected_finca_id', to_jsonb(u.selected_finca_id),\n    'selected_finca', coalesce(u.selected_finca, 'null'::jsonb),\n    'shown_fincas', to_jsonb(coalesce(u.shown_fincas, '{}'::text[])),\n    'owner_response', coalesce(u.owner_response, 'null'::jsonb),\n    'pricing', jsonb_build_object(\n      'precio_noche', u.precio_noche,\n      'noches', u.noches,\n      'subtotal', u.subtotal,\n      'deposito_seguridad', u.deposito_seguridad,\n      'total', u.total,\n      'anticipo_requerido', u.anticipo_requerido,\n      'anticipo_pagado', u.anticipo_pagado,\n      'saldo_pagado', u.saldo_pagado,\n      'metodo_pago', u.metodo_pago,\n      'comprobante_url', u.comprobante_url\n    ),\n    'extras', coalesce(u.extras, '{}'::jsonb),\n    'followup', jsonb_build_object(\n      'count', u.followup_count,\n      'enabled', u.followup_enabled,\n      'next_followup_at', u.next_followup_at,\n      'waiting_for', u.waiting_for\n    ),\n    'agente_activo', u.agente_activo,\n    'hitl_reason', u.hitl_reason\n  ) as context\nfrom upserted u;",
         "options": {}
       },
       "id": "7797f2cb-6478-4a02-bc0d-000e840b8f66",
-      "name": "Get Context-conversations1",
+      "name": "Load conversation state",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
@@ -475,11 +475,11 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with params as (\n  select {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::varchar as wa_id\n)\nselect\n  (\n    select jsonb_build_object(\n      'direction', m.direction,\n      'message_type', m.message_type,\n      'content', m.content,\n      'media_url', m.media_url,\n      'state_at_time', m.state_at_time,\n      'agent_used', m.agent_used,\n      'created_at', m.created_at,\n      'extracted_data', m.extracted_data\n    )\n    from public.messages m\n    join params p on p.wa_id = m.conversation_id\n    where m.direction = 'INBOUND'\n    order by m.created_at desc\n    limit 1\n  ) as current_message,\n  coalesce((\n    select jsonb_agg(x.msg order by x.created_at desc)\n    from (\n      select\n        m2.created_at,\n        jsonb_build_object(\n          'direction', m2.direction,\n          'message_type', m2.message_type,\n          'content', m2.content,\n          'media_url', m2.media_url,\n          'state_at_time', m2.state_at_time,\n          'agent_used', m2.agent_used,\n          'created_at', m2.created_at,\n          'extracted_data', m2.extracted_data\n        ) as msg\n      from public.messages m2\n      join params p2 on p2.wa_id = m2.conversation_id\n      order by m2.created_at desc\n      limit 20\n    ) x\n  ), '[]'::jsonb) as recent_messages\nfrom params;",
+        "query": "with params as (\n  select {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::varchar as wa_id\n)\nselect\n  (\n    select jsonb_build_object(\n      'direction', m.direction,\n      'message_type', m.message_type,\n      'content', m.content,\n      'media_url', m.media_url,\n      'state_at_time', m.state_at_time,\n      'agent_used', m.agent_used,\n      'created_at', m.created_at,\n      'extracted_data', m.extracted_data\n    )\n    from public.messages m\n    join params p on p.wa_id = m.conversation_id\n    where m.direction = 'INBOUND'\n    order by m.created_at desc\n    limit 1\n  ) as current_message,\n  coalesce((\n    select jsonb_agg(x.msg order by x.created_at desc)\n    from (\n      select\n        m2.created_at,\n        jsonb_build_object(\n          'direction', m2.direction,\n          'message_type', m2.message_type,\n          'content', m2.content,\n          'media_url', m2.media_url,\n          'state_at_time', m2.state_at_time,\n          'agent_used', m2.agent_used,\n          'created_at', m2.created_at,\n          'extracted_data', m2.extracted_data\n        ) as msg\n      from public.messages m2\n      join params p2 on p2.wa_id = m2.conversation_id\n      order by m2.created_at desc\n      limit 20\n    ) x\n  ), '[]'::jsonb) as recent_messages\nfrom params;",
         "options": {}
       },
       "id": "5ca4f36d-6e88-4ef3-8659-a6fa48e34b1c",
-      "name": "Fetch messages1",
+      "name": "Load message history",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
@@ -515,7 +515,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < s.length; i++) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n    } else {\n      if (ch === '\"') inString = true;\n      else if (ch === '{') depth++;\n      else if (ch === '}') depth--;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction escapeControlCharsInsideStrings(jsonLike) {\n  const s = String(jsonLike || '');\n  let out = '';\n  let inString = false;\n  let escape = false;\n\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n    const code = ch.charCodeAt(0);\n\n    if (inString) {\n      if (escape) {\n        out += ch;\n        escape = false;\n        continue;\n      }\n      if (ch === '\\\\') {\n        out += ch;\n        escape = true;\n        continue;\n      }\n      if (ch === '\"') {\n        out += ch;\n        inString = false;\n        continue;\n      }\n      if (ch === '\\n') {\n        out += '\\\\n';\n        continue;\n      }\n      if (ch === '\\r') {\n        out += '\\\\r';\n        continue;\n      }\n      if (ch === '\\t') {\n        out += '\\\\t';\n        continue;\n      }\n      if (code >= 0x00 && code <= 0x1f) {\n        out += '\\\\u' + code.toString(16).padStart(4, '0');\n        continue;\n      }\n    }\n\n    if (ch === '\"') inString = true;\n    out += ch;\n  }\n\n  return out;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const cleaned = escapeControlCharsInsideStrings(String(text).trim());\n  try {\n    return JSON.parse(cleaned);\n  } catch (error) {\n    const obj = extractFirstJsonObject(cleaned);\n    if (!obj) return { _raw: cleaned.slice(0, 12000), _parse_error: error.message };\n    try {\n      return JSON.parse(obj);\n    } catch (innerError) {\n      return { _raw: cleaned.slice(0, 12000), _parse_error: innerError.message };\n    }\n  }\n}\n\nfunction extractJsonValueByKey(text, key) {\n  const source = String(text || '');\n  const keyIndex = source.indexOf(`\"${key}\"`);\n  if (keyIndex === -1) return null;\n\n  let cursor = keyIndex + key.length + 2;\n  while (cursor < source.length && source[cursor] !== ':') cursor += 1;\n  if (cursor >= source.length) return null;\n  cursor += 1;\n  while (cursor < source.length && /\\s/.test(source[cursor])) cursor += 1;\n  if (cursor >= source.length) return null;\n\n  const start = cursor;\n  const first = source[start];\n\n  if (first === '\"') {\n    let escape = false;\n    for (let i = start + 1; i < source.length; i += 1) {\n      const char = source[i];\n      if (escape) {\n        escape = false;\n        continue;\n      }\n      if (char === '\\\\') {\n        escape = true;\n        continue;\n      }\n      if (char === '\"') return source.slice(start, i + 1);\n    }\n    return source.slice(start);\n  }\n\n  if (first === '{' || first === '[') {\n    const open = first;\n    const close = first === '{' ? '}' : ']';\n    let depth = 0;\n    let inString = false;\n    let escape = false;\n\n    for (let i = start; i < source.length; i += 1) {\n      const char = source[i];\n      if (inString) {\n        if (escape) escape = false;\n        else if (char === '\\\\') escape = true;\n        else if (char === '\"') inString = false;\n        continue;\n      }\n      if (char === '\"') {\n        inString = true;\n        continue;\n      }\n      if (char === open) depth += 1;\n      else if (char === close) {\n        depth -= 1;\n        if (depth === 0) return source.slice(start, i + 1);\n      }\n    }\n    return source.slice(start);\n  }\n\n  let end = start;\n  while (end < source.length && ![',', '\\n', '\\r', '}'].includes(source[end])) end += 1;\n  return source.slice(start, end).trim();\n}\n\nfunction salvageParsedFromRaw(text) {\n  const raw = String(text || '');\n  return {\n    action: safeParse(extractJsonValueByKey(raw, 'action')) || 'RUN_TOOL',\n    tool_chosen: safeParse(extractJsonValueByKey(raw, 'tool_chosen')) || 'NONE',\n    tool_output: safeParse(extractJsonValueByKey(raw, 'tool_output')),\n    post_actions: safeParse(extractJsonValueByKey(raw, 'post_actions')) || {},\n    final_whatsapp_text: safeParse(extractJsonValueByKey(raw, 'final_whatsapp_text')),\n    current_state_changed: safeParse(extractJsonValueByKey(raw, 'current_state_changed')) === true,\n  };\n}\n\nfunction parseToolOutput(parsed) {\n  const toolOutput = parsed?.tool_output;\n  if (!toolOutput || typeof toolOutput !== 'object') return null;\n\n  if (Array.isArray(toolOutput)) {\n    if (typeof toolOutput[0]?.output === 'string') {\n      return safeParse(stripCodeFences(toolOutput[0].output));\n    }\n    if (typeof toolOutput[0]?.result === 'string') {\n      return safeParse(stripCodeFences(toolOutput[0].result));\n    }\n    return toolOutput[0] && typeof toolOutput[0] === 'object' ? toolOutput[0] : toolOutput;\n  }\n\n  let rawResult = null;\n\n  if (typeof toolOutput.result === 'string') {\n    rawResult = toolOutput.result;\n  } else {\n    const firstKey = Object.keys(toolOutput)[0];\n    if (firstKey && toolOutput[firstKey] && typeof toolOutput[firstKey].result === 'string') {\n      rawResult = toolOutput[firstKey].result;\n    } else if (firstKey && toolOutput[firstKey] && typeof toolOutput[firstKey].output === 'string') {\n      rawResult = toolOutput[firstKey].output;\n    }\n  }\n\n  if (!rawResult) return toolOutput;\n\n  const firstPass = safeParse(rawResult);\n  if (Array.isArray(firstPass) && firstPass[0]?.output) {\n    return safeParse(stripCodeFences(firstPass[0].output));\n  }\n  return firstPass;\n}\n\nfunction normalizeBoolean(value) {\n  if (typeof value === 'boolean') return value;\n  if (value === null || value === undefined || value === '') return false;\n  return ['true', '1', 'yes', 'si', 'sí'].includes(String(value).trim().toLowerCase());\n}\n\nfunction compactCriteria(source = {}) {\n  const clearableArrayKeys = new Set([\n    'amenidades',\n    'amenidades_excluidas',\n    'zonas_excluidas',\n    'municipios_excluidos',\n    'fincas_excluidas',\n  ]);\n  const out = {};\n  for (const [key, value] of Object.entries(source || {})) {\n    if (value === undefined || value === null) continue;\n    if (Array.isArray(value) && value.length === 0 && !clearableArrayKeys.has(key)) continue;\n    if (typeof value === 'string' && value.trim() === '') continue;\n    out[key] = value;\n  }\n  return out;\n}\n\nfunction normalizeCriteriaEntry(value) {\n  return String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .trim();\n}\n\nfunction uniqueCriteriaArray(values = []) {\n  const map = new Map();\n  for (const value of values) {\n    const trimmed = String(value || '').trim();\n    const normalized = normalizeCriteriaEntry(trimmed);\n    if (!normalized || map.has(normalized)) continue;\n    map.set(normalized, trimmed);\n  }\n  return Array.from(map.values());\n}\n\nfunction mergeCriteriaWithCurrent(source = {}) {\n  const currentSearchCriteria =\n    $('Get Context-conversations1').item.json.search_criteria ||\n    $('Get Context-conversations1').item.json.context?.search_criteria ||\n    {};\n  const unionKeys = new Set([\n    'amenidades_excluidas',\n    'zonas_excluidas',\n    'municipios_excluidos',\n    'fincas_excluidas',\n  ]);\n  const merged = { ...source };\n\n  for (const key of unionKeys) {\n    if (!(key in merged) || !Array.isArray(merged[key])) continue;\n    if (merged[key].length === 0) {\n      merged[key] = [];\n      continue;\n    }\n    const currentValues = Array.isArray(currentSearchCriteria?.[key]) ? currentSearchCriteria[key] : [];\n    merged[key] = uniqueCriteriaArray([...currentValues, ...merged[key]]);\n  }\n\n  return compactCriteria(merged);\n}\n\nfunction normalizePostActions(parsed, toolOutput) {\n  const raw = parsed?.post_actions && typeof parsed.post_actions === 'object' ? { ...parsed.post_actions } : {};\n  const tool = parsed?.tool_chosen || 'NONE';\n  const intent = toolOutput?.intent || null;\n\n  if (tool === 'qualifying_agent') {\n    const extraidos = compactCriteria(toolOutput?.datos_extraidos || {});\n    if (Object.keys(extraidos).length && !raw.search_criteria) raw.search_criteria = extraidos;\n    if (toolOutput?.datos_completos === true && !raw.state_transition) raw.state_transition = 'OFFERING';\n    if (toolOutput?.datos_completos === true && !raw.waiting_for) raw.waiting_for = 'CLIENT';\n  }\n\n  if (tool === 'offering_agent') {\n    if (Array.isArray(toolOutput?.fincas_mostradas) && !raw.shown_fincas) {\n      raw.shown_fincas = toolOutput.fincas_mostradas\n        .map((item) => item?.finca_id || item?.id || null)\n        .filter(Boolean);\n    }\n    if (toolOutput?.search_criteria_update && !raw.search_criteria) raw.search_criteria = compactCriteria(toolOutput.search_criteria_update);\n    if (toolOutput?.intent === 'CLIENT_CHOSE') {\n      raw.state_transition ||= 'VERIFYING_AVAILABILITY';\n      raw.selected_finca_id ||= toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id || '__IGNORE__';\n      raw.selected_finca ||= toolOutput.selected_finca || '__IGNORE__';\n      raw.waiting_for ||= 'OWNER';\n    }\n  }\n\n  if (tool === 'verifying_availability_agent') {\n    if (toolOutput?.selected_finca && !raw.selected_finca) raw.selected_finca = toolOutput.selected_finca;\n    if ((toolOutput?.finca_elegida_id || toolOutput?.selected_finca?.finca_id) && !raw.selected_finca_id) {\n      raw.selected_finca_id = toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id;\n    }\n    if (intent === 'CHANGE_FINCA') {\n      raw.state_transition ||= 'OFFERING';\n      raw.waiting_for ||= 'CLIENT';\n      raw.selected_finca_id ||= '__CLEAR__';\n      raw.selected_finca ||= '__CLEAR__';\n    }\n  }\n\n  if (tool === 'qa_agent') {\n    if (toolOutput?.search_criteria_update && !raw.search_criteria) {\n      raw.search_criteria = compactCriteria(toolOutput.search_criteria_update);\n    }\n    if (toolOutput?.selected_finca && !raw.selected_finca) raw.selected_finca = toolOutput.selected_finca;\n    if ((toolOutput?.finca_elegida_id || toolOutput?.selected_finca?.finca_id) && !raw.selected_finca_id) {\n      raw.selected_finca_id = toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id;\n    }\n  }\n\n  if ((parsed?.action === 'HITL' || intent === 'HITL_REQUEST') && raw.agente_activo === undefined) {\n    raw.agente_activo = false;\n  }\n\n  if (parsed?.action === 'NOOP_BOT_DISABLED' && raw.agente_activo === undefined) {\n    raw.agente_activo = false;\n  }\n\n  const normalized = {\n    state_transition:\n      typeof raw.state_transition === 'string' && raw.state_transition.trim()\n        ? raw.state_transition\n        : '__IGNORE__',\n    search_criteria:\n      raw.search_criteria && typeof raw.search_criteria === 'object'\n        ? mergeCriteriaWithCurrent(raw.search_criteria)\n        : '__IGNORE__',\n    waiting_for:\n      typeof raw.waiting_for === 'string' && raw.waiting_for.trim() ? raw.waiting_for : '__IGNORE__',\n    agente_activo:\n      typeof raw.agente_activo === 'boolean' ? raw.agente_activo : '__IGNORE__',\n    shown_fincas: Array.isArray(raw.shown_fincas) ? raw.shown_fincas : '__IGNORE__',\n    selected_finca_id:\n      raw.selected_finca_id === '__CLEAR__'\n        ? '__CLEAR__'\n        : typeof raw.selected_finca_id === 'string' && raw.selected_finca_id.trim()\n          ? raw.selected_finca_id\n          : '__IGNORE__',\n    selected_finca:\n      raw.selected_finca === '__CLEAR__'\n        ? '__CLEAR__'\n        : raw.selected_finca && typeof raw.selected_finca === 'object'\n          ? raw.selected_finca\n          : '__IGNORE__',\n    owner_response:\n      raw.owner_response === '__CLEAR__'\n        ? '__CLEAR__'\n        : raw.owner_response && typeof raw.owner_response === 'object'\n          ? raw.owner_response\n          : '__IGNORE__',\n    pricing:\n      raw.pricing && typeof raw.pricing === 'object' && !Array.isArray(raw.pricing) ? raw.pricing : '__IGNORE__',\n    extras:\n      raw.extras && typeof raw.extras === 'object' && !Array.isArray(raw.extras) ? raw.extras : '__IGNORE__',\n    hitl_reason:\n      raw.hitl_reason === '__CLEAR__'\n        ? '__CLEAR__'\n        : typeof raw.hitl_reason === 'string' && raw.hitl_reason.trim()\n          ? raw.hitl_reason\n          : '__IGNORE__',\n    resume_after_qa: raw.resume_after_qa === true,\n    resume_state_after_qa:\n      typeof raw.resume_state_after_qa === 'string' && raw.resume_state_after_qa.trim()\n        ? raw.resume_state_after_qa\n        : '__IGNORE__',\n    loop_reason:\n      typeof raw.loop_reason === 'string' && raw.loop_reason.trim()\n        ? raw.loop_reason\n        : '__IGNORE__',\n  };\n\n  if (normalized.search_criteria !== '__IGNORE__' && Object.keys(normalized.search_criteria).length === 0) {\n    normalized.search_criteria = '__IGNORE__';\n  }\n\n  return normalized;\n}\n\nfunction getRawOutput(itemJson) {\n  if (typeof itemJson?.output === 'string') return itemJson.output;\n  if (Array.isArray(itemJson?.output) && typeof itemJson.output[0]?.output === 'string') return itemJson.output[0].output;\n  return null;\n}\n\nfunction slugify(value) {\n  return String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, ' ')\n    .trim();\n}\n\nfunction titleCase(value) {\n  return String(value || '')\n    .toLowerCase()\n    .replace(/\\b\\w/g, (match) => match.toUpperCase());\n}\n\nfunction parseUrls(value) {\n  const matches = String(value || '').match(/https?:\\/\\/[^\\s,]+/g);\n  return Array.from(new Set(matches || []));\n}\n\nfunction formatCurrency(value) {\n  const amount = Number(value);\n  if (!Number.isFinite(amount) || amount <= 0) return null;\n  return new Intl.NumberFormat('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    maximumFractionDigits: 0,\n  }).format(amount);\n}\n\nfunction numberFromText(value, pattern) {\n  const match = String(value || '').match(pattern);\n  if (!match) return null;\n  const parsed = Number(match[1]);\n  return Number.isFinite(parsed) ? parsed : null;\n}\n\nfunction uniqueLines(values = []) {\n  const seen = new Set();\n  const lines = [];\n  for (const value of values) {\n    const normalized = slugify(value);\n    if (!normalized || seen.has(normalized)) continue;\n    seen.add(normalized);\n    lines.push(String(value).trim());\n  }\n  return lines;\n}\n\nfunction amenityLabel(rawValue) {\n  const value = slugify(rawValue);\n  const map = [\n    { pattern: /piscina/, label: 'Piscina 🏊' },\n    { pattern: /jacuzzi/, label: 'Jacuzzi 🛁' },\n    { pattern: /kiosko|quiosco/, label: 'Kiosko 🔝' },\n    { pattern: /tejo/, label: 'Cancha de tejo 🎯' },\n    { pattern: /micro futbol|microfutbol|futbol/, label: 'Cancha de micro fútbol ⚽️' },\n    { pattern: /ping pong/, label: 'Mesa de ping pong 🏓' },\n    { pattern: /billar|pool|mini mesa de billar/, label: 'Mesa de billar 🎱' },\n    { pattern: /rana/, label: 'Rana 🐸' },\n    { pattern: /bbq/, label: 'BBQ ♨️' },\n    { pattern: /zonas verdes|zona verde/, label: 'Zonas verdes 🌴' },\n    { pattern: /wifi|wi fi/, label: 'Wifi 🛜' },\n    { pattern: /golf/, label: 'Golf ⛳️' },\n    { pattern: /tenis/, label: 'Tenis 🎾' },\n    { pattern: /parqueadero/, label: 'Parqueadero 🚗' },\n    { pattern: /pet friendly|mascotas/, label: 'Pet friendly 🐶' },\n    { pattern: /empleada/, label: 'Servicio de empleada 👩‍🍳' },\n  ];\n\n  const matched = map.find((item) => item.pattern.test(value));\n  if (matched) return matched.label;\n  if (!value) return null;\n  return titleCase(rawValue);\n}\n\nfunction buildHighlightLines(finca) {\n  const combinedText = [\n    finca.descripcion_corta,\n    finca.observaciones_originales,\n    finca.caracteristicas_originales,\n    finca.especificacion_habitaciones,\n  ]\n    .filter(Boolean)\n    .join('\\n');\n\n  const lines = [];\n\n  if (finca.habitaciones) {\n    lines.push(String(finca.habitaciones) + ' habitaciones 🍃');\n  } else {\n    const habitaciones = numberFromText(combinedText, /(\\d+)\\s+habitaciones?/i);\n    if (habitaciones) lines.push(String(habitaciones) + ' habitaciones 🍃');\n  }\n\n  const banos = numberFromText(combinedText, /(\\d+)\\s+bañ?os?/i);\n  if (banos) lines.push(String(banos) + ' baños 🚻');\n\n  const amenidades = Array.isArray(finca.amenidades) ? finca.amenidades : [];\n  for (const amenidad of amenidades) {\n    const label = amenityLabel(amenidad);\n    if (label) lines.push(label);\n  }\n\n  if (finca.capacidad_max) {\n    lines.push('Capacidad máxima ' + String(finca.capacidad_max) + ' personas 👥');\n  }\n\n  if (finca.municipio || finca.zona) {\n    const locationLabel =\n      finca.municipio && finca.zona && slugify(finca.municipio) !== slugify(finca.zona)\n        ? 'Ubicada en ' + String(finca.municipio) + ', ' + String(finca.zona)\n        : 'Ubicada en ' + String(finca.municipio || finca.zona);\n    lines.push(locationLabel);\n  }\n\n  return uniqueLines(lines);\n}\n\nfunction buildTarifaLine(finca) {\n  if (finca.precio_noche_base) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_noche_base) + '/noche';\n  }\n  if (finca.precio_fin_semana) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_fin_semana) + '/fin de semana';\n  }\n  if (finca.precio_referencia_noche) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_referencia_noche) + '/noche';\n  }\n  return null;\n}\n\nfunction buildFincaCard(finca) {\n  if (!finca || typeof finca !== 'object') return null;\n  const title = String(finca.nombre || finca.finca_id || 'Finca').trim();\n  const code = String(finca.codigo_original || finca.finca_id || '').trim();\n  const highlights = buildHighlightLines(finca);\n  const tarifa = buildTarifaLine(finca);\n  const parts = [\n    '☀️🌴*' + title + '*🌴☀️',\n    code || null,\n    null,\n    ...highlights.map((line) => '- ' + line),\n    tarifa,\n  ].filter((value) => value !== null && value !== undefined && String(value).trim() !== '');\n  return parts.join('\\n');\n}\n\nfunction buildMediaMessages(finca) {\n  const urls = parseUrls(finca?.foto_url);\n  if (!urls.length) return [];\n  const title = finca?.nombre || finca?.finca_id || 'la finca';\n  return [\n    {\n      type: 'media_group',\n      content: 'Fotos y/o video de ' + title,\n      media_url: urls[0],\n      media_urls: urls,\n      property_title: title,\n      property_id: finca?.finca_id || null,\n    },\n  ];\n}\n\nfunction createTextMessage(content, extra = {}) {\n  const text = String(content || '').trim();\n  if (!text) return null;\n  return {\n    type: extra.type || 'text',\n    content: text,\n    media_url: extra.media_url || null,\n    media_urls: Array.isArray(extra.media_urls) ? extra.media_urls : undefined,\n  };\n}\n\nfunction buildPropertySequence(tool, toolOutputParsed, finalWhatsappText) {\n  const intent = toolOutputParsed?.intent || null;\n  const selectedFinca = toolOutputParsed?.selected_finca && typeof toolOutputParsed.selected_finca === 'object'\n    ? toolOutputParsed.selected_finca\n    : null;\n  const fincasMostradas = Array.isArray(toolOutputParsed?.fincas_mostradas)\n    ? toolOutputParsed.fincas_mostradas.filter((item) => item && typeof item === 'object')\n    : [];\n\n  const sequence = [];\n\n  if (tool === 'offering_agent' && intent === 'SHOW_OPTIONS' && fincasMostradas.length) {\n    for (const finca of fincasMostradas) {\n      sequence.push(...buildMediaMessages(finca));\n      const card = buildFincaCard(finca);\n      const cardMessage = createTextMessage(card);\n      if (cardMessage) sequence.push(cardMessage);\n    }\n    return sequence;\n  }\n\n  if (selectedFinca && ['offering_agent', 'verifying_availability_agent', 'qa_agent'].includes(tool)) {\n    sequence.push(...buildMediaMessages(selectedFinca));\n    const card = buildFincaCard(selectedFinca);\n    const cardMessage = createTextMessage(card);\n    if (cardMessage) sequence.push(cardMessage);\n    const trailingText =\n      finalWhatsappText && String(finalWhatsappText).trim() !== String(card || '').trim()\n        ? createTextMessage(finalWhatsappText)\n        : null;\n    if (trailingText) sequence.push(trailingText);\n    return sequence;\n  }\n\n  return [];\n}\n\n\nfunction buildSelectionNotificationCandidate({ toolChosen, toolOutputParsed, normalizedPostActions, currentState, currentStateAfter }) {\n  const intent = toolOutputParsed?.intent || null;\n  const selectedFincaId =\n    normalizedPostActions.selected_finca_id !== '__IGNORE__' &&\n    normalizedPostActions.selected_finca_id !== '__CLEAR__'\n      ? normalizedPostActions.selected_finca_id\n      : toolOutputParsed?.finca_elegida_id || toolOutputParsed?.selected_finca?.finca_id || null;\n  const selectedFinca =\n    normalizedPostActions.selected_finca !== '__IGNORE__' &&\n    normalizedPostActions.selected_finca !== '__CLEAR__'\n      ? normalizedPostActions.selected_finca\n      : toolOutputParsed?.selected_finca || null;\n  const searchCriteria =\n    normalizedPostActions.search_criteria !== '__IGNORE__'\n      ? normalizedPostActions.search_criteria\n      : $('Get Context-conversations1').item.json.search_criteria || {};\n\n  return {\n    shouldNotify:\n      toolChosen === 'offering_agent' &&\n      intent === 'CLIENT_CHOSE' &&\n      currentStateAfter === 'VERIFYING_AVAILABILITY' &&\n      Boolean(selectedFincaId),\n    intent,\n    currentStateBefore: currentState,\n    currentStateAfter,\n    selectedFincaId,\n    selectedFinca,\n    searchCriteria,\n  };\n}\n\nconst item = $input.first();\nconst rawOutput = getRawOutput(item.json);\nlet parsed = safeParse(stripCodeFences(rawOutput || ''));\nif (parsed?._raw && parsed?._parse_error) {\n  parsed = {\n    ...parsed,\n    ...salvageParsedFromRaw(rawOutput || parsed._raw),\n  };\n}\nconst toolOutputParsed = parseToolOutput(parsed);\nconst normalizedPostActions = normalizePostActions(parsed, toolOutputParsed);\nconst action = parsed?.action || 'RUN_TOOL';\nconst toolChosen = parsed?.tool_chosen || 'NONE';\nconst currentState = $('Get Context-conversations1').item.json.current_state || null;\nconst requestedStateTransition = normalizedPostActions.state_transition;\nconst stateActuallyChanged =\n  requestedStateTransition !== '__IGNORE__' &&\n  requestedStateTransition !== currentState;\nconst currentStateChanged =\n  parsed?.current_state_changed === true ||\n  normalizeBoolean(parsed?.current_state_changed) ||\n  stateActuallyChanged;\nconst currentStateAfter =\n  requestedStateTransition !== '__IGNORE__'\n    ? requestedStateTransition\n    : currentState;\nconst selectionNotificationCandidate = buildSelectionNotificationCandidate({\n  toolChosen,\n  toolOutputParsed,\n  normalizedPostActions,\n  currentState,\n  currentStateAfter,\n});\n\nconst handoffText = $('config').item.json.handoff_message || 'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst rawFinalWhatsappText =\n  parsed?.final_whatsapp_text ||\n  toolOutputParsed?.respuesta ||\n  (action === 'HITL' ? handoffText : null);\n\nconst propertySequence = buildPropertySequence(toolChosen, toolOutputParsed, rawFinalWhatsappText);\nconst fallbackSequence = propertySequence.length\n  ? propertySequence\n  : [createTextMessage(rawFinalWhatsappText)].filter(Boolean);\nconst outboundSequence = fallbackSequence.filter(Boolean);\nconst primaryOutboundMessage = outboundSequence.at(-1)?.content || rawFinalWhatsappText || null;\nconst hasCustomerFacingMessage = Boolean(String(primaryOutboundMessage || '').trim());\nconst businessStates = new Set(['QUALIFYING', 'OFFERING', 'VERIFYING_AVAILABILITY']);\nconst resumeAfterQa = normalizedPostActions.resume_after_qa === true;\nconst resumeStateAfterQa =\n  normalizedPostActions.resume_state_after_qa !== '__IGNORE__'\n    ? normalizedPostActions.resume_state_after_qa\n    : currentState;\nconst loopReason = resumeAfterQa\n  ? 'resume_after_qa'\n  : currentStateChanged\n    ? (normalizedPostActions.loop_reason !== '__IGNORE__' ? normalizedPostActions.loop_reason : 'state_transition')\n    : null;\nconst loopNextState = resumeAfterQa ? resumeStateAfterQa : currentStateAfter;\nconst shouldImmediateLoop =\n  (currentStateChanged && businessStates.has(currentStateAfter)) ||\n  (resumeAfterQa && businessStates.has(resumeStateAfterQa));\n\nreturn [\n  {\n    json: {\n      parsed,\n      tool_output_parsed: toolOutputParsed,\n      normalized_post_actions: normalizedPostActions,\n      final_whatsapp_text: primaryOutboundMessage,\n      outbound_message: primaryOutboundMessage,\n      outbound_sequence: outboundSequence,\n      outbound_sequence_json: JSON.stringify(outboundSequence),\n      current_state_changed: currentStateChanged,\n      should_immediate_loop: shouldImmediateLoop,\n      tool_chosen: toolChosen,\n      action,\n      chatwoot_id:\n        $('Get Context-conversations1').item.json.chatwoot_id || $('Merge Sets1').item.json.chatwoot_id || null,\n      current_state_after: currentStateAfter,\n      selection_notification_candidate: selectionNotificationCandidate,\n      conversation_key:\n        parsed?.tool_input?.context?.conversation?.id || $('Merge Sets1').item.json.conversation_key,\n      loop_reason: loopReason,\n      loop_next_state: shouldImmediateLoop ? loopNextState : null,\n      loop_owner_unavailable: false,\n    },\n  },\n];"
+        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let i = start; i < s.length; i++) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n    } else {\n      if (ch === '\"') inString = true;\n      else if (ch === '{') depth++;\n      else if (ch === '}') depth--;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction escapeControlCharsInsideStrings(jsonLike) {\n  const s = String(jsonLike || '');\n  let out = '';\n  let inString = false;\n  let escape = false;\n\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n    const code = ch.charCodeAt(0);\n\n    if (inString) {\n      if (escape) {\n        out += ch;\n        escape = false;\n        continue;\n      }\n      if (ch === '\\\\') {\n        out += ch;\n        escape = true;\n        continue;\n      }\n      if (ch === '\"') {\n        out += ch;\n        inString = false;\n        continue;\n      }\n      if (ch === '\\n') {\n        out += '\\\\n';\n        continue;\n      }\n      if (ch === '\\r') {\n        out += '\\\\r';\n        continue;\n      }\n      if (ch === '\\t') {\n        out += '\\\\t';\n        continue;\n      }\n      if (code >= 0x00 && code <= 0x1f) {\n        out += '\\\\u' + code.toString(16).padStart(4, '0');\n        continue;\n      }\n    }\n\n    if (ch === '\"') inString = true;\n    out += ch;\n  }\n\n  return out;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const cleaned = escapeControlCharsInsideStrings(String(text).trim());\n  try {\n    return JSON.parse(cleaned);\n  } catch (error) {\n    const obj = extractFirstJsonObject(cleaned);\n    if (!obj) return { _raw: cleaned.slice(0, 12000), _parse_error: error.message };\n    try {\n      return JSON.parse(obj);\n    } catch (innerError) {\n      return { _raw: cleaned.slice(0, 12000), _parse_error: innerError.message };\n    }\n  }\n}\n\nfunction extractJsonValueByKey(text, key) {\n  const source = String(text || '');\n  const keyIndex = source.indexOf(`\"${key}\"`);\n  if (keyIndex === -1) return null;\n\n  let cursor = keyIndex + key.length + 2;\n  while (cursor < source.length && source[cursor] !== ':') cursor += 1;\n  if (cursor >= source.length) return null;\n  cursor += 1;\n  while (cursor < source.length && /\\s/.test(source[cursor])) cursor += 1;\n  if (cursor >= source.length) return null;\n\n  const start = cursor;\n  const first = source[start];\n\n  if (first === '\"') {\n    let escape = false;\n    for (let i = start + 1; i < source.length; i += 1) {\n      const char = source[i];\n      if (escape) {\n        escape = false;\n        continue;\n      }\n      if (char === '\\\\') {\n        escape = true;\n        continue;\n      }\n      if (char === '\"') return source.slice(start, i + 1);\n    }\n    return source.slice(start);\n  }\n\n  if (first === '{' || first === '[') {\n    const open = first;\n    const close = first === '{' ? '}' : ']';\n    let depth = 0;\n    let inString = false;\n    let escape = false;\n\n    for (let i = start; i < source.length; i += 1) {\n      const char = source[i];\n      if (inString) {\n        if (escape) escape = false;\n        else if (char === '\\\\') escape = true;\n        else if (char === '\"') inString = false;\n        continue;\n      }\n      if (char === '\"') {\n        inString = true;\n        continue;\n      }\n      if (char === open) depth += 1;\n      else if (char === close) {\n        depth -= 1;\n        if (depth === 0) return source.slice(start, i + 1);\n      }\n    }\n    return source.slice(start);\n  }\n\n  let end = start;\n  while (end < source.length && ![',', '\\n', '\\r', '}'].includes(source[end])) end += 1;\n  return source.slice(start, end).trim();\n}\n\nfunction salvageParsedFromRaw(text) {\n  const raw = String(text || '');\n  return {\n    action: safeParse(extractJsonValueByKey(raw, 'action')) || 'RUN_TOOL',\n    tool_chosen: safeParse(extractJsonValueByKey(raw, 'tool_chosen')) || 'NONE',\n    tool_output: safeParse(extractJsonValueByKey(raw, 'tool_output')),\n    post_actions: safeParse(extractJsonValueByKey(raw, 'post_actions')) || {},\n    final_whatsapp_text: safeParse(extractJsonValueByKey(raw, 'final_whatsapp_text')),\n    current_state_changed: safeParse(extractJsonValueByKey(raw, 'current_state_changed')) === true,\n  };\n}\n\nfunction parseToolOutput(parsed) {\n  const toolOutput = parsed?.tool_output;\n  if (!toolOutput || typeof toolOutput !== 'object') return null;\n\n  if (Array.isArray(toolOutput)) {\n    if (typeof toolOutput[0]?.output === 'string') {\n      return safeParse(stripCodeFences(toolOutput[0].output));\n    }\n    if (typeof toolOutput[0]?.result === 'string') {\n      return safeParse(stripCodeFences(toolOutput[0].result));\n    }\n    return toolOutput[0] && typeof toolOutput[0] === 'object' ? toolOutput[0] : toolOutput;\n  }\n\n  let rawResult = null;\n\n  if (typeof toolOutput.result === 'string') {\n    rawResult = toolOutput.result;\n  } else {\n    const firstKey = Object.keys(toolOutput)[0];\n    if (firstKey && toolOutput[firstKey] && typeof toolOutput[firstKey].result === 'string') {\n      rawResult = toolOutput[firstKey].result;\n    } else if (firstKey && toolOutput[firstKey] && typeof toolOutput[firstKey].output === 'string') {\n      rawResult = toolOutput[firstKey].output;\n    }\n  }\n\n  if (!rawResult) return toolOutput;\n\n  const firstPass = safeParse(rawResult);\n  if (Array.isArray(firstPass) && firstPass[0]?.output) {\n    return safeParse(stripCodeFences(firstPass[0].output));\n  }\n  return firstPass;\n}\n\nfunction normalizeBoolean(value) {\n  if (typeof value === 'boolean') return value;\n  if (value === null || value === undefined || value === '') return false;\n  return ['true', '1', 'yes', 'si', 'sí'].includes(String(value).trim().toLowerCase());\n}\n\nfunction compactCriteria(source = {}) {\n  const clearableArrayKeys = new Set([\n    'amenidades',\n    'amenidades_excluidas',\n    'zonas_excluidas',\n    'municipios_excluidos',\n    'fincas_excluidas',\n  ]);\n  const out = {};\n  for (const [key, value] of Object.entries(source || {})) {\n    if (value === undefined || value === null) continue;\n    if (Array.isArray(value) && value.length === 0 && !clearableArrayKeys.has(key)) continue;\n    if (typeof value === 'string' && value.trim() === '') continue;\n    out[key] = value;\n  }\n  return out;\n}\n\nfunction normalizeCriteriaEntry(value) {\n  return String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .trim();\n}\n\nfunction uniqueCriteriaArray(values = []) {\n  const map = new Map();\n  for (const value of values) {\n    const trimmed = String(value || '').trim();\n    const normalized = normalizeCriteriaEntry(trimmed);\n    if (!normalized || map.has(normalized)) continue;\n    map.set(normalized, trimmed);\n  }\n  return Array.from(map.values());\n}\n\nfunction mergeCriteriaWithCurrent(source = {}) {\n  const currentSearchCriteria =\n    $('Load conversation state').item.json.search_criteria ||\n    $('Load conversation state').item.json.context?.search_criteria ||\n    {};\n  const unionKeys = new Set([\n    'amenidades_excluidas',\n    'zonas_excluidas',\n    'municipios_excluidos',\n    'fincas_excluidas',\n  ]);\n  const merged = { ...source };\n\n  for (const key of unionKeys) {\n    if (!(key in merged) || !Array.isArray(merged[key])) continue;\n    if (merged[key].length === 0) {\n      merged[key] = [];\n      continue;\n    }\n    const currentValues = Array.isArray(currentSearchCriteria?.[key]) ? currentSearchCriteria[key] : [];\n    merged[key] = uniqueCriteriaArray([...currentValues, ...merged[key]]);\n  }\n\n  return compactCriteria(merged);\n}\n\nfunction normalizePostActions(parsed, toolOutput) {\n  const raw = parsed?.post_actions && typeof parsed.post_actions === 'object' ? { ...parsed.post_actions } : {};\n  const tool = parsed?.tool_chosen || 'NONE';\n  const intent = toolOutput?.intent || null;\n\n  if (tool === 'qualifying_agent') {\n    const extraidos = compactCriteria(toolOutput?.datos_extraidos || {});\n    if (Object.keys(extraidos).length && !raw.search_criteria) raw.search_criteria = extraidos;\n    if (toolOutput?.datos_completos === true && !raw.state_transition) raw.state_transition = 'OFFERING';\n    if (toolOutput?.datos_completos === true && !raw.waiting_for) raw.waiting_for = 'CLIENT';\n  }\n\n  if (tool === 'offering_agent') {\n    if (Array.isArray(toolOutput?.fincas_mostradas) && !raw.shown_fincas) {\n      raw.shown_fincas = toolOutput.fincas_mostradas\n        .map((item) => item?.finca_id || item?.id || null)\n        .filter(Boolean);\n    }\n    if (toolOutput?.search_criteria_update && !raw.search_criteria) raw.search_criteria = compactCriteria(toolOutput.search_criteria_update);\n    if (toolOutput?.intent === 'CLIENT_CHOSE') {\n      raw.state_transition ||= 'VERIFYING_AVAILABILITY';\n      raw.selected_finca_id ||= toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id || '__IGNORE__';\n      raw.selected_finca ||= toolOutput.selected_finca || '__IGNORE__';\n      raw.waiting_for ||= 'OWNER';\n    }\n  }\n\n  if (tool === 'verifying_availability_agent') {\n    if (toolOutput?.selected_finca && !raw.selected_finca) raw.selected_finca = toolOutput.selected_finca;\n    if ((toolOutput?.finca_elegida_id || toolOutput?.selected_finca?.finca_id) && !raw.selected_finca_id) {\n      raw.selected_finca_id = toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id;\n    }\n    if (intent === 'CHANGE_FINCA') {\n      raw.state_transition ||= 'OFFERING';\n      raw.waiting_for ||= 'CLIENT';\n      raw.selected_finca_id ||= '__CLEAR__';\n      raw.selected_finca ||= '__CLEAR__';\n    }\n  }\n\n  if (tool === 'qa_agent') {\n    if (toolOutput?.search_criteria_update && !raw.search_criteria) {\n      raw.search_criteria = compactCriteria(toolOutput.search_criteria_update);\n    }\n    if (toolOutput?.selected_finca && !raw.selected_finca) raw.selected_finca = toolOutput.selected_finca;\n    if ((toolOutput?.finca_elegida_id || toolOutput?.selected_finca?.finca_id) && !raw.selected_finca_id) {\n      raw.selected_finca_id = toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id;\n    }\n  }\n\n  if ((parsed?.action === 'HITL' || intent === 'HITL_REQUEST') && raw.agente_activo === undefined) {\n    raw.agente_activo = false;\n  }\n\n  if (parsed?.action === 'NOOP_BOT_DISABLED' && raw.agente_activo === undefined) {\n    raw.agente_activo = false;\n  }\n\n  const normalized = {\n    state_transition:\n      typeof raw.state_transition === 'string' && raw.state_transition.trim()\n        ? raw.state_transition\n        : '__IGNORE__',\n    search_criteria:\n      raw.search_criteria && typeof raw.search_criteria === 'object'\n        ? mergeCriteriaWithCurrent(raw.search_criteria)\n        : '__IGNORE__',\n    waiting_for:\n      typeof raw.waiting_for === 'string' && raw.waiting_for.trim() ? raw.waiting_for : '__IGNORE__',\n    agente_activo:\n      typeof raw.agente_activo === 'boolean' ? raw.agente_activo : '__IGNORE__',\n    shown_fincas: Array.isArray(raw.shown_fincas) ? raw.shown_fincas : '__IGNORE__',\n    selected_finca_id:\n      raw.selected_finca_id === '__CLEAR__'\n        ? '__CLEAR__'\n        : typeof raw.selected_finca_id === 'string' && raw.selected_finca_id.trim()\n          ? raw.selected_finca_id\n          : '__IGNORE__',\n    selected_finca:\n      raw.selected_finca === '__CLEAR__'\n        ? '__CLEAR__'\n        : raw.selected_finca && typeof raw.selected_finca === 'object'\n          ? raw.selected_finca\n          : '__IGNORE__',\n    owner_response:\n      raw.owner_response === '__CLEAR__'\n        ? '__CLEAR__'\n        : raw.owner_response && typeof raw.owner_response === 'object'\n          ? raw.owner_response\n          : '__IGNORE__',\n    pricing:\n      raw.pricing && typeof raw.pricing === 'object' && !Array.isArray(raw.pricing) ? raw.pricing : '__IGNORE__',\n    extras:\n      raw.extras && typeof raw.extras === 'object' && !Array.isArray(raw.extras) ? raw.extras : '__IGNORE__',\n    hitl_reason:\n      raw.hitl_reason === '__CLEAR__'\n        ? '__CLEAR__'\n        : typeof raw.hitl_reason === 'string' && raw.hitl_reason.trim()\n          ? raw.hitl_reason\n          : '__IGNORE__',\n    resume_after_qa: raw.resume_after_qa === true,\n    resume_state_after_qa:\n      typeof raw.resume_state_after_qa === 'string' && raw.resume_state_after_qa.trim()\n        ? raw.resume_state_after_qa\n        : '__IGNORE__',\n    loop_reason:\n      typeof raw.loop_reason === 'string' && raw.loop_reason.trim()\n        ? raw.loop_reason\n        : '__IGNORE__',\n  };\n\n  if (normalized.search_criteria !== '__IGNORE__' && Object.keys(normalized.search_criteria).length === 0) {\n    normalized.search_criteria = '__IGNORE__';\n  }\n\n  return normalized;\n}\n\nfunction getRawOutput(itemJson) {\n  if (typeof itemJson?.output === 'string') return itemJson.output;\n  if (Array.isArray(itemJson?.output) && typeof itemJson.output[0]?.output === 'string') return itemJson.output[0].output;\n  return null;\n}\n\nfunction slugify(value) {\n  return String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, ' ')\n    .trim();\n}\n\nfunction titleCase(value) {\n  return String(value || '')\n    .toLowerCase()\n    .replace(/\\b\\w/g, (match) => match.toUpperCase());\n}\n\nfunction parseUrls(value) {\n  const matches = String(value || '').match(/https?:\\/\\/[^\\s,]+/g);\n  return Array.from(new Set(matches || []));\n}\n\nfunction formatCurrency(value) {\n  const amount = Number(value);\n  if (!Number.isFinite(amount) || amount <= 0) return null;\n  return new Intl.NumberFormat('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    maximumFractionDigits: 0,\n  }).format(amount);\n}\n\nfunction numberFromText(value, pattern) {\n  const match = String(value || '').match(pattern);\n  if (!match) return null;\n  const parsed = Number(match[1]);\n  return Number.isFinite(parsed) ? parsed : null;\n}\n\nfunction uniqueLines(values = []) {\n  const seen = new Set();\n  const lines = [];\n  for (const value of values) {\n    const normalized = slugify(value);\n    if (!normalized || seen.has(normalized)) continue;\n    seen.add(normalized);\n    lines.push(String(value).trim());\n  }\n  return lines;\n}\n\nfunction amenityLabel(rawValue) {\n  const value = slugify(rawValue);\n  const map = [\n    { pattern: /piscina/, label: 'Piscina 🏊' },\n    { pattern: /jacuzzi/, label: 'Jacuzzi 🛁' },\n    { pattern: /kiosko|quiosco/, label: 'Kiosko 🔝' },\n    { pattern: /tejo/, label: 'Cancha de tejo 🎯' },\n    { pattern: /micro futbol|microfutbol|futbol/, label: 'Cancha de micro fútbol ⚽️' },\n    { pattern: /ping pong/, label: 'Mesa de ping pong 🏓' },\n    { pattern: /billar|pool|mini mesa de billar/, label: 'Mesa de billar 🎱' },\n    { pattern: /rana/, label: 'Rana 🐸' },\n    { pattern: /bbq/, label: 'BBQ ♨️' },\n    { pattern: /zonas verdes|zona verde/, label: 'Zonas verdes 🌴' },\n    { pattern: /wifi|wi fi/, label: 'Wifi 🛜' },\n    { pattern: /golf/, label: 'Golf ⛳️' },\n    { pattern: /tenis/, label: 'Tenis 🎾' },\n    { pattern: /parqueadero/, label: 'Parqueadero 🚗' },\n    { pattern: /pet friendly|mascotas/, label: 'Pet friendly 🐶' },\n    { pattern: /empleada/, label: 'Servicio de empleada 👩‍🍳' },\n  ];\n\n  const matched = map.find((item) => item.pattern.test(value));\n  if (matched) return matched.label;\n  if (!value) return null;\n  return titleCase(rawValue);\n}\n\nfunction buildHighlightLines(finca) {\n  const combinedText = [\n    finca.descripcion_corta,\n    finca.observaciones_originales,\n    finca.caracteristicas_originales,\n    finca.especificacion_habitaciones,\n  ]\n    .filter(Boolean)\n    .join('\\n');\n\n  const lines = [];\n\n  if (finca.habitaciones) {\n    lines.push(String(finca.habitaciones) + ' habitaciones 🍃');\n  } else {\n    const habitaciones = numberFromText(combinedText, /(\\d+)\\s+habitaciones?/i);\n    if (habitaciones) lines.push(String(habitaciones) + ' habitaciones 🍃');\n  }\n\n  const banos = numberFromText(combinedText, /(\\d+)\\s+bañ?os?/i);\n  if (banos) lines.push(String(banos) + ' baños 🚻');\n\n  const amenidades = Array.isArray(finca.amenidades) ? finca.amenidades : [];\n  for (const amenidad of amenidades) {\n    const label = amenityLabel(amenidad);\n    if (label) lines.push(label);\n  }\n\n  if (finca.capacidad_max) {\n    lines.push('Capacidad máxima ' + String(finca.capacidad_max) + ' personas 👥');\n  }\n\n  if (finca.municipio || finca.zona) {\n    const locationLabel =\n      finca.municipio && finca.zona && slugify(finca.municipio) !== slugify(finca.zona)\n        ? 'Ubicada en ' + String(finca.municipio) + ', ' + String(finca.zona)\n        : 'Ubicada en ' + String(finca.municipio || finca.zona);\n    lines.push(locationLabel);\n  }\n\n  return uniqueLines(lines);\n}\n\nfunction buildTarifaLine(finca) {\n  if (finca.precio_noche_base) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_noche_base) + '/noche';\n  }\n  if (finca.precio_fin_semana) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_fin_semana) + '/fin de semana';\n  }\n  if (finca.precio_referencia_noche) {\n    return 'Tarifa: ' + formatCurrency(finca.precio_referencia_noche) + '/noche';\n  }\n  return null;\n}\n\nfunction buildFincaCard(finca) {\n  if (!finca || typeof finca !== 'object') return null;\n  const title = String(finca.nombre || finca.finca_id || 'Finca').trim();\n  const code = String(finca.codigo_original || finca.finca_id || '').trim();\n  const highlights = buildHighlightLines(finca);\n  const tarifa = buildTarifaLine(finca);\n  const parts = [\n    '☀️🌴*' + title + '*🌴☀️',\n    code || null,\n    null,\n    ...highlights.map((line) => '- ' + line),\n    tarifa,\n  ].filter((value) => value !== null && value !== undefined && String(value).trim() !== '');\n  return parts.join('\\n');\n}\n\nfunction buildMediaMessages(finca) {\n  const urls = parseUrls(finca?.foto_url);\n  if (!urls.length) return [];\n  const title = finca?.nombre || finca?.finca_id || 'la finca';\n  return [\n    {\n      type: 'media_group',\n      content: 'Fotos y/o video de ' + title,\n      media_url: urls[0],\n      media_urls: urls,\n      property_title: title,\n      property_id: finca?.finca_id || null,\n    },\n  ];\n}\n\nfunction createTextMessage(content, extra = {}) {\n  const text = String(content || '').trim();\n  if (!text) return null;\n  return {\n    type: extra.type || 'text',\n    content: text,\n    media_url: extra.media_url || null,\n    media_urls: Array.isArray(extra.media_urls) ? extra.media_urls : undefined,\n  };\n}\n\nfunction buildPropertySequence(tool, toolOutputParsed, finalWhatsappText) {\n  const intent = toolOutputParsed?.intent || null;\n  const selectedFinca = toolOutputParsed?.selected_finca && typeof toolOutputParsed.selected_finca === 'object'\n    ? toolOutputParsed.selected_finca\n    : null;\n  const fincasMostradas = Array.isArray(toolOutputParsed?.fincas_mostradas)\n    ? toolOutputParsed.fincas_mostradas.filter((item) => item && typeof item === 'object')\n    : [];\n\n  const sequence = [];\n\n  if (tool === 'offering_agent' && intent === 'SHOW_OPTIONS' && fincasMostradas.length) {\n    for (const finca of fincasMostradas) {\n      sequence.push(...buildMediaMessages(finca));\n      const card = buildFincaCard(finca);\n      const cardMessage = createTextMessage(card);\n      if (cardMessage) sequence.push(cardMessage);\n    }\n    return sequence;\n  }\n\n  if (selectedFinca && ['offering_agent', 'verifying_availability_agent', 'qa_agent'].includes(tool)) {\n    sequence.push(...buildMediaMessages(selectedFinca));\n    const card = buildFincaCard(selectedFinca);\n    const cardMessage = createTextMessage(card);\n    if (cardMessage) sequence.push(cardMessage);\n    const trailingText =\n      finalWhatsappText && String(finalWhatsappText).trim() !== String(card || '').trim()\n        ? createTextMessage(finalWhatsappText)\n        : null;\n    if (trailingText) sequence.push(trailingText);\n    return sequence;\n  }\n\n  return [];\n}\n\n\nfunction buildSelectionNotificationCandidate({ toolChosen, toolOutputParsed, normalizedPostActions, currentState, currentStateAfter }) {\n  const intent = toolOutputParsed?.intent || null;\n  const selectedFincaId =\n    normalizedPostActions.selected_finca_id !== '__IGNORE__' &&\n    normalizedPostActions.selected_finca_id !== '__CLEAR__'\n      ? normalizedPostActions.selected_finca_id\n      : toolOutputParsed?.finca_elegida_id || toolOutputParsed?.selected_finca?.finca_id || null;\n  const selectedFinca =\n    normalizedPostActions.selected_finca !== '__IGNORE__' &&\n    normalizedPostActions.selected_finca !== '__CLEAR__'\n      ? normalizedPostActions.selected_finca\n      : toolOutputParsed?.selected_finca || null;\n  const searchCriteria =\n    normalizedPostActions.search_criteria !== '__IGNORE__'\n      ? normalizedPostActions.search_criteria\n      : $('Load conversation state').item.json.search_criteria || {};\n\n  return {\n    shouldNotify:\n      toolChosen === 'offering_agent' &&\n      intent === 'CLIENT_CHOSE' &&\n      currentStateAfter === 'VERIFYING_AVAILABILITY' &&\n      Boolean(selectedFincaId),\n    intent,\n    currentStateBefore: currentState,\n    currentStateAfter,\n    selectedFincaId,\n    selectedFinca,\n    searchCriteria,\n  };\n}\n\nconst item = $input.first();\nconst rawOutput = getRawOutput(item.json);\nlet parsed = safeParse(stripCodeFences(rawOutput || ''));\nif (parsed?._raw && parsed?._parse_error) {\n  parsed = {\n    ...parsed,\n    ...salvageParsedFromRaw(rawOutput || parsed._raw),\n  };\n}\nconst toolOutputParsed = parseToolOutput(parsed);\nconst normalizedPostActions = normalizePostActions(parsed, toolOutputParsed);\nconst action = parsed?.action || 'RUN_TOOL';\nconst toolChosen = parsed?.tool_chosen || 'NONE';\nconst currentState = $('Load conversation state').item.json.current_state || null;\nconst requestedStateTransition = normalizedPostActions.state_transition;\nconst stateActuallyChanged =\n  requestedStateTransition !== '__IGNORE__' &&\n  requestedStateTransition !== currentState;\nconst currentStateChanged =\n  parsed?.current_state_changed === true ||\n  normalizeBoolean(parsed?.current_state_changed) ||\n  stateActuallyChanged;\nconst currentStateAfter =\n  requestedStateTransition !== '__IGNORE__'\n    ? requestedStateTransition\n    : currentState;\nconst selectionNotificationCandidate = buildSelectionNotificationCandidate({\n  toolChosen,\n  toolOutputParsed,\n  normalizedPostActions,\n  currentState,\n  currentStateAfter,\n});\n\nconst handoffText = $('config').item.json.handoff_message || 'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst rawFinalWhatsappText =\n  parsed?.final_whatsapp_text ||\n  toolOutputParsed?.respuesta ||\n  (action === 'HITL' ? handoffText : null);\n\nconst propertySequence = buildPropertySequence(toolChosen, toolOutputParsed, rawFinalWhatsappText);\nconst fallbackSequence = propertySequence.length\n  ? propertySequence\n  : [createTextMessage(rawFinalWhatsappText)].filter(Boolean);\nconst outboundSequence = fallbackSequence.filter(Boolean);\nconst primaryOutboundMessage = outboundSequence.at(-1)?.content || rawFinalWhatsappText || null;\nconst hasCustomerFacingMessage = Boolean(String(primaryOutboundMessage || '').trim());\nconst businessStates = new Set(['QUALIFYING', 'OFFERING', 'VERIFYING_AVAILABILITY']);\nconst resumeAfterQa = normalizedPostActions.resume_after_qa === true;\nconst resumeStateAfterQa =\n  normalizedPostActions.resume_state_after_qa !== '__IGNORE__'\n    ? normalizedPostActions.resume_state_after_qa\n    : currentState;\nconst loopReason = resumeAfterQa\n  ? 'resume_after_qa'\n  : currentStateChanged\n    ? (normalizedPostActions.loop_reason !== '__IGNORE__' ? normalizedPostActions.loop_reason : 'state_transition')\n    : null;\nconst loopNextState = resumeAfterQa ? resumeStateAfterQa : currentStateAfter;\nconst shouldImmediateLoop =\n  (currentStateChanged && businessStates.has(currentStateAfter)) ||\n  (resumeAfterQa && businessStates.has(resumeStateAfterQa));\n\nreturn [\n  {\n    json: {\n      parsed,\n      tool_output_parsed: toolOutputParsed,\n      normalized_post_actions: normalizedPostActions,\n      final_whatsapp_text: primaryOutboundMessage,\n      outbound_message: primaryOutboundMessage,\n      outbound_sequence: outboundSequence,\n      outbound_sequence_json: JSON.stringify(outboundSequence),\n      current_state_changed: currentStateChanged,\n      should_immediate_loop: shouldImmediateLoop,\n      tool_chosen: toolChosen,\n      action,\n      chatwoot_id:\n        $('Load conversation state').item.json.chatwoot_id || $('Merge config + context').item.json.chatwoot_id || null,\n      current_state_after: currentStateAfter,\n      selection_notification_candidate: selectionNotificationCandidate,\n      conversation_key:\n        parsed?.tool_input?.context?.conversation?.id || $('Merge config + context').item.json.conversation_key,\n      loop_reason: loopReason,\n      loop_next_state: shouldImmediateLoop ? loopNextState : null,\n      loop_owner_unavailable: false,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -524,7 +524,7 @@
         80
       ],
       "id": "9d360ef2-6169-4213-a3ee-80502a633212",
-      "name": "Code in JavaScript1"
+      "name": "Build outbound sequence"
     },
     {
       "parameters": {
@@ -539,7 +539,7 @@
         80
       ],
       "id": "21fa9ced-bc9b-47be-97fd-c392f2e0e109",
-      "name": "actualizar contexto1",
+      "name": "Update conversation context",
       "credentials": {
         "postgres": {
           "id": "CKoiBGlPXq82taIc",
@@ -559,7 +559,7 @@
           "conditions": [
             {
               "id": "3a6a967c-6223-4197-a537-8a506a86c257",
-              "leftValue": "={{ $('Merge Sets1').item.json.insertar_mensjae }}",
+              "leftValue": "={{ $('Merge config + context').item.json.insertar_mensjae }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -580,16 +580,16 @@
         80
       ],
       "id": "5c318b8c-0979-4658-9bcc-b18c56750850",
-      "name": "If3"
+      "name": "Should insert inbound message?"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into public.messages (\n  conversation_id,\n  direction,\n  message_type,\n  content,\n  media_url,\n  state_at_time,\n  agent_used,\n  extracted_data\n)\nvalues (\n  {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }},\n  'INBOUND',\n  'TEXT',\n  {{\n    $('Merge Sets1').item.json['last-message']\n      ? \"'\" + String($('Merge Sets1').item.json['last-message']).replace(/'/g, \"''\") + \"'\"\n      : \"null\"\n  }},\n  {{\n    $('Merge Sets1').item.json.audio_url\n      ? \"'\" + String($('Merge Sets1').item.json.audio_url).replace(/'/g, \"''\") + \"'\"\n      : \"null\"\n  }},\n  {{ \"'\" + String($('Get Context-conversations1').item.json.current_state || 'QUALIFYING').replace(/'/g, \"''\") + \"'\" }},\n  'USER',\n  {{\n    \"'\" +\n    JSON.stringify({\n      original_message_type: $('Merge Sets1').item.json.original_message_type || $('Merge Sets1').item.json.message_type || 'TEXT',\n      audio_transcript: $('Merge Sets1').item.json.audio_transcript || null,\n      audio_mime_type: $('Merge Sets1').item.json.audio_mime_type || null,\n      audio_filename: $('Merge Sets1').item.json.audio_filename || null,\n      audio_url: $('Merge Sets1').item.json.audio_url || null,\n      audio_error_message: $('Merge Sets1').item.json.audio_error_message || null,\n      audio_metadata: $('Merge Sets1').item.json.audio_metadata || null,\n      chatwoot_message_id: $('Merge Sets1').item.json.chatwoot_message_id || null\n    }).replace(/'/g, \"''\") +\n    \"'\"\n  }}::jsonb\n)\nreturning id, created_at;",
+        "query": "insert into public.messages (\n  conversation_id,\n  direction,\n  message_type,\n  content,\n  media_url,\n  state_at_time,\n  agent_used,\n  extracted_data\n)\nvalues (\n  {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }},\n  'INBOUND',\n  'TEXT',\n  {{\n    $('Merge config + context').item.json['last-message']\n      ? \"'\" + String($('Merge config + context').item.json['last-message']).replace(/'/g, \"''\") + \"'\"\n      : \"null\"\n  }},\n  {{\n    $('Merge config + context').item.json.audio_url\n      ? \"'\" + String($('Merge config + context').item.json.audio_url).replace(/'/g, \"''\") + \"'\"\n      : \"null\"\n  }},\n  {{ \"'\" + String($('Load conversation state').item.json.current_state || 'QUALIFYING').replace(/'/g, \"''\") + \"'\" }},\n  'USER',\n  {{\n    \"'\" +\n    JSON.stringify({\n      original_message_type: $('Merge config + context').item.json.original_message_type || $('Merge config + context').item.json.message_type || 'TEXT',\n      audio_transcript: $('Merge config + context').item.json.audio_transcript || null,\n      audio_mime_type: $('Merge config + context').item.json.audio_mime_type || null,\n      audio_filename: $('Merge config + context').item.json.audio_filename || null,\n      audio_url: $('Merge config + context').item.json.audio_url || null,\n      audio_error_message: $('Merge config + context').item.json.audio_error_message || null,\n      audio_metadata: $('Merge config + context').item.json.audio_metadata || null,\n      chatwoot_message_id: $('Merge config + context').item.json.chatwoot_message_id || null\n    }).replace(/'/g, \"''\") +\n    \"'\"\n  }}::jsonb\n)\nreturning id, created_at;",
         "options": {}
       },
       "id": "1f20369a-c063-4adf-b347-ee779ccb4461",
-      "name": "Insert INBOUND message (messages)1",
+      "name": "Save inbound message",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
@@ -606,11 +606,11 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('actualizar contexto1').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Code in JavaScript1').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
+        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('Update conversation context').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Build outbound sequence').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Build outbound sequence').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Build outbound sequence').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
         "options": {}
       },
       "id": "0fe46bb1-7674-4d0a-bc69-3aa9f1f17574",
-      "name": "Insert OUTBOUND message (messages)",
+      "name": "Save outbound message",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
@@ -636,7 +636,7 @@
           "conditions": [
             {
               "id": "21eae4b3-b997-4c6a-aa4a-343ef68ead51",
-              "leftValue": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+              "leftValue": "={{ $('Build outbound sequence').item.json.should_immediate_loop === true }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -657,7 +657,7 @@
         80
       ],
       "id": "c2d3d957-fa61-4d5a-999c-a1cbf83d7ad4",
-      "name": "If2"
+      "name": "Should loop to next state?"
     },
     {
       "parameters": {
@@ -684,19 +684,19 @@
             {
               "id": "c904bbf4-953c-44cb-a3d7-221c5c3aee2e",
               "name": "forced_state",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_next_state || null }}",
+              "value": "={{ $('Build outbound sequence').item.json.loop_next_state || null }}",
               "type": "string"
             },
             {
               "id": "1f3d9946-12ee-4488-9353-5cf3603d2dcd",
               "name": "loop_reason",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_reason || null }}",
+              "value": "={{ $('Build outbound sequence').item.json.loop_reason || null }}",
               "type": "string"
             },
             {
               "id": "3f238684-1e5f-4b7b-93dc-8563b644d54e",
               "name": "owner_unavailable",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_owner_unavailable === true }}",
+              "value": "={{ $('Build outbound sequence').item.json.loop_owner_unavailable === true }}",
               "type": "boolean"
             }
           ]
@@ -710,16 +710,16 @@
         80
       ],
       "id": "1782206d-c909-43f0-a805-4474b62e5f72",
-      "name": "Edit Fields1"
+      "name": "Prepare loop iteration"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with convo as (\n  select *\n  from public.conversations\n  where wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n),\nsettings as (\n  with defaults as (\n    select\n      true::boolean as followup_enabled,\n      time '08:00' as window_start,\n      time '22:00' as window_end,\n      'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as msg_qualifying,\n      'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as msg_offering,\n      'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as msg_verifying\n  )\n  select\n    coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n    coalesce(s.followup_window_start, d.window_start) as window_start,\n    coalesce(s.followup_window_end, d.window_end) as window_end,\n    coalesce(s.followup_message_qualifying, d.msg_qualifying) as msg_qualifying,\n    coalesce(s.followup_message_offering, d.msg_offering) as msg_offering,\n    coalesce(s.followup_message_verifying_availability, d.msg_verifying) as msg_verifying\n  from defaults d\n  left join public.agent_settings s on s.id = 1\n),\ncancel_existing as (\n  update public.follow_on\n  set\n    status = 'cancelada',\n    cancelled_at = now(),\n    cancel_reason = 'rescheduled',\n    updated_at = now()\n  where conversation_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n    and status = 'pendiente'\n  returning id\n),\nplan as (\n  select\n    c.wa_id as conversation_id,\n    c.current_state,\n    c.followup_count,\n    c.followup_enabled,\n    c.waiting_for,\n    c.agente_activo,\n    s.window_start,\n    s.window_end,\n    case\n      when c.agente_activo = false or c.followup_enabled = false or s.followup_enabled = false then null\n      when c.waiting_for = 'CLIENT' and c.last_message_from = 'AGENT' then\n        case\n          when coalesce(c.followup_count, 0) <= 0 then now() + interval '2 hours'\n          when coalesce(c.followup_count, 0) = 1 then now() + interval '24 hours'\n          else now() + interval '72 hours'\n        end\n      else null\n    end as raw_scheduled_for,\n    case\n      when c.current_state = 'QUALIFYING' then s.msg_qualifying\n      when c.current_state = 'OFFERING' then s.msg_offering\n      when c.current_state = 'VERIFYING_AVAILABILITY' then s.msg_verifying\n      else s.msg_qualifying\n    end as follow_on_message\n  from convo c\n  cross join settings s\n),\nnormalized as (\n  select\n    p.*,\n    case\n      when p.raw_scheduled_for is null then null\n      when ((p.raw_scheduled_for AT TIME ZONE 'America/Bogota')::time < p.window_start) then\n        (date_trunc('day', p.raw_scheduled_for AT TIME ZONE 'America/Bogota') + (p.window_start - time '00:00')) AT TIME ZONE 'America/Bogota'\n      when ((p.raw_scheduled_for AT TIME ZONE 'America/Bogota')::time >= p.window_end) then\n        (date_trunc('day', p.raw_scheduled_for AT TIME ZONE 'America/Bogota') + interval '1 day' + (p.window_start - time '00:00')) AT TIME ZONE 'America/Bogota'\n      else p.raw_scheduled_for\n    end as scheduled_for\n  from plan p\n),\nupdated_conversation as (\n  update public.conversations c\n  set\n    next_followup_at = n.scheduled_for,\n    updated_at = now()\n  from normalized n\n  where c.wa_id = n.conversation_id\n  returning\n    c.wa_id,\n    c.next_followup_at,\n    c.followup_count,\n    c.waiting_for,\n    n.current_state,\n    n.follow_on_message,\n    n.window_start,\n    n.window_end\n),\ninserted as (\n  insert into public.follow_on (\n    conversation_id,\n    message,\n    scheduled_for,\n    status,\n    metadata\n  )\n  select\n    uc.wa_id,\n    uc.follow_on_message,\n    uc.next_followup_at,\n    'pendiente',\n    jsonb_build_object(\n      'source', 'main_workflow',\n      'source_state', uc.current_state,\n      'followup_count_at_schedule', coalesce(uc.followup_count, 0),\n      'allowed_window', jsonb_build_object(\n        'start', to_char(uc.window_start, 'HH24:MI'),\n        'end', to_char(uc.window_end, 'HH24:MI'),\n        'timezone', 'America/Bogota'\n      )\n    )\n  from updated_conversation uc\n  where uc.next_followup_at is not null\n  returning id, conversation_id, scheduled_for, status\n)\nselect\n  (select count(*) from cancel_existing) as cancelled_previous,\n  (select count(*) from inserted) as inserted_count,\n  (select scheduled_for from inserted order by id desc limit 1) as scheduled_for,\n  (select status from inserted order by id desc limit 1) as status;",
+        "query": "with convo as (\n  select *\n  from public.conversations\n  where wa_id = {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n),\nsettings as (\n  with defaults as (\n    select\n      true::boolean as followup_enabled,\n      time '08:00' as window_start,\n      time '22:00' as window_end,\n      'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as msg_qualifying,\n      'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as msg_offering,\n      'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as msg_verifying\n  )\n  select\n    coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n    coalesce(s.followup_window_start, d.window_start) as window_start,\n    coalesce(s.followup_window_end, d.window_end) as window_end,\n    coalesce(s.followup_message_qualifying, d.msg_qualifying) as msg_qualifying,\n    coalesce(s.followup_message_offering, d.msg_offering) as msg_offering,\n    coalesce(s.followup_message_verifying_availability, d.msg_verifying) as msg_verifying\n  from defaults d\n  left join public.agent_settings s on s.id = 1\n),\ncancel_existing as (\n  update public.follow_on\n  set\n    status = 'cancelada',\n    cancelled_at = now(),\n    cancel_reason = 'rescheduled',\n    updated_at = now()\n  where conversation_id = {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n    and status = 'pendiente'\n  returning id\n),\nplan as (\n  select\n    c.wa_id as conversation_id,\n    c.current_state,\n    c.followup_count,\n    c.followup_enabled,\n    c.waiting_for,\n    c.agente_activo,\n    s.window_start,\n    s.window_end,\n    case\n      when c.agente_activo = false or c.followup_enabled = false or s.followup_enabled = false then null\n      when c.waiting_for = 'CLIENT' and c.last_message_from = 'AGENT' then\n        case\n          when coalesce(c.followup_count, 0) <= 0 then now() + interval '2 hours'\n          when coalesce(c.followup_count, 0) = 1 then now() + interval '24 hours'\n          else now() + interval '72 hours'\n        end\n      else null\n    end as raw_scheduled_for,\n    case\n      when c.current_state = 'QUALIFYING' then s.msg_qualifying\n      when c.current_state = 'OFFERING' then s.msg_offering\n      when c.current_state = 'VERIFYING_AVAILABILITY' then s.msg_verifying\n      else s.msg_qualifying\n    end as follow_on_message\n  from convo c\n  cross join settings s\n),\nnormalized as (\n  select\n    p.*,\n    case\n      when p.raw_scheduled_for is null then null\n      when ((p.raw_scheduled_for AT TIME ZONE 'America/Bogota')::time < p.window_start) then\n        (date_trunc('day', p.raw_scheduled_for AT TIME ZONE 'America/Bogota') + (p.window_start - time '00:00')) AT TIME ZONE 'America/Bogota'\n      when ((p.raw_scheduled_for AT TIME ZONE 'America/Bogota')::time >= p.window_end) then\n        (date_trunc('day', p.raw_scheduled_for AT TIME ZONE 'America/Bogota') + interval '1 day' + (p.window_start - time '00:00')) AT TIME ZONE 'America/Bogota'\n      else p.raw_scheduled_for\n    end as scheduled_for\n  from plan p\n),\nupdated_conversation as (\n  update public.conversations c\n  set\n    next_followup_at = n.scheduled_for,\n    updated_at = now()\n  from normalized n\n  where c.wa_id = n.conversation_id\n  returning\n    c.wa_id,\n    c.next_followup_at,\n    c.followup_count,\n    c.waiting_for,\n    n.current_state,\n    n.follow_on_message,\n    n.window_start,\n    n.window_end\n),\ninserted as (\n  insert into public.follow_on (\n    conversation_id,\n    message,\n    scheduled_for,\n    status,\n    metadata\n  )\n  select\n    uc.wa_id,\n    uc.follow_on_message,\n    uc.next_followup_at,\n    'pendiente',\n    jsonb_build_object(\n      'source', 'main_workflow',\n      'source_state', uc.current_state,\n      'followup_count_at_schedule', coalesce(uc.followup_count, 0),\n      'allowed_window', jsonb_build_object(\n        'start', to_char(uc.window_start, 'HH24:MI'),\n        'end', to_char(uc.window_end, 'HH24:MI'),\n        'timezone', 'America/Bogota'\n      )\n    )\n  from updated_conversation uc\n  where uc.next_followup_at is not null\n  returning id, conversation_id, scheduled_for, status\n)\nselect\n  (select count(*) from cancel_existing) as cancelled_previous,\n  (select count(*) from inserted) as inserted_count,\n  (select scheduled_for from inserted order by id desc limit 1) as scheduled_for,\n  (select status from inserted order by id desc limit 1) as status;",
         "options": {}
       },
       "id": "c0735fe7-53e2-4a26-911b-0ed273dec79b",
-      "name": "Agregar follow on",
+      "name": "Schedule follow-up",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
@@ -843,7 +843,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.selected_finca_id || $('Get Context-conversations1').item.json.context?.selected_finca?.finca_id || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.selected_finca_id || $('Load conversation state').item.json.context?.selected_finca?.finca_id || '' }}"
             },
             {
               "id": "542a063d-7560-4eb4-a33a-542cee37ba77",
@@ -854,7 +854,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.selected_finca?.nombre || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.selected_finca?.nombre || '' }}"
             },
             {
               "id": "7bbb3f9b-3610-4c71-a321-80301cee4275",
@@ -865,7 +865,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ JSON.stringify($('Get Context-conversations1').item.json.context?.shown_fincas || []) }}"
+              "stringValue": "={{ JSON.stringify($('Load conversation state').item.json.context?.shown_fincas || []) }}"
             },
             {
               "id": "640032b2-7c44-4089-a060-19f075ad5c7a",
@@ -876,7 +876,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.zona || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.search_criteria?.zona || '' }}"
             },
             {
               "id": "2ce0880c-38c0-45a3-bd48-03f566816c90",
@@ -887,7 +887,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.personas || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.search_criteria?.personas || '' }}"
             },
             {
               "id": "0cf68377-d5df-4d37-b42c-4a56107f5160",
@@ -898,7 +898,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.presupuesto_max || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.search_criteria?.presupuesto_max || '' }}"
             },
             {
               "id": "d109de4e-12ee-43ca-a17f-767475728b80",
@@ -909,7 +909,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.fecha_inicio || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.search_criteria?.fecha_inicio || '' }}"
             },
             {
               "id": "8d3c6755-6aef-4c47-9981-4d383ed7c2a6",
@@ -920,7 +920,7 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false,
-              "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.fecha_fin || '' }}"
+              "stringValue": "={{ $('Load conversation state').item.json.context?.search_criteria?.fecha_fin || '' }}"
             }
           ],
           "attemptToConvertTypes": false,
@@ -1130,7 +1130,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "update public.follow_on\nset\n  status = 'cancelada',\n  cancelled_at = now(),\n  cancel_reason = 'client_replied',\n  updated_at = now()\nwhere conversation_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n  and status = 'pendiente'\nreturning id, scheduled_for, status;",
+        "query": "update public.follow_on\nset\n  status = 'cancelada',\n  cancelled_at = now(),\n  cancel_reason = 'client_replied',\n  updated_at = now()\nwhere conversation_id = {{ \"'\" + String($('Merge config + context').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\n  and status = 'pendiente'\nreturning id, scheduled_for, status;",
         "options": {}
       },
       "id": "0a0a2a2d-f1e4-485a-a5f8-45d2b2da8c11",
@@ -1155,97 +1155,97 @@
             {
               "id": "6930d0ac-2437-4997-bf55-ba767ff7b571",
               "name": "conversation_key",
-              "value": "={{ $('Merge Sets1').item.json.conversation_key }}",
+              "value": "={{ $('Merge config + context').item.json.conversation_key }}",
               "type": "string"
             },
             {
               "id": "0e8b42d7-d910-4ab3-bc8f-463e0fd71c05",
               "name": "wa_id",
-              "value": "={{ $('Merge Sets1').item.json.conversation_key }}",
+              "value": "={{ $('Merge config + context').item.json.conversation_key }}",
               "type": "string"
             },
             {
               "id": "19ee4a3f-d08b-4cc6-b2ff-07fb5a72d4ef",
               "name": "chatwoot_id",
-              "value": "={{ $('Get Context-conversations1').item.json.chatwoot_id || $('Merge Sets1').item.json.chatwoot_id || null }}",
+              "value": "={{ $('Load conversation state').item.json.chatwoot_id || $('Merge config + context').item.json.chatwoot_id || null }}",
               "type": "string"
             },
             {
               "id": "49838733-0468-4565-bafd-6fdccb0ea330",
               "name": "client_name",
-              "value": "={{ $('actualizar contexto1').item.json.client_name || $('Merge Sets1').item.json.client_name || null }}",
+              "value": "={{ $('Update conversation context').item.json.client_name || $('Merge config + context').item.json.client_name || null }}",
               "type": "string"
             },
             {
               "id": "19a2963e-b82d-4965-81f7-f2ffddc6da33",
               "name": "outbound_message",
-              "value": "={{ $('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '' }}",
+              "value": "={{ $('Build outbound sequence').item.json.outbound_message || $('Build outbound sequence').item.json.final_whatsapp_text || '' }}",
               "type": "string"
             },
             {
               "id": "8465f7e1-db6c-494d-9d64-45baa49526ff",
               "name": "final_whatsapp_text",
-              "value": "={{ $('Code in JavaScript1').item.json.final_whatsapp_text || $('Code in JavaScript1').item.json.outbound_message || '' }}",
+              "value": "={{ $('Build outbound sequence').item.json.final_whatsapp_text || $('Build outbound sequence').item.json.outbound_message || '' }}",
               "type": "string"
             },
             {
               "id": "aa2496c0-f955-47ce-bec3-28c1bd850825",
               "name": "tool_chosen",
-              "value": "={{ $('Code in JavaScript1').item.json.tool_chosen || 'NONE' }}",
+              "value": "={{ $('Build outbound sequence').item.json.tool_chosen || 'NONE' }}",
               "type": "string"
             },
             {
               "id": "1056a125-f117-4a0f-b706-a77b5925a66a",
               "name": "action",
-              "value": "={{ $('Code in JavaScript1').item.json.action || 'RUN_TOOL' }}",
+              "value": "={{ $('Build outbound sequence').item.json.action || 'RUN_TOOL' }}",
               "type": "string"
             },
             {
               "id": "c1cdb57c-29ef-4ae8-a157-a4c488cc76c8",
               "name": "current_state",
-              "value": "={{ $('actualizar contexto1').item.json.current_state || $('Get Context-conversations1').item.json.current_state || null }}",
+              "value": "={{ $('Update conversation context').item.json.current_state || $('Load conversation state').item.json.current_state || null }}",
               "type": "string"
             },
             {
               "id": "382e3962-a468-4e76-a294-2c5b43712eff",
               "name": "agente_activo",
-              "value": "={{ $('actualizar contexto1').item.json.agente_activo }}",
+              "value": "={{ $('Update conversation context').item.json.agente_activo }}",
               "type": "boolean"
             },
             {
               "id": "c6a1a567-6aee-4b71-9401-d819c57b1571",
               "name": "current_state_changed",
-              "value": "={{ $('Code in JavaScript1').item.json.current_state_changed === true }}",
+              "value": "={{ $('Build outbound sequence').item.json.current_state_changed === true }}",
               "type": "boolean"
             },
             {
               "id": "ee4d8b93-7178-4c8b-9735-ae74049cf43e",
               "name": "send_to_customer",
-              "value": "={{ Boolean(String($('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '').trim()) }}",
+              "value": "={{ Boolean(String($('Build outbound sequence').item.json.outbound_message || $('Build outbound sequence').item.json.final_whatsapp_text || '').trim()) }}",
               "type": "boolean"
             },
             {
               "id": "e97ac9fd-39b7-40b1-8d2b-f1650b56f125",
               "name": "should_immediate_loop",
-              "value": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+              "value": "={{ $('Build outbound sequence').item.json.should_immediate_loop === true }}",
               "type": "boolean"
             },
             {
               "id": "85c08fb1-c850-4738-853d-6a54ba6324a4",
               "name": "outbound_sequence_json",
-              "value": "={{ $('Code in JavaScript1').item.json.outbound_sequence_json || '[]' }}",
+              "value": "={{ $('Build outbound sequence').item.json.outbound_sequence_json || '[]' }}",
               "type": "string"
             },
             {
               "id": "7d788a81-24ff-448e-91d6-4657cbea2c5c",
               "name": "selection_notification_candidate",
-              "value": "={{ $('Code in JavaScript1').item.json.selection_notification_candidate || null }}",
+              "value": "={{ $('Build outbound sequence').item.json.selection_notification_candidate || null }}",
               "type": "object"
             },
             {
               "id": "297863ed-c852-476f-8f61-5e7d468f75fc",
               "name": "current_state_after",
-              "value": "={{ $('Code in JavaScript1').item.json.current_state_after || $('actualizar contexto1').item.json.current_state || null }}",
+              "value": "={{ $('Build outbound sequence').item.json.current_state_after || $('Update conversation context').item.json.current_state || null }}",
               "type": "string"
             }
           ]
@@ -1382,7 +1382,7 @@
           "conditions": [
             {
               "id": "460e9850-c53e-4ed8-95ca-d8674f103568",
-              "leftValue": "={{ $('Merge Sets1').item.json.source !== 'simulator' }}",
+              "leftValue": "={{ $('Merge config + context').item.json.source !== 'simulator' }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -1768,73 +1768,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "3c894701-b352-4d72-8ce6-3959a9674b54",
-              "leftValue": "={{ Boolean($json.chatwoot_id) && typeof $json.agente_activo === \"boolean\" }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "f6ecc626-4ed1-4aae-a2f2-502b02b54b6b",
-      "name": "Should sync ia_activa to Chatwoot (engine)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -5904,
-        2224
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ 'https://chatwoot-9qe1j-u48275.vm.elestio.app' + '/api/v1/accounts/1/conversations/' + String($json.chatwoot_id) + '/custom_attributes' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "api_access_token",
-              "value": "__CHATWOOT_API_TOKEN__"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ custom_attributes: { ia_activa: $json.agente_activo === true } }) }}",
-        "options": {}
-      },
-      "id": "1725d344-a03d-4062-a64c-e26d45704d2e",
-      "name": "Sync ia_activa to Chatwoot (engine)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -5648,
-        2144
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
         "jsCode": "const engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst searchCriteria = candidate.searchCriteria || {};\nconst clientName = String(engine.client_name || engine.wa_id || 'Sin dato').trim() || 'Sin dato';\nconst waId = String(engine.wa_id || '').trim();\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : 'Sin dato';\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink,\n        },\n      }))\n    : [];\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n    },\n  },\n];"
       },
       "id": "eb439357-e40c-4dd5-b473-83bff820deba",
@@ -2009,7 +1942,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Get Context-conversations1').item.json.wa_id }}\nclient_name: {{ $('Get Context-conversations1').item.json.client_name || null }}\ncurrent_state: {{ $('Get Context-conversations1').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge Sets1').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
+        "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Load conversation state').item.json.wa_id }}\nclient_name: {{ $('Load conversation state').item.json.client_name || null }}\ncurrent_state: {{ $('Load conversation state').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Load conversation state').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Load conversation state').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Load message history').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge config + context').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge config + context').item.json.loop_reason || null,\n  owner_unavailable: $('Merge config + context').item.json.owner_unavailable === true,\n  forced_state: $('Merge config + context').item.json.forced_state || null\n}, null, 2) }}",
         "options": {
           "systemMessage": "=Eres el agente del estado QUALIFYING del sistema “De Paseo en Finca”.\n\nOBJETIVO\nRecopilar 3 datos mínimos del cliente:\n1) fechas (fecha_inicio y fecha_fin)\n2) número de personas (personas)\n3) zona/destino (zona)\n\nREGLAS\n- Si necesitas validar la fecha u hora actual para interpretar referencias como \"hoy\", \"mañana\", \"este fin de semana\" o similares, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Extrae cualquier dato del mensaje actual, incluso si viene mezclado.\n- Si falta info, pregunta los datos a la vez cuando sea posible.\n- Si el mensaje es solo saludo, saluda y pregunta por fechas.\n- Si el cliente dice “este finde”, “el próximo puente”, “en marzo”, etc., calcula fechas reales usando la fecha_actual dada.\n- Si ya están completos los 3 datos, confirma lo entendido y di que vas a buscar opciones.\n- Si de manera repetitiva el cliente dice no saber el valor de algunos de los datos mínimo pedir un aproximado. Si eventualmente insiste en que no tiene la información, decirle que defortunadamente para ofrecerle fincas necesitas un aproximado de los datos mínimos y que así no puede ayudarle\n- Si el cliente te pide una zona donde no tenemos corbertura, no preguntes por los datos mínimos\n- Si en los mensajes recientes ya enviaste el listado de las zonas con cobertura, no lo envíes de nuevo\n\n\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n- Interpreta restricciones negativas del cliente como filtros reales.\n- Si el cliente dice \"sin jacuzzi\", \"que no tenga piscina\", \"pero no Anapoima\", \"menos Guatapé\" o frases equivalentes, guárdalas en los campos negativos correspondientes.\n- Usa estos campos cuando aplique: amenidades_excluidas, zonas_excluidas, municipios_excluidos, fincas_excluidas.\n- Si el cliente usa un cluster como \"cerca a Bogotá\" o \"cerca a Medellín\" pero excluye un municipio interno, conserva el cluster positivo y guarda el municipio excluido por separado.\n- Si el cliente levanta una restricción previa, por ejemplo \"ya no importa si tiene jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON válido con este schema:\n\n{\n  \"respuesta\": \"texto para enviar por WhatsApp\",\n  \"datos_extraidos\": {\n    \"fecha_inicio\": null | \"YYYY-MM-DD\",\n    \"fecha_fin\": null | \"YYYY-MM-DD\",\n    \"personas\": null | número,\n    \"zona\": null | \"string\",\n    \"presupuesto_max\": null | número,\n    \"tipo_evento\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": [],\n    \"mascotas\": null | boolean\n  },\n  \"datos_completos\": boolean,\n  \"intent\": \"GREETING | QUALIFYING | QUESTION | HITL_REQUEST | OFF_TOPIC | CANCEL\"\n}\n\nNota:\n- Si el current meessage es el único mensajes responde con este texto para whatsapp, ajustando el saludo dependiendo de la hora del día:\n\"Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche \n\n🌎En el momento disponemos de propiedades en Anapoima ,Villeta, La Vega,Girardot , Eje cafetero , Carmen de Apicala , Antioquia y Villavicencio\"\n- NO cierres fechas flexibles automáticamente.\n- Si el cliente dice \"cualquier día\", \"algún día\", \"la otra semana\", \"próxima semana\", \"3 noches\", \"un fin de semana\" o cualquier ventana flexible SIN dar día exacto de inicio, NO conviertas eso en fecha_inicio y fecha_fin cerradas.\n- En ese caso debes tratar las fechas como incompletas y pedir un día de inicio preferido antes de marcar datos_completos = true.\n- Sí puedes normalizar referencias amplias de descanso cuando corresponden a clusters claros de cobertura.\n- Interpreta \"cerca a Bogotá\", \"cerca de Bogotá\", \"Bogotá y alrededores\" o equivalentes como una búsqueda amplia sobre municipios vacacionales cercanos como Anapoima, Villeta, La Vega, Girardot, Carmen de Apicalá, La Mesa, Mesitas del Colegio, Ricaurte y Melgar.\n- Interpreta \"cerca a Medellín\", \"cerca de Medellín\", \"Medellín o cerca\" o equivalentes como una búsqueda amplia sobre municipios vacacionales de nuestra cobertura en Antioquia, por ejemplo Santa Fe de Antioquia, Guatapé, San Jerónimo, Sopetrán, Barbosa y Rionegro.\n- En esos casos puedes guardar la zona como \"cerca a Bogotá\" o \"cerca a Medellín\" y considerarla válida para continuar.\n- Solo pide una zona más concreta si el cliente quiere restringir más la búsqueda dentro de ese cluster.\n- Si la referencia es una ciudad fuera de cobertura que no corresponde a uno de esos clusters, ahí sí aclara las zonas disponibles y pide ajustar.\n",
           "maxIterations": 4
@@ -2027,7 +1960,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Hoy es {{ new Date().toLocaleString(\"sv-SE\", { timeZone: \"America/Bogota\" }).slice(0, 10) }}.\n\nCONTEXT:\n{{ JSON.stringify($('Get Context-conversations1').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Antes de listar fincas o responder algo puntual sobre una finca, llama inventory_reader_tool.\n- Para mostrar opciones usa operation=\"list_matching_fincas\".\n- Para aclarar una propiedad concreta usa operation=\"get_finca_details\".\n- Evita repetir fincas ya incluidas en context.shown_fincas.\n- Si current_message es vacio, estas en el segundo ciclo y debes mostrar opciones o retomar el estado con ayuda del tool.\n- Si el cliente dice \"otras\", \"más opciones\", \"no me gustaron\", \"muéstrame otras\" o rechaza las fincas previas, debes mantener el mismo search_criteria actual, volver a consultar inventory_reader_tool con operation=\"list_matching_fincas\" y excluir SIEMPRE las fincas ya incluidas en context.shown_fincas.\n- En ese caso debes mostrar solo fincas nuevas.\n- Si no hay coincidencias exactas nuevas, usa similar_items que tampoco hayan sido mostradas.\n- Si ya no quedan exactas nuevas ni similares nuevas, explícalo con claridad y pide ajustar zona, fechas, capacidad o presupuesto.\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
+        "text": "=Hoy es {{ new Date().toLocaleString(\"sv-SE\", { timeZone: \"America/Bogota\" }).slice(0, 10) }}.\n\nCONTEXT:\n{{ JSON.stringify($('Load conversation state').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Load message history').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge config + context').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Antes de listar fincas o responder algo puntual sobre una finca, llama inventory_reader_tool.\n- Para mostrar opciones usa operation=\"list_matching_fincas\".\n- Para aclarar una propiedad concreta usa operation=\"get_finca_details\".\n- Evita repetir fincas ya incluidas en context.shown_fincas.\n- Si current_message es vacio, estas en el segundo ciclo y debes mostrar opciones o retomar el estado con ayuda del tool.\n- Si el cliente dice \"otras\", \"más opciones\", \"no me gustaron\", \"muéstrame otras\" o rechaza las fincas previas, debes mantener el mismo search_criteria actual, volver a consultar inventory_reader_tool con operation=\"list_matching_fincas\" y excluir SIEMPRE las fincas ya incluidas en context.shown_fincas.\n- En ese caso debes mostrar solo fincas nuevas.\n- Si no hay coincidencias exactas nuevas, usa similar_items que tampoco hayan sido mostradas.\n- Si ya no quedan exactas nuevas ni similares nuevas, explícalo con claridad y pide ajustar zona, fechas, capacidad o presupuesto.\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge config + context').item.json.loop_reason || null,\n  owner_unavailable: $('Merge config + context').item.json.owner_unavailable === true,\n  forced_state: $('Merge config + context').item.json.forced_state || null\n}, null, 2) }}",
         "options": {
           "systemMessage": "=Eres el agente del estado OFFERING del sistema \"De Paseo en Finca\".\n\nOBJETIVO\n- Presentar hasta 3 fincas relevantes.\n- Capturar si el cliente elige una finca.\n- Permitir ajuste de criterios sin romper el flujo.\n\nREGLAS\n- Si necesitas confirmar la fecha actual o interpretar referencias temporales del cliente, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Nunca inventes fincas.\n- Debes consultar inventory_reader_tool antes de proponer opciones.\n- Si LOOP_CONTEXT.owner_unavailable = true, primero informa que la opción anterior no estaba disponible y luego muestra alternativas.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación retomando la búsqueda, la oferta o la solicitud de elección.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", usa el contexto ya persistido para mostrar opciones o continuar el estado.\n- Si inventory_reader_tool responde error = true, devuelve intent = \"HITL_REQUEST\" porque hubo un problema real accediendo al inventario.\n- Si no hay coincidencias exactas pero sí similar_items, aclara que no encontraste match exacto y muestra esas alternativas similares.\n- Si no hay coincidencias exactas ni similares, dilo con claridad y propone ajustar criterios.\n- Si el cliente solo pregunta algo puntual de una finca, puedes consultar operation=\"get_finca_details\" y luego seguir pidiendo eleccion.\n- Cuando muestres opciones, fincas_mostradas debe incluir objetos reales del tool con suficiente detalle para que el sistema formatee la ficha de la finca.\n- Cuando el cliente elija una finca, selected_finca debe ser el objeto completo de esa finca, no solo el id.\n- Las restricciones negativas son filtros duros.\n- Si el cliente dice \"sin jacuzzi\", \"sin piscina\", \"pero no Anapoima\", \"menos Guatapé\", \"esa no\" o equivalentes, usa search_criteria_update para reflejarlo en amenidades_excluidas, zonas_excluidas, municipios_excluidos o fincas_excluidas.\n- Si el cliente levanta una exclusión previa, por ejemplo \"ya no importa el jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n- No conviertas una exclusión puntual en una restricción más amplia. Si el cliente dice \"sin jacuzzi\", no respondas como si también hubiera pedido \"sin piscina\".\n- Cuando el cliente pida un cluster amplio con una exclusión interna, por ejemplo \"cerca a Bogotá pero no Anapoima\", conserva el cluster y respeta la exclusión interna.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON valido con este schema:\n{\n  \"respuesta\": \"texto para el cliente\",\n  \"intent\": \"SHOW_OPTIONS | CLIENT_CHOSE | ADJUST_CRITERIA | NO_MATCH | QUESTION | HITL_REQUEST | CANCEL\",\n  \"finca_elegida_id\": null | \"string\",\n  \"selected_finca\": null | {\n    \"finca_id\": \"string\",\n    \"nombre\": \"string\",\n    \"codigo_original\": \"string\",\n    \"zona\": \"string\",\n    \"municipio\": \"string\",\n    \"capacidad_max\": number,\n    \"habitaciones\": number,\n    \"precio_noche_base\": number,\n    \"precio_fin_semana\": number,\n    \"amenidades\": [],\n    \"descripcion_corta\": \"string\",\n    \"foto_url\": \"string\",\n    \"observaciones_originales\": \"string\",\n    \"caracteristicas_originales\": \"string\"\n  },\n  \"fincas_mostradas\": [\n    {\n      \"finca_id\": \"string\",\n      \"nombre\": \"string\",\n      \"codigo_original\": \"string\",\n      \"zona\": \"string\",\n      \"municipio\": \"string\",\n      \"capacidad_max\": number,\n      \"habitaciones\": number,\n      \"precio_noche_base\": number,\n      \"precio_fin_semana\": number,\n      \"amenidades\": [],\n      \"descripcion_corta\": \"string\",\n      \"foto_url\": \"string\",\n      \"observaciones_originales\": \"string\",\n      \"caracteristicas_originales\": \"string\"\n    }\n  ],\n  \"search_criteria_update\": {\n    \"zona\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": []\n  }\n}\n- Si el cliente rechaza opciones previas o pide otras alternativas, interpreta eso como continuar en OFFERING con el mismo search_criteria.\n- Debes excluir context.shown_fincas de la nueva búsqueda y devolver en fincas_mostradas solo opciones nuevas.\n- Si no quedan coincidencias exactas nuevas, usa similar_items no mostradas.\n- Si no queda nada nuevo, responde con claridad que ya no hay más opciones con esos mismos criterios y pide ajustar la búsqueda.\n- Cuando el cliente pide otras opciones, no repitas las fincas ya mostradas anteriormente.\n- Si el cliente dice \"me gustó\", \"quiero esa\", \"la quiero\", \"me interesa\", \"la primera\", \"la segunda\", \"esa opción\" o frases equivalentes y ya mostraste opciones en mensajes recientes, interprétalo como posible elección.\n- Cuando la referencia sea posicional (\"la primera\", \"la segunda\", \"esa\"), usa el orden de las fincas mostradas en los mensajes recientes para inferir la finca elegida.\n- Si puedes inferir razonablemente cuál es la finca elegida, responde con intent = \"CLIENT_CHOSE\" y selected_finca completo.\n- Solo pide aclaración si de verdad hay ambigüedad entre varias fincas posibles.\n",
           "maxIterations": 4
@@ -2045,7 +1978,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=CONTEXT:\n{{ JSON.stringify($('Get Context-conversations1').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Si necesitas datos de la finca elegida, llama inventory_reader_tool con operation=\"get_finca_details\".\n- Si necesitas el contacto del propietario, llama inventory_reader_tool con operation=\"get_owner_contact\".\n- Si solo debes sostener la conversacion mientras esperas respuesta, no necesitas llamar el tool.\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
+        "text": "=CONTEXT:\n{{ JSON.stringify($('Load conversation state').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Load message history').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge config + context').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Si necesitas datos de la finca elegida, llama inventory_reader_tool con operation=\"get_finca_details\".\n- Si necesitas el contacto del propietario, llama inventory_reader_tool con operation=\"get_owner_contact\".\n- Si solo debes sostener la conversacion mientras esperas respuesta, no necesitas llamar el tool.\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge config + context').item.json.loop_reason || null,\n  owner_unavailable: $('Merge config + context').item.json.owner_unavailable === true,\n  forced_state: $('Merge config + context').item.json.forced_state || null\n}, null, 2) }}",
         "options": {
           "systemMessage": "=Eres el agente del estado VERIFYING_AVAILABILITY.\n\nOBJETIVO\n- Informar que estas validando con el propietario.\n- Mantener al cliente contenido sin prometer disponibilidad.\n- Permitir cambio de finca si el cliente lo pide.\n\nREGLAS\n- Si necesitas saber la fecha u hora actual para contextualizar tu respuesta, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Nunca confirmes disponibilidad sin owner_response.disponible = true.\n- No hables de pagos, anticipo, reservas ni cierres comerciales en esta fase.\n- Si el cliente pide otra finca, marca CHANGE_FINCA.\n- Si hace una pregunta simple sobre la finca elegida, puedes usar inventory_reader_tool con operation=\"get_finca_details\".\n- Si la tarea correcta es recuperar el numero de contacto del propietario, usa inventory_reader_tool con operation=\"get_owner_contact\".\n- Si inventory_reader_tool devuelve error = true, responde con intent = \"HITL_REQUEST\".\n- Si ya se confirmó disponibilidad, el handoff a humano lo resuelven los prechecks del workflow, no tú.\n- Si respondes sobre una finca concreta y tienes el objeto real del inventario, inclúyelo en selected_finca.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación según el estado actual sin confirmar disponibilidad.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", continúa el estado usando el contexto ya persistido.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación según el estado actual sin confirmar disponibilidad.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", continúa el estado usando el contexto ya persistido.\n\nOUTPUT\nDevuelve EXCLUSIVAMENTE JSON valido:\n{\n  \"respuesta\": \"texto para el cliente\",\n  \"intent\": \"WAITING_OWNER | CHANGE_FINCA | QUESTION | HITL_REQUEST | CANCEL\",\n  \"finca_elegida_id\": null | \"string\",\n  \"selected_finca\": null | {\n    \"finca_id\": \"string\",\n    \"nombre\": \"string\",\n    \"codigo_original\": \"string\",\n    \"zona\": \"string\",\n    \"municipio\": \"string\",\n    \"capacidad_max\": number,\n    \"habitaciones\": number,\n    \"precio_noche_base\": number,\n    \"precio_fin_semana\": number,\n    \"amenidades\": [],\n    \"descripcion_corta\": \"string\",\n    \"foto_url\": \"string\",\n    \"observaciones_originales\": \"string\",\n    \"caracteristicas_originales\": \"string\"\n  }\n}",
           "maxIterations": 4
@@ -2063,7 +1996,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=CONTEXT:\n{{ JSON.stringify($('Get Context-conversations1').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Si la pregunta es sobre una propiedad concreta, llama inventory_reader_tool con operation=\"get_finca_details\".\n- Si necesitas aclarar si hay opciones por zona o capacidad, llama inventory_reader_tool con operation=\"list_matching_fincas\".\n- Si la respuesta ya esta en context o en mensajes recientes, responde sin llamar el tool.\n\nSTATE_TO_RESUME:\n{{ JSON.stringify($('Get Context-conversations1').item.json.current_state || null, null, 2) }}",
+        "text": "=CONTEXT:\n{{ JSON.stringify($('Load conversation state').item.json.context, null, 2) }}\n\nRECENT_MESSAGES:\n{{ JSON.stringify($('Load message history').item.json.recent_messages || [], null, 2) }}\n\nCURRENT_MESSAGE:\n{{ JSON.stringify($('Merge config + context').item.json['last-message'] || null, null, 2) }}\n\nINSTRUCCION:\n- Si la pregunta es sobre una propiedad concreta, llama inventory_reader_tool con operation=\"get_finca_details\".\n- Si necesitas aclarar si hay opciones por zona o capacidad, llama inventory_reader_tool con operation=\"list_matching_fincas\".\n- Si la respuesta ya esta en context o en mensajes recientes, responde sin llamar el tool.\n\nSTATE_TO_RESUME:\n{{ JSON.stringify($('Load conversation state').item.json.current_state || null, null, 2) }}",
         "options": {
           "systemMessage": "=Eres el agente QA flotante del sistema comercial.\n\nOBJETIVO\n- Responder preguntas puntuales sobre fincas, amenidades, mascotas, parqueadero, horarios o proceso.\n- No cambies el estado de la conversacion.\n- No cambies el estado de la conversación.\n- Responde solo la pregunta puntual.\n- No reencarriles el hilo comercial al final; el workflow retomará el estado después de tu respuesta.\n- NUNCA termines tu respuesta con preguntas como \"¿En qué más puedo ayudarte?\", \"¿Tienes alguna otra duda?\", \"¿Necesitas algo más?\" ni ninguna otra pregunta de cierre. Solo responde la pregunta puntual y punto.\n\nREGLAS\n- Si la respuesta depende de la fecha u hora actual, consulta current_datetime_tool en vez de asumirla.\n{{ $('config').item.json.tono }}\n- Usa inventory_reader_tool solo cuando la pregunta dependa del inventario real.\n- Si inventory_reader_tool devuelve error = true, responde con intent = \"HITL_REQUEST\".\n- Si el dato no aparece en inventory_reader_tool o context, dilo y ofrece ayuda parcial.\n- Si la respuesta trata sobre una finca concreta y ya tienes el objeto del inventario, inclúyelo en selected_finca para que el sistema pueda formatear la ficha.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Mantén la respuesta enfocada en la pregunta puntual.\n- Si la respuesta depende del inventario real, usa inventory_reader_tool.\n- Si además de la pregunta el cliente está refinando la búsqueda, devuelve search_criteria_update con el ajuste correspondiente.\n- Usa amenidades_excluidas, zonas_excluidas, municipios_excluidos o fincas_excluidas cuando el cliente exprese restricciones negativas.\n- Si el cliente levanta una restricción previa, devuelve el array correspondiente vacío para limpiarlo.\n- No amplíes restricciones que el cliente no pidió. \"Sin jacuzzi\" no significa \"sin jacuzzi o piscina\".\n\nOUTPUT\nDevuelve EXCLUSIVAMENTE JSON valido:\n{\n  \"respuesta\": \"texto para el cliente\",\n  \"intent\": \"QA_ANSWERED\",\n  \"selected_finca\": null | {\n    \"finca_id\": \"string\",\n    \"nombre\": \"string\",\n    \"codigo_original\": \"string\",\n    \"zona\": \"string\",\n    \"municipio\": \"string\",\n    \"capacidad_max\": number,\n    \"habitaciones\": number,\n    \"precio_noche_base\": number,\n    \"precio_fin_semana\": number,\n    \"amenidades\": [],\n    \"descripcion_corta\": \"string\",\n    \"foto_url\": \"string\",\n    \"observaciones_originales\": \"string\",\n    \"caracteristicas_originales\": \"string\"\n  },\n  \"search_criteria_update\": {\n    \"zona\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": []\n  }\n}",
           "maxIterations": 4
@@ -2080,7 +2013,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = s[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < s.length; i += 1) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n      continue;\n    }\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n    if (ch === open) depth += 1;\n    else if (ch === close) {\n      depth -= 1;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 12000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 12000) };\n    }\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(stripCodeFences(rawOutput || '')) || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'qualifying_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
+        "jsCode": "function safeParse(text) {\n  if (text == null) return null;\n  let raw = String(text).trim();\n  // Remove code fences if present\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```(?:json)?\\s*/, '').replace(/\\s*```$/, '').trim();\n  }\n  try {\n    return JSON.parse(raw);\n  } catch (e) {\n    // Try to find JSON object within text\n    const start = raw.indexOf('{');\n    if (start > 0) {\n      try { return JSON.parse(raw.slice(start)); } catch {}\n    }\n    return { _raw: raw.slice(0, 12000) };\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(rawOutput || '') || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'qualifying_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
       },
       "id": "d57ec815-0876-4a40-ab82-c0c57a784c92",
       "name": "Wrap qualifying result",
@@ -2093,7 +2026,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = s[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < s.length; i += 1) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n      continue;\n    }\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n    if (ch === open) depth += 1;\n    else if (ch === close) {\n      depth -= 1;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 12000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 12000) };\n    }\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(stripCodeFences(rawOutput || '')) || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'offering_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
+        "jsCode": "function safeParse(text) {\n  if (text == null) return null;\n  let raw = String(text).trim();\n  // Remove code fences if present\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```(?:json)?\\s*/, '').replace(/\\s*```$/, '').trim();\n  }\n  try {\n    return JSON.parse(raw);\n  } catch (e) {\n    // Try to find JSON object within text\n    const start = raw.indexOf('{');\n    if (start > 0) {\n      try { return JSON.parse(raw.slice(start)); } catch {}\n    }\n    return { _raw: raw.slice(0, 12000) };\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(rawOutput || '') || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'offering_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
       },
       "id": "241825eb-d932-402d-8a83-f7b34761dd40",
       "name": "Wrap offering result",
@@ -2106,7 +2039,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = s[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < s.length; i += 1) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n      continue;\n    }\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n    if (ch === open) depth += 1;\n    else if (ch === close) {\n      depth -= 1;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 12000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 12000) };\n    }\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(stripCodeFences(rawOutput || '')) || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'verifying_availability_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
+        "jsCode": "function safeParse(text) {\n  if (text == null) return null;\n  let raw = String(text).trim();\n  // Remove code fences if present\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```(?:json)?\\s*/, '').replace(/\\s*```$/, '').trim();\n  }\n  try {\n    return JSON.parse(raw);\n  } catch (e) {\n    // Try to find JSON object within text\n    const start = raw.indexOf('{');\n    if (start > 0) {\n      try { return JSON.parse(raw.slice(start)); } catch {}\n    }\n    return { _raw: raw.slice(0, 12000) };\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(rawOutput || '') || {};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: 'RUN_TOOL',\n        tool_chosen: 'verifying_availability_agent',\n        tool_output: toolOutput,\n        post_actions: {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
       },
       "id": "92b814c2-d913-463a-b009-e8676122e607",
       "name": "Wrap verifying result",
@@ -2119,7 +2052,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const s = String(text || '');\n  const start = s.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = s[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let i = start; i < s.length; i += 1) {\n    const ch = s[i];\n    if (inString) {\n      if (escape) escape = false;\n      else if (ch === '\\\\') escape = true;\n      else if (ch === '\"') inString = false;\n      continue;\n    }\n    if (ch === '\"') {\n      inString = true;\n      continue;\n    }\n    if (ch === open) depth += 1;\n    else if (ch === close) {\n      depth -= 1;\n      if (depth === 0) return s.slice(start, i + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 12000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 12000) };\n    }\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(stripCodeFences(rawOutput || '')) || {};\nconst currentState = $('Get Context-conversations1').item.json.current_state || 'QUALIFYING';\nconst shouldResume = toolOutput?.intent !== 'HITL_REQUEST';\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: toolOutput?.intent === 'HITL_REQUEST' ? 'HITL' : 'RUN_TOOL',\n        tool_chosen: 'qa_agent',\n        tool_output: toolOutput,\n        post_actions: shouldResume\n          ? {\n              resume_after_qa: true,\n              resume_state_after_qa: currentState,\n              loop_reason: 'resume_after_qa',\n            }\n          : {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
+        "jsCode": "function safeParse(text) {\n  if (text == null) return null;\n  let raw = String(text).trim();\n  // Remove code fences if present\n  if (raw.startsWith('```')) {\n    raw = raw.replace(/^```(?:json)?\\s*/, '').replace(/\\s*```$/, '').trim();\n  }\n  try {\n    return JSON.parse(raw);\n  } catch (e) {\n    // Try to find JSON object within text\n    const start = raw.indexOf('{');\n    if (start > 0) {\n      try { return JSON.parse(raw.slice(start)); } catch {}\n    }\n    return { _raw: raw.slice(0, 12000) };\n  }\n}\n\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\n\nconst toolOutput = safeParse(rawOutput || '') || {};\nconst currentState = $('Load conversation state').item.json.current_state || 'QUALIFYING';\nconst shouldResume = toolOutput?.intent !== 'HITL_REQUEST';\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify({\n        action: toolOutput?.intent === 'HITL_REQUEST' ? 'HITL' : 'RUN_TOOL',\n        tool_chosen: 'qa_agent',\n        tool_output: toolOutput,\n        post_actions: shouldResume\n          ? {\n              resume_after_qa: true,\n              resume_state_after_qa: currentState,\n              loop_reason: 'resume_after_qa',\n            }\n          : {},\n        final_whatsapp_text: typeof toolOutput?.respuesta === 'string' ? toolOutput.respuesta : null,\n        current_state_changed: false,\n      }),\n    },\n  },\n];"
       },
       "id": "8222a36f-51ad-4040-8d7a-439315c2ca02",
       "name": "Wrap qa result",
@@ -2190,7 +2123,7 @@
           "conditions": [
             {
               "id": "6a06a7b8-3778-4b99-9fbc-9e9b80cc0dd5",
-              "leftValue": "={{ $('Merge Sets1').item.json.audio_transcription_failed === true }}",
+              "leftValue": "={{ $('Merge config + context').item.json.audio_transcription_failed === true }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -2215,7 +2148,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const handoffMessage =\n  $('Get agent settings').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst errorMessage = String($('Merge Sets1').item.json.audio_error_message || 'audio_transcription_failed').trim();\nconst finalText =\n  'Estoy teniendo un problema técnico para procesar tu audio en este momento.\\n\\n' +\n  handoffMessage;\n\nconst payload = {\n  action: 'HITL',\n  tool_chosen: 'NONE',\n  tool_input: {\n    context: $('Get Context-conversations1').item.json.context || {},\n    recent_messages: $('Fetch messages1').item.json.recent_messages || [],\n    current_message: $('Merge Sets1').item.json['last-message'] || null,\n  },\n  tool_output: {\n    intent: 'HITL_REQUEST',\n    respuesta: finalText,\n    audio_error_message: errorMessage,\n  },\n  post_actions: {\n    agente_activo: false,\n    waiting_for: 'CLIENT',\n    hitl_reason: 'audio_transcription_failed',\n  },\n  final_whatsapp_text: finalText,\n  current_state_changed: false,\n};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify(payload),\n    },\n  },\n];"
+        "jsCode": "const handoffMessage =\n  $('Get agent settings').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst errorMessage = String($('Merge config + context').item.json.audio_error_message || 'audio_transcription_failed').trim();\nconst finalText =\n  'Estoy teniendo un problema técnico para procesar tu audio en este momento.\\n\\n' +\n  handoffMessage;\n\nconst payload = {\n  action: 'HITL',\n  tool_chosen: 'NONE',\n  tool_input: {\n    context: $('Load conversation state').item.json.context || {},\n    recent_messages: $('Load message history').item.json.recent_messages || [],\n    current_message: $('Merge config + context').item.json['last-message'] || null,\n  },\n  tool_output: {\n    intent: 'HITL_REQUEST',\n    respuesta: finalText,\n    audio_error_message: errorMessage,\n  },\n  post_actions: {\n    agente_activo: false,\n    waiting_for: 'CLIENT',\n    hitl_reason: 'audio_transcription_failed',\n  },\n  final_whatsapp_text: finalText,\n  current_state_changed: false,\n};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify(payload),\n    },\n  },\n];"
       },
       "name": "Build audio transcription failure result",
       "type": "n8n-nodes-base.code",
@@ -2228,7 +2161,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
+        "jsCode": "const conversation = $('Load conversation state').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge config + context').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
       },
       "id": "7887f398-a80e-4faa-a292-eddc51e960b8",
       "name": "Compute deterministic prechecks",
@@ -2312,7 +2245,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=RUNTIME INPUT\n\ncurrent_state:\n{{ JSON.stringify($('Get Context-conversations1').item.json.current_state || null, null, 2) }}\n\nrecent_messages:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\ncurrent_message:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nskip_validator:\n{{ JSON.stringify($('Merge Sets1').item.json.skip_validator === true, null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}",
+        "text": "=RUNTIME INPUT\n\ncurrent_state:\n{{ JSON.stringify($('Load conversation state').item.json.current_state || null, null, 2) }}\n\nrecent_messages:\n{{ JSON.stringify($('Load message history').item.json.recent_messages || [], null, 2) }}\n\ncurrent_message:\n{{ JSON.stringify($('Merge config + context').item.json['last-message'] || null, null, 2) }}\n\nskip_validator:\n{{ JSON.stringify($('Merge config + context').item.json.skip_validator === true, null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}",
         "options": {
           "systemMessage": "=Eres un validador conversacional liviano del sistema \"De Paseo en Finca\".\n\nTu única tarea es decidir UNA ruta para esta pasada:\n- STATE\n- QA\n- HITL\n\nREGLAS\n- Nunca ejecutes tools.\n- Nunca escribas la respuesta final para el cliente.\n- Si skip_validator = true o current_message viene vacío, devuelve STATE.\n- Devuelve HITL si el cliente pide humano, asesor, visita, llamada, tiene frustración crítica, insultos fuertes, amenaza o disputa de pagos.\n- Devuelve QA si el mensaje es una pregunta puntual o aclaración que no debería cambiar el estado de negocio.\n- Devuelve STATE para saludos, entrega de datos, otras opciones, elección de finca, cambios de criterio o continuidad normal del proceso.\n- Si dudas entre QA y STATE, devuelve STATE.\n\nResponde SIEMPRE solo JSON válido con:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}",
           "maxIterations": 2
@@ -2329,7 +2262,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === '{') depth += 1;\n    else if (char === '}') {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  const raw = String(text || '').trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 4000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 4000) };\n    }\n  }\n}\n\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst currentState = $('Get Context-conversations1').item.json.current_state || 'QUALIFYING';\nconst source = $json || {};\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\nconst parsed = safeParse(stripCodeFences(rawOutput));\nconst routeMode = ['STATE', 'QA', 'HITL'].includes(String(parsed?.route_mode || '').toUpperCase())\n  ? String(parsed.route_mode).toUpperCase()\n  : 'STATE';\nconst reason = typeof parsed?.reason === 'string' && parsed.reason.trim() ? parsed.reason.trim() : null;\n\nreturn [\n  {\n    json: {\n      ...source,\n      route_mode: routeMode,\n      reason,\n      action: routeMode === 'HITL' ? 'HITL' : 'CONTINUE',\n      post_actions:\n        routeMode === 'HITL'\n          ? {\n              agente_activo: false,\n              waiting_for: 'CLIENT',\n            }\n          : {},\n      tool_output:\n        routeMode === 'HITL'\n          ? {\n              intent: 'HITL_REQUEST',\n              respuesta: handoffMessage,\n            }\n          : null,\n      final_whatsapp_text: routeMode === 'HITL' ? handoffMessage : null,\n      current_state_changed: false,\n      effective_state: source.effective_state || currentState,\n    },\n  },\n];"
+        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === '{') depth += 1;\n    else if (char === '}') {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n  return null;\n}\n\nfunction safeParse(text) {\n  const raw = String(text || '').trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 4000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 4000) };\n    }\n  }\n}\n\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst currentState = $('Load conversation state').item.json.current_state || 'QUALIFYING';\nconst source = $json || {};\nconst rawOutput =\n  typeof $json.output === 'string'\n    ? $json.output\n    : Array.isArray($json.output) && typeof $json.output[0]?.output === 'string'\n      ? $json.output[0].output\n      : '';\nconst parsed = safeParse(stripCodeFences(rawOutput));\nconst routeMode = ['STATE', 'QA', 'HITL'].includes(String(parsed?.route_mode || '').toUpperCase())\n  ? String(parsed.route_mode).toUpperCase()\n  : 'STATE';\nconst reason = typeof parsed?.reason === 'string' && parsed.reason.trim() ? parsed.reason.trim() : null;\n\nreturn [\n  {\n    json: {\n      ...source,\n      route_mode: routeMode,\n      reason,\n      action: routeMode === 'HITL' ? 'HITL' : 'CONTINUE',\n      post_actions:\n        routeMode === 'HITL'\n          ? {\n              agente_activo: false,\n              waiting_for: 'CLIENT',\n            }\n          : {},\n      tool_output:\n        routeMode === 'HITL'\n          ? {\n              intent: 'HITL_REQUEST',\n              respuesta: handoffMessage,\n            }\n          : null,\n      final_whatsapp_text: routeMode === 'HITL' ? handoffMessage : null,\n      current_state_changed: false,\n      effective_state: source.effective_state || currentState,\n    },\n  },\n];"
       },
       "id": "eb03a6bc-c1a0-4aff-8f93-9bb5b91af300",
       "name": "Parse QA validator",
@@ -2377,7 +2310,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst compact = (value) => (typeof value === 'string' && value.trim() ? value : null);\nconst finalText = compact($json.final_whatsapp_text) || ($json.action === 'HITL' ? handoffMessage : null);\nconst payload = {\n  action: $json.action || 'HITL',\n  tool_chosen: 'NONE',\n  tool_input: {\n    context: $('Get Context-conversations1').item.json.context || {},\n    recent_messages: $('Fetch messages1').item.json.recent_messages || [],\n    current_message: $('Merge Sets1').item.json['last-message'] || null,\n  },\n  tool_output:\n    $json.tool_output && typeof $json.tool_output === 'object'\n      ? $json.tool_output\n      : finalText\n        ? { intent: $json.action === 'HITL' ? 'HITL_REQUEST' : 'DIRECT_ACTION', respuesta: finalText }\n        : null,\n  post_actions: $json.post_actions && typeof $json.post_actions === 'object' ? $json.post_actions : {},\n  final_whatsapp_text: finalText,\n  current_state_changed: $json.current_state_changed === true,\n};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify(payload),\n    },\n  },\n];"
+        "jsCode": "const handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\nconst compact = (value) => (typeof value === 'string' && value.trim() ? value : null);\nconst finalText = compact($json.final_whatsapp_text) || ($json.action === 'HITL' ? handoffMessage : null);\nconst payload = {\n  action: $json.action || 'HITL',\n  tool_chosen: 'NONE',\n  tool_input: {\n    context: $('Load conversation state').item.json.context || {},\n    recent_messages: $('Load message history').item.json.recent_messages || [],\n    current_message: $('Merge config + context').item.json['last-message'] || null,\n  },\n  tool_output:\n    $json.tool_output && typeof $json.tool_output === 'object'\n      ? $json.tool_output\n      : finalText\n        ? { intent: $json.action === 'HITL' ? 'HITL_REQUEST' : 'DIRECT_ACTION', respuesta: finalText }\n        : null,\n  post_actions: $json.post_actions && typeof $json.post_actions === 'object' ? $json.post_actions : {},\n  final_whatsapp_text: finalText,\n  current_state_changed: $json.current_state_changed === true,\n};\n\nreturn [\n  {\n    json: {\n      output: JSON.stringify(payload),\n    },\n  },\n];"
       },
       "id": "76e25514-a103-46be-a81f-e6fad3f2ef82",
       "name": "Build direct workflow result",
@@ -2435,7 +2368,7 @@
           "conditions": [
             {
               "id": "726b20c9-67f5-4891-899d-7fd1e10be4c4",
-              "leftValue": "={{ ($json.effective_state || $('Get Context-conversations1').item.json.current_state || null) === 'QUALIFYING' }}",
+              "leftValue": "={{ ($json.effective_state || $('Load conversation state').item.json.current_state || null) === 'QUALIFYING' }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -2470,7 +2403,7 @@
           "conditions": [
             {
               "id": "f76faec7-f5f8-4f70-acf5-f5a6db561248",
-              "leftValue": "={{ ($json.effective_state || $('Get Context-conversations1').item.json.current_state || null) === 'OFFERING' }}",
+              "leftValue": "={{ ($json.effective_state || $('Load conversation state').item.json.current_state || null) === 'OFFERING' }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -2505,7 +2438,7 @@
           "conditions": [
             {
               "id": "a0d415fc-9f0b-4dd1-b061-76a85f323b14",
-              "leftValue": "={{ ($json.effective_state || $('Get Context-conversations1').item.json.current_state || null) === 'VERIFYING_AVAILABILITY' }}",
+              "leftValue": "={{ ($json.effective_state || $('Load conversation state').item.json.current_state || null) === 'VERIFYING_AVAILABILITY' }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -2731,9 +2664,20 @@
     },
     {
       "parameters": {
-        "source": "database",
-        "workflowId": "pLyrdDO3mneaCp7m",
-        "mode": "each",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "pLyrdDO3mneaCp7m",
+          "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
         "options": {}
       },
       "id": "send-media-exec-wf-001",
@@ -2747,7 +2691,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Dedup: if there are newer messages from the user after this one,\n// skip processing — the later execution will handle them all.\nconst data = $input.first().json;\n\n// Get the current message timestamp from the inbound data\nconst currentMsgId = data.chatwoot_message_id || data.client_message_id || '';\nconst currentTimestamp = data.inbound_timestamp || 0;\n\n// Check if we have the messages list from context\n// The messages were fetched in \"Fetch messages1\" and should be available\nlet hasNewer = false;\n\ntry {\n  const messagesNode = $('Fetch messages1');\n  if (messagesNode && messagesNode.first()) {\n    const rows = messagesNode.all().map(i => i.json);\n    // Find messages from user (role='user') that are newer than current\n    const newerUserMsgs = rows.filter(m => \n      m.role === 'user' && \n      m.message_id !== currentMsgId &&\n      new Date(m.created_at) > new Date(currentTimestamp * 1000)\n    );\n    hasNewer = newerUserMsgs.length > 0;\n  }\n} catch(e) {\n  // If we can't check, proceed normally\n  hasNewer = false;\n}\n\nreturn [{ json: { ...data, has_newer_message: hasNewer } }];"
+        "jsCode": "// Dedup: if there are newer messages from the user after this one,\n// skip processing — the later execution will handle them all.\nconst data = $input.first().json;\n\n// Get the current message timestamp from the inbound data\nconst currentMsgId = data.chatwoot_message_id || data.client_message_id || '';\nconst currentTimestamp = data.inbound_timestamp || 0;\n\n// Check if we have the messages list from context\n// The messages were fetched in \"Load message history\" and should be available\nlet hasNewer = false;\n\ntry {\n  const messagesNode = $('Load message history');\n  if (messagesNode && messagesNode.first()) {\n    const rows = messagesNode.all().map(i => i.json);\n    // Find messages from user (role='user') that are newer than current\n    const newerUserMsgs = rows.filter(m => \n      m.role === 'user' && \n      m.message_id !== currentMsgId &&\n      new Date(m.created_at) > new Date(currentTimestamp * 1000)\n    );\n    hasNewer = newerUserMsgs.length > 0;\n  }\n} catch(e) {\n  // If we can't check, proceed normally\n  hasNewer = false;\n}\n\nreturn [{ json: { ...data, has_newer_message: hasNewer } }];"
       },
       "id": "dedup-check-001",
       "name": "Check for newer messages",
@@ -2793,55 +2737,11 @@
     }
   ],
   "connections": {
-    "Execution Data1": {
-      "main": [
-        [
-          {
-            "node": "config",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "config": {
       "main": [
         [
           {
-            "node": "Merge Sets1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Sets1": {
-      "main": [
-        [
-          {
-            "node": "Get Context-conversations1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Context-conversations1": {
-      "main": [
-        [
-          {
-            "node": "Fetch messages1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch messages1": {
-      "main": [
-        [
-          {
-            "node": "Audio transcription failed?",
+            "node": "Merge config + context",
             "type": "main",
             "index": 0
           }
@@ -2874,97 +2774,6 @@
           {
             "node": "QA validator",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript1": {
-      "main": [
-        [
-          {
-            "node": "Check for newer messages",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "actualizar contexto1": {
-      "main": [
-        [
-          {
-            "node": "Should sync ia_activa to Chatwoot (engine)?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If3": {
-      "main": [
-        [
-          {
-            "node": "Insert INBOUND message (messages)1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Insert OUTBOUND message (messages)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert INBOUND message (messages)1": {
-      "main": [
-        [
-          {
-            "node": "Insert OUTBOUND message (messages)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert OUTBOUND message (messages)": {
-      "main": [
-        [
-          {
-            "node": "Agregar follow on",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If2": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Webhook Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields1": {
-      "main": [
-        [
-          {
-            "node": "Merge Sets1",
-            "type": "main",
             "index": 0
           }
         ]
@@ -3075,18 +2884,7 @@
       "main": [
         [
           {
-            "node": "Get Context-conversations1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Agregar follow on": {
-      "main": [
-        [
-          {
-            "node": "Engine Result",
+            "node": "Load conversation state",
             "type": "main",
             "index": 0
           }
@@ -3274,35 +3072,6 @@
         ]
       ]
     },
-    "Should sync ia_activa to Chatwoot (engine)?": {
-      "main": [
-        [
-          {
-            "node": "Sync ia_activa to Chatwoot (engine)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "If3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sync ia_activa to Chatwoot (engine)": {
-      "main": [
-        [
-          {
-            "node": "If3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Prepare selection notifications": {
       "main": [
         [
@@ -3325,7 +3094,7 @@
         ],
         [
           {
-            "node": "If2",
+            "node": "Should loop to next state?",
             "type": "main",
             "index": 0
           }
@@ -3347,7 +3116,7 @@
       "main": [
         [
           {
-            "node": "If2",
+            "node": "Should loop to next state?",
             "type": "main",
             "index": 0
           }
@@ -3413,7 +3182,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3424,7 +3193,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3435,7 +3204,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3446,7 +3215,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3464,7 +3233,7 @@
         ],
         [
           {
-            "node": "Execution Data1",
+            "node": "Set execution metadata",
             "type": "main",
             "index": 0
           }
@@ -3504,7 +3273,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3602,7 +3371,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Build outbound sequence",
             "type": "main",
             "index": 0
           }
@@ -3703,7 +3472,7 @@
         ],
         [
           {
-            "node": "Execution Data1",
+            "node": "Set execution metadata",
             "type": "main",
             "index": 0
           }
@@ -3736,7 +3505,7 @@
       "main": [
         [
           {
-            "node": "Execution Data1",
+            "node": "Set execution metadata",
             "type": "main",
             "index": 0
           }
@@ -3810,7 +3579,153 @@
         [],
         [
           {
-            "node": "actualizar contexto1",
+            "node": "Update conversation context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build outbound sequence": {
+      "main": [
+        [
+          {
+            "node": "Check for newer messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update conversation context": {
+      "main": [
+        [
+          {
+            "node": "Should insert inbound message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should loop to next state?": {
+      "main": [
+        [
+          {
+            "node": "Prepare loop iteration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should insert inbound message?": {
+      "main": [
+        [
+          {
+            "node": "Save inbound message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save outbound message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare loop iteration": {
+      "main": [
+        [
+          {
+            "node": "Merge config + context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge config + context": {
+      "main": [
+        [
+          {
+            "node": "Load conversation state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load conversation state": {
+      "main": [
+        [
+          {
+            "node": "Load message history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load message history": {
+      "main": [
+        [
+          {
+            "node": "Audio transcription failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save inbound message": {
+      "main": [
+        [
+          {
+            "node": "Save outbound message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save outbound message": {
+      "main": [
+        [
+          {
+            "node": "Schedule follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule follow-up": {
+      "main": [
+        [
+          {
+            "node": "Engine Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set execution metadata": {
+      "main": [
+        [
+          {
+            "node": "config",
             "type": "main",
             "index": 0
           }
