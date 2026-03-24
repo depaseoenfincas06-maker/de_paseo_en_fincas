@@ -1427,10 +1427,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const prevData = $input.first().json;\nconst chatwootId = String(prevData.chatwoot_id || '');\nconst CHATWOOT_BASE_URL = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst CHATWOOT_ACCOUNT_ID = \"1\";\nconst CHATWOOT_API_TOKEN = \"7paF3kLsjSEPvXqgHPEgPTEq\";\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try { return JSON.parse(String(value)); } catch { return []; }\n}\n\nasync function sendText(content) {\n  if (!helperRequest) throw new Error('httpRequest helper not available');\n  return helperRequest({\n    url: CHATWOOT_BASE_URL + '/api/v1/accounts/' + CHATWOOT_ACCOUNT_ID + '/conversations/' + chatwootId + '/messages',\n    method: 'POST',\n    headers: { api_access_token: CHATWOOT_API_TOKEN, 'Content-Type': 'application/json' },\n    body: { content: String(content).trim(), message_type: 'outgoing', private: false },\n    json: true,\n    timeout: 15000,\n  });\n}\n\nconst sequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence || '[]');\nconst textItems = [];\nconst mediaItems = [];\n\nfor (const item of sequence) {\n  if (!item || typeof item !== 'object') continue;\n  const type = String(item.type || '').trim();\n  if (type === 'media_group' || (item.media_url && type !== 'text')) {\n    mediaItems.push(item);\n  } else if (type === 'text' && String(item.content || '').trim()) {\n    textItems.push(item);\n  }\n}\n\nconst results = [];\nfor (const item of textItems) {\n  try {\n    await sendText(item.content);\n    results.push({ ok: true, type: 'text' });\n  } catch (e) {\n    results.push({ ok: false, type: 'text', error: e.message || 'unknown' });\n  }\n}\n\nif (textItems.length === 0 && prevData.outbound_message) {\n  try {\n    await sendText(prevData.outbound_message);\n    results.push({ ok: true, type: 'text_fallback' });\n  } catch (e) {\n    results.push({ ok: false, type: 'text_fallback', error: e.message || 'unknown' });\n  }\n}\n\nreturn [{\n  json: {\n    ...prevData,\n    texts_sent: results.length,\n    texts_ok: results.every(r => r.ok),\n    media_groups_pending: mediaItems,\n    has_media: mediaItems.length > 0,\n    chatwoot_id: chatwootId,\n    text_results: results,\n  }\n}];"
+        "jsCode": "// Send text messages directly via Chatwoot API.\n// Collect media_groups for downstream executeWorkflow node.\n\nconst prevData = $input.first().json;\nconst chatwootId = String(prevData.chatwoot_id || '');\nconst CHATWOOT_BASE = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst CHATWOOT_ACCOUNT = String(prevData.chatwoot_account_id || \"1\");\nconst CHATWOOT_TOKEN = String(prevData.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\");\nconst MSG_URL = CHATWOOT_BASE + '/api/v1/accounts/' + CHATWOOT_ACCOUNT + '/conversations/' + chatwootId + '/messages';\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSeq(v) {\n  if (Array.isArray(v)) return v;\n  if (!v) return [];\n  try { return JSON.parse(String(v)); } catch { return []; }\n}\n\nconst compact = v => String(v || '').trim();\n\nasync function sendText(content) {\n  if (!helperRequest) throw new Error('helperRequest not available');\n  await helperRequest({\n    url: MSG_URL, method: 'POST',\n    headers: { api_access_token: CHATWOOT_TOKEN, 'Content-Type': 'application/json' },\n    body: { content: compact(content), message_type: 'outgoing', private: false },\n    json: true, timeout: 15000,\n  });\n}\n\nconst sequence = parseSeq(prevData.outbound_sequence_json || prevData.outbound_sequence || '[]');\nconst textResults = [];\nconst mediaItems = [];\n\n// Separate texts from media\nfor (const item of sequence) {\n  if (!item || typeof item !== 'object') continue;\n  const t = compact(item.type);\n  if (t === 'media_group' || (item.media_url && t !== 'text')) {\n    mediaItems.push(item);\n  } else if (t === 'text' && compact(item.content)) {\n    textResults.push(item);\n  }\n}\n\n// Send texts immediately\nlet textsSent = 0;\nfor (const item of textResults) {\n  try {\n    await sendText(item.content);\n    textsSent++;\n  } catch (e) {\n    // Log but continue\n  }\n}\n\n// If no sequence texts but there's an outbound_message, send that\nif (textsSent === 0 && prevData.outbound_message) {\n  try {\n    await sendText(prevData.outbound_message);\n    textsSent++;\n  } catch (e) {}\n}\n\nreturn [{\n  json: {\n    ...prevData,\n    texts_sent: textsSent,\n    has_media: mediaItems.length > 0,\n    media_sequence_json: JSON.stringify(mediaItems),\n  }\n}];"
       },
       "id": "sync-text-sender-node-001",
-      "name": "Send texts sync",
+      "name": "Send texts & extract media",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -2663,24 +2663,133 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/outbound-sender/async",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: JSON.stringify($json.media_groups_pending || []), private: false }) }}",
-        "options": {
-          "timeout": 10000
-        }
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-media-check",
+              "leftValue": "={{ $json.has_media }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "fire-async-media-node-002",
-      "name": "Fire async media sender",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "has-media-if-001",
+      "name": "Has media?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
       "position": [
-        1674,
+        1564,
         80
-      ],
-      "continueOnFail": true
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pm1",
+              "name": "chatwoot_id",
+              "value": "={{ $json.chatwoot_id }}",
+              "type": "string"
+            },
+            {
+              "id": "pm2",
+              "name": "outbound_sequence_json",
+              "value": "={{ $json.media_sequence_json }}",
+              "type": "string"
+            },
+            {
+              "id": "pm3",
+              "name": "private",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-media-payload-001",
+      "name": "Prepare media payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1634,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "pLyrdDO3mneaCp7m",
+        "mode": "each",
+        "options": {}
+      },
+      "id": "send-media-exec-wf-001",
+      "name": "Send media via Chatwoot",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1704,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Dedup: if there are newer messages from the user after this one,\n// skip processing — the later execution will handle them all.\nconst data = $input.first().json;\n\n// Get the current message timestamp from the inbound data\nconst currentMsgId = data.chatwoot_message_id || data.client_message_id || '';\nconst currentTimestamp = data.inbound_timestamp || 0;\n\n// Check if we have the messages list from context\n// The messages were fetched in \"Fetch messages1\" and should be available\nlet hasNewer = false;\n\ntry {\n  const messagesNode = $('Fetch messages1');\n  if (messagesNode && messagesNode.first()) {\n    const rows = messagesNode.all().map(i => i.json);\n    // Find messages from user (role='user') that are newer than current\n    const newerUserMsgs = rows.filter(m => \n      m.role === 'user' && \n      m.message_id !== currentMsgId &&\n      new Date(m.created_at) > new Date(currentTimestamp * 1000)\n    );\n    hasNewer = newerUserMsgs.length > 0;\n  }\n} catch(e) {\n  // If we can't check, proceed normally\n  hasNewer = false;\n}\n\nreturn [{ json: { ...data, has_newer_message: hasNewer } }];"
+      },
+      "id": "dedup-check-001",
+      "name": "Check for newer messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -872,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "dedup-if",
+              "leftValue": "={{ $json.has_newer_message }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dedup-if-001",
+      "name": "Newer message exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -732,
+        80
+      ]
     }
   ],
   "connections": {
@@ -2774,7 +2883,7 @@
       "main": [
         [
           {
-            "node": "actualizar contexto1",
+            "node": "Check for newer messages",
             "type": "main",
             "index": 0
           }
@@ -3061,7 +3170,7 @@
       "main": [
         [
           {
-            "node": "Send texts sync",
+            "node": "Send texts & extract media",
             "type": "main",
             "index": 0
           }
@@ -3634,22 +3743,74 @@
         ]
       ]
     },
-    "Send texts sync": {
+    "Send texts & extract media": {
       "main": [
         [
           {
-            "node": "Fire async media sender",
+            "node": "Has media?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fire async media sender": {
+    "Has media?": {
+      "main": [
+        [
+          {
+            "node": "Prepare media payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare selection notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare media payload": {
+      "main": [
+        [
+          {
+            "node": "Send media via Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send media via Chatwoot": {
       "main": [
         [
           {
             "node": "Prepare selection notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for newer messages": {
+      "main": [
+        [
+          {
+            "node": "Newer message exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Newer message exists?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "actualizar contexto1",
             "type": "main",
             "index": 0
           }
