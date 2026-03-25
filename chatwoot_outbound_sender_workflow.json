@@ -3,7 +3,7 @@
   "createdAt": "2026-03-10T04:54:50.601Z",
   "id": "pLyrdDO3mneaCp7m",
   "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
-  "description": null,
+  "description": "Legacy outbound sender retained for text-only or follow-up flows. Media delivery now runs itemized in the main workflow.",
   "active": true,
   "isArchived": false,
   "nodes": [
@@ -334,7 +334,7 @@
     },
     "authors": "JUANDAVID VIZCAYA",
     "name": null,
-    "description": null,
+    "description": "Legacy outbound sender retained for text-only or follow-up flows. Media delivery now runs itemized in the main workflow.",
     "autosaved": false,
     "workflowPublishHistory": [
       {
