@@ -20,6 +20,25 @@ function replaceExact(source, before, after, label) {
   return source.replace(before, after);
 }
 
+function replaceExactOrSame(source, before, after, label) {
+  if (source.includes(after)) {
+    return source;
+  }
+  return replaceExact(source, before, after, label);
+}
+
+function replaceOneOfOrSame(source, beforeList, after, label) {
+  if (source.includes(after)) {
+    return source;
+  }
+  for (const before of beforeList) {
+    if (source.includes(before)) {
+      return source.replace(before, after);
+    }
+  }
+  throw new Error(`Patch anchor not found for ${label}`);
+}
+
 const SEND_OUTBOUND_MESSAGES_CODE = String.raw`const prevData = $input.first().json || {};
 
 function parseSequence(value) {
@@ -119,7 +138,7 @@ const SELECTED_FINCA_BEFORE = String.raw`  if (selectedFinca && ['offering_agent
     return sequence;
   }`;
 
-const SELECTED_FINCA_AFTER = String.raw`  if (selectedFinca && ['offering_agent', 'verifying_availability_agent', 'qa_agent'].includes(tool)) {
+const SELECTED_FINCA_INTERLEAVED_BEFORE = String.raw`  if (selectedFinca && ['offering_agent', 'verifying_availability_agent', 'qa_agent'].includes(tool)) {
     const card = buildFincaCard(selectedFinca);
     const cardMessage = createTextMessage(card, {
       property_title: selectedFinca?.nombre || selectedFinca?.finca_id || null,
@@ -135,6 +154,12 @@ const SELECTED_FINCA_AFTER = String.raw`  if (selectedFinca && ['offering_agent'
     return sequence;
   }`;
 
+const SELECTED_FINCA_AFTER = String.raw`  if (selectedFinca && ['offering_agent', 'verifying_availability_agent', 'qa_agent'].includes(tool)) {
+    const trailingText = createTextMessage(finalWhatsappText);
+    if (trailingText) sequence.push(trailingText);
+    return sequence;
+  }`;
+
 const PRIMARY_OUTBOUND_MESSAGE_BEFORE =
   "const primaryOutboundMessage = outboundSequence.at(-1)?.content || rawFinalWhatsappText || null;";
 const PRIMARY_OUTBOUND_MESSAGE_AFTER = String.raw`const primaryOutboundMessage =
@@ -146,11 +171,16 @@ const PRIMARY_OUTBOUND_MESSAGE_AFTER = String.raw`const primaryOutboundMessage =
 function patchCodeNode(node) {
   let code = String(node.parameters?.jsCode || '');
 
-  code = replaceExact(code, "content: 'Fotos y/o video de ' + title,", "content: '',", 'empty media caption');
-  code = replaceExact(code, CREATE_TEXT_MESSAGE_BEFORE, CREATE_TEXT_MESSAGE_AFTER, 'createTextMessage');
-  code = replaceExact(code, SHOW_OPTIONS_BEFORE, SHOW_OPTIONS_AFTER, 'show options order');
-  code = replaceExact(code, SELECTED_FINCA_BEFORE, SELECTED_FINCA_AFTER, 'selected finca order');
-  code = replaceExact(
+  code = replaceExactOrSame(code, "content: 'Fotos y/o video de ' + title,", "content: '',", 'empty media caption');
+  code = replaceExactOrSame(code, CREATE_TEXT_MESSAGE_BEFORE, CREATE_TEXT_MESSAGE_AFTER, 'createTextMessage');
+  code = replaceExactOrSame(code, SHOW_OPTIONS_BEFORE, SHOW_OPTIONS_AFTER, 'show options order');
+  code = replaceOneOfOrSame(
+    code,
+    [SELECTED_FINCA_BEFORE, SELECTED_FINCA_INTERLEAVED_BEFORE],
+    SELECTED_FINCA_AFTER,
+    'selected finca order',
+  );
+  code = replaceExactOrSame(
     code,
     PRIMARY_OUTBOUND_MESSAGE_BEFORE,
     PRIMARY_OUTBOUND_MESSAGE_AFTER,

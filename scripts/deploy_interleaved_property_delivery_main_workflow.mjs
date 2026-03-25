@@ -95,6 +95,15 @@ function validateWorkflow(workflow) {
   if (!code.includes('const cardMessage = createTextMessage(card, {')) {
     throw new Error('Code in JavaScript1 was not patched to send card before media');
   }
+  if (code.includes('buildMediaMessages(selectedFinca)')) {
+    throw new Error('Code in JavaScript1 still sends selected finca media outside SHOW_OPTIONS');
+  }
+  if (code.includes('buildFincaCard(selectedFinca)')) {
+    throw new Error('Code in JavaScript1 still sends selected finca card outside SHOW_OPTIONS');
+  }
+  if (!code.includes("const trailingText = createTextMessage(finalWhatsappText);")) {
+    throw new Error('Code in JavaScript1 was not patched to keep selected finca outbound text-only');
+  }
   if (!sendCode.includes('sender_sequence_json')) {
     throw new Error('Send outbound messages was not patched to forward full sender sequence');
   }
