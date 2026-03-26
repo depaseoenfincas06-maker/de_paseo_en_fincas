@@ -31,10 +31,6 @@ const SUPABASE_DB_PORT =
     ? 6543
     : RAW_SUPABASE_DB_PORT || 5432;
 
-if (!N8N_BASE_URL) {
-  throw new Error('Missing N8N_BASE_URL in .env');
-}
-
 const publicDir = path.join(rootDir, 'public');
 const POOL_SYMBOL = Symbol.for('depaseo.simulator.pg.pool');
 
@@ -70,7 +66,11 @@ if (!globalThis[POOL_SYMBOL]) {
   globalThis[POOL_SYMBOL] = pool;
 }
 
-const simulatorWebhookUrl = `${N8N_BASE_URL.replace(/\/$/, '')}/webhook/${SIMULATOR_WEBHOOK_PATH}`;
+function getSimulatorWebhookUrl() {
+  const normalizedBaseUrl = compactText(N8N_BASE_URL).replace(/\/$/, '');
+  if (!normalizedBaseUrl) return null;
+  return `${normalizedBaseUrl}/webhook/${SIMULATOR_WEBHOOK_PATH}`;
+}
 const recentClientMessageIds = new Map();
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -668,6 +668,15 @@ function hasRecentClientMessage(conversationId, clientMessageId) {
 }
 
 async function sendWebhookMessage({ waId, chatInput, clientName, clientMessageId, localSequence }) {
+  const simulatorWebhookUrl = getSimulatorWebhookUrl();
+  if (!simulatorWebhookUrl) {
+    const error = new Error('missing_n8n_base_url');
+    error.payload = {
+      message: 'Missing N8N_BASE_URL for simulator webhook forwarding',
+    };
+    throw error;
+  }
+
   const response = await fetch(simulatorWebhookUrl, {
     method: 'POST',
     headers: {
@@ -1121,6 +1130,7 @@ function createApp() {
       workflow: {
         workflowName: 'De paseo en fincas customer agent',
         workflowId: SIMULATOR_WEBHOOK_PATH,
+        webhookReady: Boolean(getSimulatorWebhookUrl()),
       },
       chatwootBaseUrl: CHATWOOT_BASE_URL,
       chatwootAccountId: CHATWOOT_ACCOUNT_ID,
