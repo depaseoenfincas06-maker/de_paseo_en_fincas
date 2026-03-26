@@ -23,13 +23,7 @@ const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
 const CHATWOOT_ACCOUNT_ID = process.env.CHATWOOT_ACCOUNT_ID || '1';
-const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
 const BURST_WINDOW_MS = 4000;
-const RAW_SUPABASE_DB_PORT = Number(process.env.SUPABASE_DB_PORT || 0);
-const SUPABASE_DB_PORT =
-  /\.pooler\.supabase\.com$/i.test(String(SUPABASE_DB_HOST || '')) && RAW_SUPABASE_DB_PORT === 5432
-    ? 6543
-    : RAW_SUPABASE_DB_PORT || 5432;
 
 const publicDir = path.join(rootDir, 'public');
 const POOL_SYMBOL = Symbol.for('depaseo.simulator.pg.pool');
@@ -46,24 +40,15 @@ types.setTypeParser(1184, (value) => {
 });
 
 function createPool() {
-  return new Pool({
-    host: SUPABASE_DB_HOST,
-    port: SUPABASE_DB_PORT,
-    database: process.env.SUPABASE_DB_NAME,
-    user: process.env.SUPABASE_DB_USER,
-    password: process.env.SUPABASE_DB_PASSWORD,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-    max: IS_VERCEL ? 1 : 2,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 5000,
-  });
-}
-
-const pool = globalThis[POOL_SYMBOL] || createPool();
-if (!globalThis[POOL_SYMBOL]) {
-  globalThis[POOL_SYMBOL] = pool;
+  const config = resolveDbPoolConfig();
+  if (!config) {
+    const error = new Error(
+      'Missing database configuration. Set SUPABASE_DB_URL, DATABASE_URL, POSTGRES_URL, or SUPABASE_DB_* variables.',
+    );
+    error.code = 'MISSING_DATABASE_CONFIGURATION';
+    throw error;
+  }
+  return new Pool(config);
 }
 
 function getSimulatorWebhookUrl() {
@@ -167,6 +152,80 @@ function compactText(value) {
   return String(value || '').trim();
 }
 
+function isLocalDatabaseHost(hostname) {
+  const normalized = compactText(hostname).toLowerCase();
+  return !normalized || normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1';
+}
+
+function resolveDbConnectionString() {
+  return (
+    compactText(process.env.SUPABASE_DB_URL) ||
+    compactText(process.env.DATABASE_URL) ||
+    compactText(process.env.POSTGRES_URL) ||
+    compactText(process.env.POSTGRES_PRISMA_URL) ||
+    compactText(process.env.POSTGRES_URL_NON_POOLING) ||
+    ''
+  );
+}
+
+function resolveDbPoolConfig() {
+  const connectionString = resolveDbConnectionString();
+  if (connectionString) {
+    let parsedHost = '';
+    try {
+      parsedHost = new URL(connectionString).hostname;
+    } catch {
+      parsedHost = '';
+    }
+
+    return {
+      connectionString,
+      ssl: isLocalDatabaseHost(parsedHost)
+        ? undefined
+        : {
+            rejectUnauthorized: false,
+          },
+      max: IS_VERCEL ? 1 : 2,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+    };
+  }
+
+  const host = compactText(process.env.SUPABASE_DB_HOST);
+  if (!host) return null;
+
+  const rawPort = Number(process.env.SUPABASE_DB_PORT || 0);
+  const port =
+    /\.pooler\.supabase\.com$/i.test(host) && rawPort === 5432 ? 6543 : rawPort || 5432;
+
+  return {
+    host,
+    port,
+    database: compactText(process.env.SUPABASE_DB_NAME),
+    user: compactText(process.env.SUPABASE_DB_USER),
+    password: process.env.SUPABASE_DB_PASSWORD,
+    ssl: isLocalDatabaseHost(host)
+      ? undefined
+      : {
+          rejectUnauthorized: false,
+        },
+    max: IS_VERCEL ? 1 : 2,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
+  };
+}
+
+function getPool() {
+  if (!globalThis[POOL_SYMBOL]) {
+    globalThis[POOL_SYMBOL] = createPool();
+  }
+  return globalThis[POOL_SYMBOL];
+}
+
+async function queryDb(text, params) {
+  return getPool().query(text, params);
+}
+
 function toSerializable(value) {
   if (value instanceof Date) return toIsoString(value);
   if (Array.isArray(value)) return value.map((item) => toSerializable(item));
@@ -185,6 +244,20 @@ function serializeConversationRecord(conversation) {
 
 function presentApiError(error) {
   const rawMessage = String(error?.message || 'Unexpected error');
+  if (error?.code === 'MISSING_DATABASE_CONFIGURATION') {
+    return {
+      message:
+        'Falta configurar la conexión a la base de datos. Define SUPABASE_DB_URL, DATABASE_URL, POSTGRES_URL o SUPABASE_DB_* en Vercel.',
+      details: null,
+    };
+  }
+  if (rawMessage.includes('connect ECONNREFUSED 127.0.0.1:5432')) {
+    return {
+      message:
+        'La app intentó conectarse a Postgres local porque no encontró una configuración remota válida. Revisa las variables de base de datos en Vercel.',
+      details: null,
+    };
+  }
   if (rawMessage.includes('MaxClientsInSessionMode: max clients reached')) {
     return {
       message: 'El pool de conexiones a Supabase está saturado temporalmente. Vuelve a intentar en unos segundos.',
@@ -359,7 +432,7 @@ function settingsStatus(settings) {
 
 async function getAgentSettings() {
   try {
-    const { rows } = await pool.query(
+    const { rows } = await queryDb(
       `
         select
           id,
@@ -402,7 +475,7 @@ async function getAgentSettings() {
 
 async function saveAgentSettings(payload) {
   const next = sanitizeSettingsPayload(payload);
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       insert into public.agent_settings (
         id,
@@ -556,7 +629,7 @@ function createConversationId() {
 
 async function listSimulatorConversationRecords() {
   try {
-    const { rows } = await pool.query(
+    const { rows } = await queryDb(
       `
         select
           id,
@@ -579,7 +652,7 @@ async function listSimulatorConversationRecords() {
 }
 
 async function getSimulatorConversationRecord(conversationId) {
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       select
         id,
@@ -602,7 +675,7 @@ async function createSimulatorConversationRecord() {
     title: null,
   };
 
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       insert into public.simulator_conversations (
         id,
@@ -625,7 +698,7 @@ async function createSimulatorConversationRecord() {
 }
 
 async function touchSimulatorConversationRecord(conversationId) {
-  await pool.query(
+  await queryDb(
     `
       update public.simulator_conversations
       set updated_at = now()
@@ -714,7 +787,7 @@ function enqueueWebhookMessage({ waId, chatInput, clientName, clientMessageId, l
 }
 
 async function getConversationRow(conversationId) {
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       select *
       from public.conversations
@@ -728,7 +801,7 @@ async function getConversationRow(conversationId) {
 }
 
 async function getMessages(conversationId) {
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       select
         id,
@@ -752,7 +825,7 @@ async function getMessages(conversationId) {
 }
 
 async function getFollowOnEntries(conversationId) {
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       select
         id,
@@ -780,7 +853,7 @@ async function getFollowOnEntries(conversationId) {
 }
 
 async function getSelectionNotificationEntries(conversationId) {
-  const { rows } = await pool.query(
+  const { rows } = await queryDb(
     `
       select
         id,
@@ -806,7 +879,7 @@ async function getSelectionNotificationEntries(conversationId) {
 }
 
 async function listMonitoringRows() {
-  const { rows } = await pool.query(`
+  const { rows } = await queryDb(`
     with prioritized_follow_on as (
       select distinct on (f.conversation_id)
         f.conversation_id,
