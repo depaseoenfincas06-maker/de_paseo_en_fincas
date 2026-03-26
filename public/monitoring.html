@@ -6,28 +6,27 @@
     <title>Monitoreo · De Paseo en Fincas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/kanban.css" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div class="monitor-shell">
-      <header class="monitor-header">
-        <div class="brand">
-          <div class="brand__avatar">DP</div>
+      <header class="kb-header">
+        <div class="kb-header__left">
+          <img src="/depaseoenfincas-logo.png" alt="Logo" class="kb-logo" />
           <div>
-            <p class="eyebrow">Control Room</p>
-            <h1>Monitoreo comercial</h1>
+            <p class="kb-eyebrow">De Paseo en Fincas</p>
+            <h1 class="kb-title">Monitoreo</h1>
           </div>
         </div>
-        <div class="monitor-header__right">
-          <div class="page-switcher">
-            <a href="/simulator" class="page-switcher__link">Simulador</a>
-            <a href="/monitoring" class="page-switcher__link page-switcher__link--active">Monitoreo</a>
+        <div class="kb-header__right">
+          <div class="kb-nav" id="main-nav">
+            <a href="/" class="kb-nav__link" data-page="simulator">Simulador</a>
+            <a href="/monitoring" class="kb-nav__link" data-page="monitoring">Monitoreo</a>
+            <a href="/kanban.html" class="kb-nav__link" data-page="kanban">Pipeline</a>
+            <a href="/settings" class="kb-nav__link" data-page="settings">Ajustes</a>
           </div>
-          <div id="monitoring-hours" class="chat-panel__badge">08:00-22:00 · America/Bogota</div>
         </div>
       </header>
 
@@ -93,7 +92,10 @@
               <p class="eyebrow">Pipeline vivo</p>
               <h2>Conversaciones</h2>
             </div>
-            <div id="monitor-count" class="chat-panel__badge">0 conversaciones</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div id="monitoring-hours" class="chat-panel__badge">08:00-22:00 · America/Bogota</div>
+              <div id="monitor-count" class="chat-panel__badge">0 conversaciones</div>
+            </div>
           </div>
           <div class="monitor-table-wrap">
             <table class="monitor-table">
@@ -116,13 +118,13 @@
         <aside class="monitor-detail-card">
           <header class="monitor-detail-card__header">
             <div>
-              <p class="eyebrow">Detalle</p>
+              <p class="eyebrow">Resumen</p>
               <h2 id="monitor-detail-title">Selecciona una conversación</h2>
             </div>
           </header>
           <div id="monitor-detail-body" class="monitor-detail-card__body">
             <div class="inspector-empty">
-              <p>Selecciona una conversación para ver contexto, follow ons y mensajes recientes.</p>
+              <p>Selecciona una conversación para ver un resumen operativo y abrirla en Chatwoot.</p>
             </div>
           </div>
         </aside>
@@ -130,5 +132,6 @@
     </div>
 
     <script type="module" src="/monitoring.js"></script>
+    <script src="/nav.js"></script>
   </body>
 </html>

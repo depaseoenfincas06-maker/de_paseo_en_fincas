@@ -17,6 +17,8 @@ const appState = {
   activeTab: routeToTab[window.location.pathname] || 'simulator',
   timezone: 'America/Bogota',
   workflow: null,
+  chatwootBaseUrl: '',
+  chatwootAccountId: '1',
   settings: null,
   settingsLoaded: false,
   settingsDirty: false,
@@ -82,7 +84,7 @@ const elements = {
     converted: document.getElementById('monitor-converted'),
     followOn: document.getElementById('monitor-follow-on'),
     summary: document.getElementById('monitor-summary'),
-    tableBody: document.getElementById('monitor-table-body'),
+    list: document.getElementById('monitor-list'),
     count: document.getElementById('monitor-count'),
     detailTitle: document.getElementById('monitor-detail-title'),
     detailBody: document.getElementById('monitor-detail-body'),
@@ -93,6 +95,7 @@ const elements = {
     save: document.getElementById('settings-save-btn'),
     saveState: document.getElementById('settings-save-state'),
     alert: document.getElementById('settings-alert'),
+    overview: document.getElementById('settings-overview'),
     tonePreset: document.getElementById('settings-tone-preset'),
     toneExtra: document.getElementById('settings-tone-extra'),
     initialMessage: document.getElementById('settings-initial-message'),
@@ -159,6 +162,35 @@ function formatDateTime(value, options = {}) {
   }).format(new Date(value));
 }
 
+function formatTimeOnly(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('es-CO', {
+    timeZone: appState.timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function formatDateDivider(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('es-CO', {
+    timeZone: appState.timezone,
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  }).format(new Date(value));
+}
+
+function getDateKey(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: appState.timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(value));
+}
+
 function formatDateTimeLong(value) {
   if (!value) return 'Sin dato';
   return new Intl.DateTimeFormat('es-CO', {
@@ -211,32 +243,83 @@ function updateGlobalHeader() {
   const settings = appState.settings;
 
   if (!settings) {
-    elements.globalBotBadge.textContent = 'Cargando settings';
-    elements.globalFollowupBadge.textContent = 'Follow-on ...';
-    elements.globalOwnerOverrideBadge.textContent = 'Propietario real';
+    elements.globalBotBadge.textContent = 'Cargando configuración';
+    elements.globalFollowupBadge.textContent = 'Recordatorios...';
+    elements.globalOwnerOverrideBadge.textContent = 'Número real del propietario';
     return;
   }
 
-  elements.globalBotBadge.textContent = settings.globalBotEnabled ? 'Bot activo' : 'Bot global pausado';
+  elements.globalBotBadge.textContent = settings.globalBotEnabled ? 'Asistente activo' : 'Asistente pausado';
   elements.globalBotBadge.classList.toggle('badge-warn', settings.globalBotEnabled === false);
 
   elements.globalFollowupBadge.textContent = settings.followupEnabled
-    ? `Follow-on ${settings.followupWindowStart}-${settings.followupWindowEnd}`
-    : 'Follow-on desactivado';
+    ? `Recordatorios ${settings.followupWindowStart}-${settings.followupWindowEnd}`
+    : 'Recordatorios desactivados';
   elements.globalFollowupBadge.classList.toggle('badge-warn', settings.followupEnabled === false);
 
   elements.globalOwnerOverrideBadge.textContent = settings.ownerContactOverride
-    ? `Override propietario · ${settings.ownerContactOverride}`
-    : 'Propietario real';
+    ? `Número de prueba · ${settings.ownerContactOverride}`
+    : 'Número real del propietario';
   elements.globalOwnerOverrideBadge.classList.toggle('badge-warn', Boolean(settings.ownerContactOverride));
 
   elements.globalSelectionNotificationBadge.textContent = settings.selectionNotificationEnabled
-    ? 'Notif. selección activa'
-    : 'Notif. selección apagada';
+    ? 'Avisos internos activos'
+    : 'Avisos internos apagados';
   elements.globalSelectionNotificationBadge.classList.toggle(
     'badge-warn',
     settings.selectionNotificationEnabled === false,
   );
+
+  renderSettingsOverview();
+}
+
+function renderSettingsOverview() {
+  if (!elements.settings.overview) return;
+
+  const settings = appState.settings;
+  if (!settings) {
+    elements.settings.overview.innerHTML = '';
+    return;
+  }
+
+  const items = [
+    {
+      label: 'Asistente',
+      value: settings.globalBotEnabled ? 'Activo' : 'Pausado',
+      tone: settings.globalBotEnabled ? 'ok' : 'warn',
+      helper: settings.globalBotEnabled ? 'Responderá nuevas conversaciones' : 'No responderá nuevos mensajes',
+    },
+    {
+      label: 'Recordatorios',
+      value: settings.followupEnabled ? `${settings.followupWindowStart}-${settings.followupWindowEnd}` : 'Apagados',
+      tone: settings.followupEnabled ? 'info' : 'warn',
+      helper: 'Horario de envío en Bogotá',
+    },
+    {
+      label: 'Propiedades',
+      value: settings.inventorySheetEnabled ? 'Base activa' : 'Base desactivada',
+      tone: settings.inventorySheetEnabled ? 'ok' : 'warn',
+      helper: settings.inventorySheetTabName || 'Sin hoja seleccionada',
+    },
+    {
+      label: 'Número de prueba',
+      value: settings.ownerContactOverride ? 'Activo' : 'No se está usando',
+      tone: settings.ownerContactOverride ? 'warn' : 'neutral',
+      helper: settings.ownerContactOverride || 'Se usará el número real del propietario',
+    },
+  ];
+
+  elements.settings.overview.innerHTML = items
+    .map(
+      (item) => `
+        <article class="settings-overview-card settings-overview-card--${escapeHtml(item.tone)}">
+          <span class="settings-overview-card__label">${escapeHtml(item.label)}</span>
+          <strong class="settings-overview-card__value">${escapeHtml(item.value)}</strong>
+          <small class="settings-overview-card__helper">${escapeHtml(item.helper)}</small>
+        </article>
+      `,
+    )
+    .join('');
 }
 
 function setActiveTab(tab, { pushState = true } = {}) {
@@ -346,7 +429,7 @@ async function loadSettings({ silent = false } = {}) {
       renderSettingsState('Configuración cargada', 'success');
       if (payload.settings.ownerContactOverride) {
         showSettingsAlert(
-          'El override de propietario está activo. El agente devolverá este número en vez del contacto real.',
+          'Hay un número de prueba activo para propietarios. El asistente mostrará ese número en lugar del real.',
           'warn',
         );
       } else if (
@@ -354,19 +437,19 @@ async function loadSettings({ silent = false } = {}) {
         payload.settings.selectionNotificationRecipients
       ) {
         showSettingsAlert(
-          'La notificación de selección está activa y enviará alertas cuando un cliente elija una finca distinta.',
+          'Los avisos internos están activos. El sistema enviará una alerta al equipo cuando un cliente elija una finca.',
           'info',
         );
       } else {
         showSettingsAlert(
-          'Los cambios aplican a nuevas ejecuciones y nuevos follow-ons. Los follow-ons ya programados no se reescriben.',
+          'Los cambios se aplican a nuevas conversaciones y nuevos recordatorios. Los recordatorios ya programados no se modifican.',
           'info',
         );
       }
       return payload.settings;
     })
     .catch((error) => {
-      renderSettingsState('Error cargando settings', 'warn');
+      renderSettingsState('Error cargando la configuración', 'warn');
       showSettingsAlert(error.message, 'error');
       throw error;
     })
@@ -381,7 +464,7 @@ async function loadSettings({ silent = false } = {}) {
 async function saveSettings() {
   appState.settingsSaving = true;
   elements.settings.save.disabled = true;
-  renderSettingsState('Guardando...', 'neutral');
+  renderSettingsState('Guardando cambios...', 'neutral');
 
   try {
     const payload = await api('/api/settings', {
@@ -393,13 +476,13 @@ async function saveSettings() {
     appState.settingsDirty = false;
     applySettingsToForm(payload.settings);
     updateGlobalHeader();
-    renderSettingsState('Guardado', 'success');
+    renderSettingsState('Cambios guardados', 'success');
     showSettingsAlert(
       payload.settings.ownerContactOverride
-        ? 'Settings guardados. El override de propietario sigue activo para pruebas.'
+        ? 'Cambios guardados. El número de prueba para propietarios sigue activo.'
         : payload.settings.selectionNotificationEnabled && payload.settings.selectionNotificationRecipients
-          ? 'Settings guardados. La notificación de selección quedó activa para las nuevas elecciones de finca.'
-          : 'Settings guardados. Aplican a nuevas ejecuciones y nuevos follow-ons.',
+          ? 'Cambios guardados. Los avisos internos quedaron activos para las nuevas selecciones de finca.'
+          : 'Cambios guardados. Se aplicarán a nuevas conversaciones y nuevos recordatorios.',
       payload.settings.ownerContactOverride ? 'warn' : 'success',
     );
 
@@ -407,7 +490,7 @@ async function saveSettings() {
       void loadMonitoringData();
     }
   } catch (error) {
-    renderSettingsState('Error guardando', 'warn');
+    renderSettingsState('Error guardando la configuración', 'warn');
     showSettingsAlert(error.message, 'error');
   } finally {
     appState.settingsSaving = false;
@@ -426,6 +509,15 @@ function getActiveConversation() {
     appState.simulator.conversations.find((conversation) => conversation.id === appState.simulator.activeConversationId) ||
     null
   );
+}
+
+function getBurstStatus(conversation) {
+  const burst = conversation?.burstStatus || {};
+  return {
+    pending: burst.pending === true,
+    pendingCount: Number(burst.pendingCount || 0) || 0,
+    waitingUntil: burst.waitingUntil || null,
+  };
 }
 
 function normalizeMessageContent(value) {
@@ -520,6 +612,7 @@ function getPollingState(conversationId, { create = false } = {}) {
     lastFingerprint: null,
     quietSince: null,
     hadReply: false,
+    hadServerOutbound: false,
     startedAt: Date.now(),
   };
   appState.simulator.pollingByConversation[conversationId] = created;
@@ -542,15 +635,21 @@ function stopConversationPolling(conversationId) {
 
 function hasActivePollingFor(conversationId) {
   const pollState = getPollingState(conversationId);
+  const conversation = appState.simulator.conversations.find((item) => item.id === conversationId);
+  const burstPending = getBurstStatus(conversation).pending;
   return Boolean(
-    pollState &&
-      (pollState.running || pollState.timerId || pollState.turns.length || getPendingMessagesFor(conversationId).length),
+    burstPending ||
+      (pollState &&
+        (pollState.running ||
+          pollState.timerId ||
+          pollState.turns.length ||
+          getPendingMessagesFor(conversationId).length)),
   );
 }
 
 function buildMessageFingerprint(messages) {
   return [...messages]
-    .slice(-6)
+    .slice(-12)
     .map((message) => `${message.id || 'no-id'}|${message.direction}|${getMessageCreatedAt(message)}|${message.content}`)
     .join('||');
 }
@@ -619,6 +718,36 @@ function upsertConversationSnapshot(snapshot) {
   conversations.unshift(snapshot);
 }
 
+function hasAgentOutbound(messages, agentName) {
+  return (messages || []).some(
+    (message) => message.direction === 'OUTBOUND' && (message.agentUsed || '') === agentName,
+  );
+}
+
+function requiresExtendedQuietWindow(snapshot, messages) {
+  const outbounds = (messages || []).filter((message) => message.direction === 'OUTBOUND');
+  const latestOutbound = outbounds.at(-1);
+  if (!latestOutbound) return false;
+
+  const stage = snapshot?.stage || '';
+  const agent = latestOutbound.agentUsed || '';
+
+  if (stage === 'OFFERING' && agent === 'qualifying_agent') return true;
+  if (stage === 'VERIFYING_AVAILABILITY' && agent === 'offering_agent') return true;
+  return false;
+}
+
+function awaitingFollowupPass(snapshot, messages) {
+  const stage = snapshot?.stage || '';
+  if (stage === 'OFFERING') {
+    return hasAgentOutbound(messages, 'qualifying_agent') && !hasAgentOutbound(messages, 'offering_agent');
+  }
+  if (stage === 'VERIFYING_AVAILABILITY') {
+    return hasAgentOutbound(messages, 'offering_agent') && !hasAgentOutbound(messages, 'verifying_availability_agent');
+  }
+  return false;
+}
+
 function scheduleConversationPoll(conversationId, delay = 1200) {
   const pollState = getPollingState(conversationId, { create: true });
   clearConversationPollTimer(conversationId);
@@ -641,10 +770,15 @@ async function pollConversation(conversationId) {
 
     const normalizedMessages = (snapshot.messages || []).map(normalizeMessageRecord).sort(compareMessages);
     reconcilePendingMessages(conversationId, normalizedMessages);
+    const burstStatus = getBurstStatus(snapshot);
 
     const latestOutboundTimestamp = normalizedMessages
       .filter((message) => message.direction === 'OUTBOUND')
       .reduce((latest, message) => Math.max(latest, getMessageTimestamp(message)), 0);
+
+    if (latestOutboundTimestamp) {
+      pollState.hadServerOutbound = true;
+    }
 
     for (const turn of pollState.turns) {
       const turnTimestamp = Date.parse(turn.queuedAt || turn.createdAt || new Date().toISOString());
@@ -662,7 +796,7 @@ async function pollConversation(conversationId) {
     const fingerprint = buildMessageFingerprint(normalizedMessages);
     if (fingerprint !== pollState.lastFingerprint) {
       pollState.lastFingerprint = fingerprint;
-      pollState.quietSince = null;
+      pollState.quietSince = Date.now();
     } else if (!pollState.quietSince) {
       pollState.quietSince = Date.now();
     }
@@ -671,16 +805,22 @@ async function pollConversation(conversationId) {
 
     const hasPending = getPendingMessagesFor(conversationId).length > 0;
     const hasOutstandingTurns = pollState.turns.length > 0;
-    const quietEnough = Boolean(pollState.quietSince && Date.now() - pollState.quietSince >= 2500);
+    const quietWindowMs = requiresExtendedQuietWindow(snapshot, normalizedMessages) ? 18000 : 5000;
+    const quietEnoughAfterReply = Boolean(
+      pollState.hadServerOutbound &&
+        !awaitingFollowupPass(snapshot, normalizedMessages) &&
+        pollState.quietSince &&
+        Date.now() - pollState.quietSince >= quietWindowMs,
+    );
     const pollingTimedOut = Date.now() - pollState.startedAt >= 120000;
 
-    if ((!hasPending && !hasOutstandingTurns && (pollState.hadReply || quietEnough)) || pollingTimedOut) {
+    if ((!burstStatus.pending && !hasPending && !hasOutstandingTurns && quietEnoughAfterReply) || pollingTimedOut) {
       stopConversationPolling(conversationId);
       renderSimulator();
       return;
     }
 
-    scheduleConversationPoll(conversationId, 1100);
+    scheduleConversationPoll(conversationId, burstStatus.pending ? 650 : 1100);
   } catch {
     if (pollState.attempts >= 120) {
       stopConversationPolling(conversationId);
@@ -745,6 +885,11 @@ function renderSimulatorThread() {
   }
 
   const messages = getThreadMessages(conversation);
+  const wasNearBottom =
+    elements.simulator.thread.scrollHeight -
+      elements.simulator.thread.scrollTop -
+      elements.simulator.thread.clientHeight <
+    120;
 
   if (!messages.length) {
     elements.simulator.thread.innerHTML = `
@@ -758,13 +903,34 @@ function renderSimulatorThread() {
     return;
   }
 
-  const html = messages
-    .map((message) => {
+  const blocks = [];
+  let lastDateKey = '';
+  let lastTimestamp = 0;
+
+  for (const message of messages) {
+    const messageTimestamp = getMessageTimestamp(message);
+    const dateKey = getDateKey(message.createdAt);
+
+    if (dateKey && dateKey !== lastDateKey) {
+      blocks.push(`
+        <div class="thread-divider">
+          <span class="thread-divider__label">${escapeHtml(formatDateDivider(message.createdAt))}</span>
+        </div>
+      `);
+      lastDateKey = dateKey;
+    } else if (lastTimestamp && messageTimestamp - lastTimestamp > 30 * 60 * 1000) {
+      blocks.push(`
+        <div class="thread-divider thread-divider--gap">
+          <span class="thread-divider__label">Nueva actividad · ${escapeHtml(formatTimeOnly(message.createdAt))}</span>
+        </div>
+      `);
+    }
+
       const outbound = message.direction === 'OUTBOUND';
       const bubbleClass = outbound ? 'message-bubble--outbound' : 'message-bubble--inbound';
       const rowClass = outbound ? 'bubble-row--outbound' : '';
       const meta = [
-        formatDateTime(message.createdAt),
+        formatTimeOnly(message.createdAt),
         message.agentUsed,
         message.pending
           ? message.status === 'sending'
@@ -777,7 +943,7 @@ function renderSimulatorThread() {
         .filter(Boolean)
         .join(' · ');
 
-      return `
+      blocks.push(`
         <div class="bubble-row ${rowClass}">
           <article class="message-bubble ${bubbleClass}">
             <div>${escapeHtml(message.content || '').replace(/\n/g, '<br>')}</div>
@@ -786,9 +952,10 @@ function renderSimulatorThread() {
             </footer>
           </article>
         </div>
-      `;
-    })
-    .join('');
+      `);
+
+    lastTimestamp = messageTimestamp;
+  }
 
   const typingIndicator = hasActivePollingFor(conversation.id)
     ? `
@@ -798,15 +965,21 @@ function renderSimulatorThread() {
             <span></span><span></span><span></span>
           </div>
           <footer class="message-bubble__meta">
-            <span>Agente respondiendo...</span>
+            <span>${
+              getBurstStatus(conversation).pendingCount > 1
+                ? `Asistente respondiendo a ${getBurstStatus(conversation).pendingCount} mensajes...`
+                : 'Asistente respondiendo...'
+            }</span>
           </footer>
         </article>
       </div>
     `
     : '';
 
-  elements.simulator.thread.innerHTML = `<div class="message-group">${html}${typingIndicator}</div>`;
-  elements.simulator.thread.scrollTop = elements.simulator.thread.scrollHeight;
+  elements.simulator.thread.innerHTML = `<div class="message-group">${blocks.join('')}${typingIndicator}</div>`;
+  if (wasNearBottom || hasActivePollingFor(conversation.id)) {
+    elements.simulator.thread.scrollTop = elements.simulator.thread.scrollHeight;
+  }
 }
 
 function renderSimulatorHeader() {
@@ -820,12 +993,18 @@ function renderSimulatorHeader() {
     return;
   }
 
+  const burstStatus = getBurstStatus(conversation);
+
   elements.simulator.title.textContent = conversation.title;
   elements.simulator.avatar.textContent = initialsFromTitle(conversation.title);
   elements.simulator.stage.textContent = stageLabel(conversation.stage);
   elements.simulator.status.textContent =
-    getPendingMessagesFor(conversation.id).length || hasActivePollingFor(conversation.id)
-      ? 'Agente respondiendo...'
+    burstStatus.pending
+      ? burstStatus.pendingCount > 1
+        ? `Agrupando ${burstStatus.pendingCount} mensajes del cliente`
+        : 'Procesando el último mensaje del cliente'
+      : getPendingMessagesFor(conversation.id).length || hasActivePollingFor(conversation.id)
+        ? 'Agente respondiendo...'
       : conversation.agenteActivo === false
         ? 'HITL activo'
         : `Esperando: ${conversation.waitingFor || 'CLIENT'}`;
@@ -844,26 +1023,51 @@ function renderSimulatorInspector() {
   }
 
   const context = conversation.context || {};
+  const operationalRecord = context.operational_record || conversation.conversationRow || {};
   const searchCriteria = context.search_criteria || {};
   const selectedFinca = context.selected_finca || null;
   const ownerResponse = context.owner_response || null;
   const pricing = context.pricing || {};
+  const followup = context.followup || {};
+  const selectedFincaLabel =
+    selectedFinca?.nombre || selectedFinca?.finca_id || context.selected_finca_id || 'Sin elegir';
+  const ownerStatus = ownerResponse
+    ? ownerResponse.disponible === true
+      ? 'Disponible'
+      : ownerResponse.disponible === false
+        ? 'No disponible'
+        : 'Con respuesta'
+    : 'Sin respuesta';
+  const nextFollowup =
+    followup.next_followup_at ? formatDateTimeLong(followup.next_followup_at) : 'Sin recordatorio';
+  const burstStatus = getBurstStatus(conversation);
+  const hasContextData = Object.keys(searchCriteria).length > 0 || Boolean(selectedFinca);
 
   elements.simulator.inspector.innerHTML = `
     <section class="info-card">
-      <h3>Resumen operativo</h3>
+      <h3>Resumen</h3>
       <dl class="info-grid">
         <div class="info-row"><dt>Etapa</dt><dd>${escapeHtml(stageLabel(conversation.stage))}</dd></div>
         <div class="info-row"><dt>Esperando</dt><dd>${escapeHtml(conversation.waitingFor || 'CLIENT')}</dd></div>
         <div class="info-row"><dt>Bot activo</dt><dd>${conversation.agenteActivo === false ? 'No' : 'Sí'}</dd></div>
+        <div class="info-row"><dt>Finca elegida</dt><dd>${escapeHtml(selectedFincaLabel)}</dd></div>
+        <div class="info-row"><dt>Propietario</dt><dd>${escapeHtml(ownerStatus)}</dd></div>
+        <div class="info-row"><dt>Próximo recordatorio</dt><dd>${escapeHtml(nextFollowup)}</dd></div>
+        <div class="info-row"><dt>Ráfaga pendiente</dt><dd>${escapeHtml(
+          burstStatus.pending
+            ? burstStatus.pendingCount > 1
+              ? `${burstStatus.pendingCount} mensajes`
+              : 'Sí'
+            : 'No',
+        )}</dd></div>
         <div class="info-row"><dt>Última actividad</dt><dd>${escapeHtml(
           formatDateTimeLong(conversation.updatedAt || conversation.createdAt),
         )}</dd></div>
       </dl>
     </section>
 
-    <section class="info-card">
-      <h3>Criterios de búsqueda</h3>
+    <section class="info-card info-card--context">
+      <h3>Contexto</h3>
       <div class="context-list">
         ${Object.entries(searchCriteria)
           .filter(([, value]) => value !== null && value !== '' && !(Array.isArray(value) && value.length === 0))
@@ -877,44 +1081,48 @@ function renderSimulatorInspector() {
           )
           .join('') || '<span class="context-chip">Sin criterios confirmados todavía</span>'}
       </div>
+      <details open class="json-panel">
+        <summary>Ver contexto completo</summary>
+        <pre class="json-block json-block--tall">${escapeHtml(
+          JSON.stringify(context, null, 2),
+        )}</pre>
+      </details>
     </section>
 
-    <section class="info-card">
-      <h3>Finca seleccionada</h3>
+    <section class="info-card info-card--context">
+      <h3>Registro operativo</h3>
       ${
-        selectedFinca
+        hasContextData
           ? `
-            <dl class="info-grid">
-              <div class="info-row"><dt>ID</dt><dd>${escapeHtml(
-                selectedFinca.finca_id || conversation.context?.selected_finca_id || '-',
+            <dl class="info-grid info-grid--compact">
+              <div class="info-row"><dt>ID conversación</dt><dd>${escapeHtml(conversation.id)}</dd></div>
+              <div class="info-row"><dt>Chatwoot</dt><dd>${escapeHtml(String(context.chatwoot?.conversation_id || '-'))}</dd></div>
+              <div class="info-row"><dt>Precio</dt><dd>${escapeHtml(
+                pricing.precio_noche ? `$${pricing.precio_noche}` : 'Sin precio confirmado',
               )}</dd></div>
-              <div class="info-row"><dt>Nombre</dt><dd>${escapeHtml(selectedFinca.nombre || '-')}</dd></div>
-              <div class="info-row"><dt>Zona</dt><dd>${escapeHtml(selectedFinca.zona || '-')}</dd></div>
+              <div class="info-row"><dt>Noches</dt><dd>${escapeHtml(String(pricing.noches || '-'))}</dd></div>
             </dl>
           `
-          : '<p class="inspector-empty">Todavía no hay finca elegida.</p>'
+          : '<p class="inspector-empty">Todavía no hay suficiente contexto operativo para mostrar.</p>'
       }
-    </section>
-
-    <section class="info-card">
-      <h3>Respuesta de propietario</h3>
-      ${
-        ownerResponse
-          ? `<pre class="json-block">${escapeHtml(JSON.stringify(ownerResponse, null, 2))}</pre>`
-          : '<p class="inspector-empty">Aún no hay confirmación del propietario.</p>'
-      }
-    </section>
-
-    <section class="info-card">
-      <h3>Pricing</h3>
-      <pre class="json-block">${escapeHtml(JSON.stringify(pricing, null, 2))}</pre>
-    </section>
-
-    <section class="info-card">
-      <h3>Contexto completo</h3>
-      <details open>
-        <summary>Ver JSON</summary>
-        <pre class="json-block">${escapeHtml(JSON.stringify(context, null, 2))}</pre>
+      <details class="json-panel">
+        <summary>Ver registro de base de datos</summary>
+        <pre class="json-block json-block--tall">${escapeHtml(
+          JSON.stringify(operationalRecord, null, 2),
+        )}</pre>
+      </details>
+      <details class="json-panel">
+        <summary>Ver pricing y respuesta del propietario</summary>
+        <pre class="json-block">${escapeHtml(
+          JSON.stringify(
+            {
+              pricing,
+              owner_response: ownerResponse,
+            },
+            null,
+            2,
+          ),
+        )}</pre>
       </details>
     </section>
   `;
@@ -937,6 +1145,8 @@ function renderSimulator() {
 async function bootstrapSimulator() {
   const payload = await api('/api/bootstrap');
   appState.workflow = payload.workflow;
+  appState.chatwootBaseUrl = payload.chatwootBaseUrl || '';
+  appState.chatwootAccountId = String(payload.chatwootAccountId || '1');
   appState.simulator.conversations = payload.conversations;
   appState.simulator.activeConversationId = payload.conversations[0]?.id || null;
   appState.simulator.loaded = true;
@@ -1092,19 +1302,15 @@ function renderMonitoringTable() {
   elements.monitoring.count.textContent = `${appState.monitoring.conversations.length} conversaciones`;
 
   if (!appState.monitoring.conversations.length) {
-    elements.monitoring.tableBody.innerHTML = `
-      <tr>
-        <td colspan="7">
-          <div class="inspector-empty">
-            <p>No hay conversaciones para los filtros seleccionados.</p>
-          </div>
-        </td>
-      </tr>
+    elements.monitoring.list.innerHTML = `
+      <div class="inspector-empty">
+        <p>No hay conversaciones para los filtros seleccionados.</p>
+      </div>
     `;
     return;
   }
 
-  elements.monitoring.tableBody.innerHTML = appState.monitoring.conversations
+  elements.monitoring.list.innerHTML = appState.monitoring.conversations
     .map((conversation) => {
       const selected = conversation.waId === appState.monitoring.selectedConversationId;
       const followOn = conversation.followOn;
@@ -1117,26 +1323,32 @@ function renderMonitoringTable() {
       const lastMessage = conversation.lastMessage?.content || '';
 
       return `
-        <tr class="monitor-row ${selected ? 'monitor-row--active' : ''}" data-id="${escapeHtml(conversation.waId)}">
-          <td>
+        <button class="monitor-list-item ${selected ? 'monitor-list-item--active' : ''}" data-id="${escapeHtml(conversation.waId)}">
+          <div class="monitor-list-item__main">
             <div class="monitor-primary">
               <strong>${escapeHtml(conversation.clientName)}</strong>
               <span>${escapeHtml(conversation.waId)}</span>
-              <small>${escapeHtml(lastMessage.slice(0, 96) || 'Sin mensajes')}</small>
             </div>
-          </td>
-          <td><span class="stage-chip">${escapeHtml(conversation.currentState || 'NEW')}</span></td>
-          <td><span class="monitor-badge ${conversation.agenteActivo ? 'monitor-badge--active' : 'monitor-badge--hitl'}">${escapeHtml(botLabel)}</span></td>
-          <td>${escapeHtml(conversation.waitingFor || 'CLIENT')}</td>
-          <td>${escapeHtml(selectedFinca)}</td>
-          <td>${escapeHtml(followOnLabel)}</td>
-          <td>${escapeHtml(lastInteraction)}</td>
-        </tr>
+            <p class="monitor-list-item__preview">${escapeHtml(lastMessage.slice(0, 140) || 'Sin mensajes')}</p>
+          </div>
+          <div class="monitor-list-item__meta">
+            <div class="monitor-list-item__chips">
+              <span class="stage-chip">${escapeHtml(conversation.currentState || 'NEW')}</span>
+              <span class="monitor-badge ${conversation.agenteActivo ? 'monitor-badge--active' : 'monitor-badge--hitl'}">${escapeHtml(botLabel)}</span>
+            </div>
+            <div class="monitor-list-item__facts">
+              <span>Esperando: ${escapeHtml(conversation.waitingFor || 'CLIENT')}</span>
+              <span>Finca: ${escapeHtml(selectedFinca)}</span>
+              <span>${escapeHtml(followOnLabel)}</span>
+            </div>
+            <span class="monitor-list-item__time">${escapeHtml(lastInteraction)}</span>
+          </div>
+        </button>
       `;
     })
     .join('');
 
-  for (const row of elements.monitoring.tableBody.querySelectorAll('.monitor-row')) {
+  for (const row of elements.monitoring.list.querySelectorAll('.monitor-list-item')) {
     row.addEventListener('click', () => {
       appState.monitoring.selectedConversationId = row.dataset.id;
       renderMonitoringTable();
@@ -1152,18 +1364,19 @@ function renderMonitoringDetail() {
     elements.monitoring.detailTitle.textContent = 'Selecciona una conversación';
     elements.monitoring.detailBody.innerHTML = `
       <div class="inspector-empty">
-        <p>Selecciona una conversación para ver contexto, follow ons y mensajes recientes.</p>
+        <p>Haz click en una conversación para ver un resumen operativo y abrirla en Chatwoot.</p>
       </div>
     `;
     return;
   }
 
   const conversation = detail.conversation || {};
-  const context = conversation.context || {};
-  const followOn = detail.followOn || [];
-  const messages = detail.messages || [];
   const settingsStatus = detail.settingsStatus || appState.monitoring.settingsStatus || {};
-  const selectionNotifications = detail.selectionNotifications || [];
+  const selectedFincaName = conversation.selected_finca?.nombre || conversation.selected_finca_id || 'Sin elegir';
+  const chatwootUrl =
+    appState.chatwootBaseUrl && conversation.chatwoot_id
+      ? `${String(appState.chatwootBaseUrl).replace(/\/$/, '')}/app/accounts/${encodeURIComponent(appState.chatwootAccountId)}/conversations/${encodeURIComponent(conversation.chatwoot_id)}`
+      : null;
 
   elements.monitoring.detailTitle.textContent = conversation.client_name || conversation.wa_id || 'Detalle';
   elements.monitoring.detailBody.innerHTML = `
@@ -1175,91 +1388,28 @@ function renderMonitoringDetail() {
         <div class="info-row"><dt>Etapa</dt><dd>${escapeHtml(conversation.current_state || '-')}</dd></div>
         <div class="info-row"><dt>Esperando</dt><dd>${escapeHtml(conversation.waiting_for || 'CLIENT')}</dd></div>
         <div class="info-row"><dt>Bot activo</dt><dd>${conversation.agente_activo === false ? 'No' : 'Sí'}</dd></div>
-        <div class="info-row"><dt>Finca elegida</dt><dd>${escapeHtml(
-          conversation.selected_finca?.nombre || conversation.selected_finca_id || 'Sin elegir',
-        )}</dd></div>
+        <div class="info-row"><dt>Finca elegida</dt><dd>${escapeHtml(selectedFincaName)}</dd></div>
         <div class="info-row"><dt>Override propietario</dt><dd>${settingsStatus.ownerContactOverrideActive ? 'Activo' : 'No'}</dd></div>
       </dl>
-    </section>
-
-    <section class="info-card">
-      <h3>Follow on</h3>
-      ${
-        followOn.length
-          ? `<div class="monitor-follow-list">
-              ${followOn
-                .map(
-                  (entry) => `
-                    <article class="monitor-follow-card">
-                      <strong>${escapeHtml(entry.status || 'sin estado')}</strong>
-                      <span>${escapeHtml(formatDateTimeLong(entry.scheduledFor || entry.createdAt))}</span>
-                      <p>${escapeHtml(entry.message || 'Sin mensaje')}</p>
-                      <small>${escapeHtml(entry.cancelReason || '')}</small>
-                    </article>
-                  `,
-                )
-                .join('')}
-            </div>`
-          : '<p class="inspector-empty">No hay follow ons registrados.</p>'
-      }
-    </section>
-
-    <section class="info-card">
-      <h3>Notificaciones de selección</h3>
-      ${
-        selectionNotifications.length
-          ? `<div class="monitor-follow-list">
-              ${selectionNotifications
-                .map(
-                  (entry) => `
-                    <article class="monitor-follow-card">
-                      <strong>${escapeHtml(entry.status || 'sin estado')}</strong>
-                      <span>${escapeHtml(entry.recipientPhone || '-')}</span>
-                      <p>${escapeHtml(entry.selectedFincaId || 'Sin finca')} · ${escapeHtml(entry.templateName || '-')}</p>
-                      <small>${escapeHtml(entry.errorMessage || entry.providerMessageId || '')}</small>
-                    </article>
-                  `,
-                )
-                .join('')}
-            </div>`
-          : '<p class="inspector-empty">No hay alertas de selección registradas.</p>'
-      }
-    </section>
-
-    <section class="info-card">
-      <h3>Mensajes recientes</h3>
-      <div class="monitor-message-list">
+      <div class="monitor-detail-actions">
         ${
-          messages.length
-            ? messages
-                .slice(-12)
-                .map(
-                  (message) => `
-                    <article class="monitor-message-card">
-                      <header>
-                        <strong>${escapeHtml(message.direction)}</strong>
-                        <span>${escapeHtml(formatDateTimeLong(message.createdAt))}</span>
-                      </header>
-                      <p>${escapeHtml(message.content || '')}</p>
-                      <small>${escapeHtml(message.agentUsed || '')}</small>
-                    </article>
-                  `,
-                )
-                .join('')
-            : '<p class="inspector-empty">No hay mensajes todavía.</p>'
+          chatwootUrl
+            ? `<a class="primary-btn monitor-detail-link" href="${escapeHtml(chatwootUrl)}" target="_blank" rel="noreferrer">Abrir en Chatwoot</a>`
+            : `<span class="chat-panel__badge">Sin link disponible de Chatwoot</span>`
         }
       </div>
-    </section>
-
-    <section class="info-card">
-      <h3>Contexto completo</h3>
-      <pre class="json-block">${escapeHtml(JSON.stringify(context, null, 2))}</pre>
     </section>
   `;
 }
 
 async function loadConversationDetail(waId) {
   try {
+    elements.monitoring.detailTitle.textContent = 'Cargando detalle...';
+    elements.monitoring.detailBody.innerHTML = `
+      <div class="inspector-empty">
+        <p>Cargando conversación...</p>
+      </div>
+    `;
     const detail = await api(`/api/monitoring/conversations/${encodeURIComponent(waId)}`);
     appState.monitoring.selectedConversation = detail;
     renderMonitoringDetail();
@@ -1283,15 +1433,11 @@ async function loadMonitoringData() {
     appState.timezone = payload.timezone || appState.timezone;
     elements.monitoring.hours.textContent = `${payload.businessHours.start}-${payload.businessHours.end} · ${payload.timezone}`;
 
-    if (!appState.monitoring.selectedConversationId && appState.monitoring.conversations[0]) {
-      appState.monitoring.selectedConversationId = appState.monitoring.conversations[0].waId;
-    }
-
     if (
       appState.monitoring.selectedConversationId &&
       !appState.monitoring.conversations.some((item) => item.waId === appState.monitoring.selectedConversationId)
     ) {
-      appState.monitoring.selectedConversationId = appState.monitoring.conversations[0]?.waId || null;
+      appState.monitoring.selectedConversationId = null;
       appState.monitoring.selectedConversation = null;
     }
 

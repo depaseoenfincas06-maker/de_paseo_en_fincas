@@ -7,31 +7,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/kanban.css" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div class="workspace-shell">
-      <header class="workspace-header">
-        <div class="brand">
-          <div class="brand__avatar">DP</div>
+      <header class="kb-header">
+        <div class="kb-header__left">
+          <img src="/depaseoenfincas-logo.png" alt="Logo" class="kb-logo" />
           <div>
-            <p class="eyebrow">Ops Console</p>
-            <h1>De Paseo en Fincas</h1>
+            <p class="kb-eyebrow">De Paseo en Fincas</p>
+            <h1 class="kb-title">Ops Console</h1>
           </div>
         </div>
-
-        <div class="workspace-header__status">
-          <div id="global-bot-badge" class="chat-panel__badge">Bot activo</div>
-          <div id="global-followup-badge" class="chat-panel__badge">Follow-on 08:00-22:00</div>
-          <div id="global-owner-override-badge" class="chat-panel__badge">Propietario real</div>
-          <div id="global-selection-notification-badge" class="chat-panel__badge">Notif. selección</div>
+        <div class="kb-header__right">
+          <div class="kb-nav" id="main-nav">
+            <a href="#simulator" class="kb-nav__link" data-page="simulator" data-tab="simulator">Simulador</a>
+            <a href="/monitoring" class="kb-nav__link" data-page="monitoring">Monitoreo</a>
+            <a href="/kanban.html" class="kb-nav__link" data-page="kanban">Pipeline</a>
+            <a href="#settings" class="kb-nav__link" data-page="settings" data-tab="settings">Ajustes</a>
+          </div>
         </div>
       </header>
 
-      <nav class="workspace-tabs" aria-label="Secciones">
+      <div class="kb-status-bar">
+        <div id="global-bot-badge" class="chat-panel__badge">Bot activo</div>
+        <div id="global-followup-badge" class="chat-panel__badge">Follow-on 08:00-22:00</div>
+        <div id="global-owner-override-badge" class="chat-panel__badge">Propietario real</div>
+        <div id="global-selection-notification-badge" class="chat-panel__badge">Notif. selección</div>
+      </div>
+
+      <nav class="workspace-tabs" aria-label="Secciones" style="display:none">
         <a href="/simulator" class="workspace-tab" data-tab="simulator">Simulador</a>
         <a href="/monitoring" class="workspace-tab" data-tab="monitoring">Monitoreo</a>
         <a href="/settings" class="workspace-tab" data-tab="settings">Settings</a>
@@ -42,14 +51,16 @@
           <div class="app-shell workspace-embedded">
             <aside class="sidebar">
               <div class="sidebar__top">
-                <div class="brand">
-                  <div class="brand__avatar">DP</div>
+                <div class="sidebar__hero">
                   <div>
                     <p class="eyebrow">Local Lab</p>
                     <h2>Simulador</h2>
                   </div>
+                  <p class="sidebar__caption">
+                    Crea conversaciones nuevas y prueba el agente en sesiones aisladas.
+                  </p>
                 </div>
-                <button id="new-conversation-btn" class="primary-btn">Nueva conversación</button>
+                <button id="new-conversation-btn" class="primary-btn primary-btn--block">Nueva conversación</button>
               </div>
 
               <div class="sidebar__search">
@@ -169,9 +180,9 @@
 
             <section id="monitor-summary" class="monitor-summary"></section>
 
-            <section class="monitor-layout">
-              <div class="monitor-table-card">
-                <div class="monitor-table-card__header">
+            <section class="monitor-layout monitor-layout--stack">
+              <div class="monitor-table-card monitor-table-card--list">
+                <div class="monitor-table-card__header monitor-table-card__header--stack">
                   <div>
                     <p class="eyebrow">Pipeline vivo</p>
                     <h2>Conversaciones</h2>
@@ -181,34 +192,21 @@
                     <div id="monitor-count" class="chat-panel__badge">0 conversaciones</div>
                   </div>
                 </div>
-                <div class="monitor-table-wrap">
-                  <table class="monitor-table">
-                    <thead>
-                      <tr>
-                        <th>Cliente</th>
-                        <th>Etapa</th>
-                        <th>Bot</th>
-                        <th>Esperando</th>
-                        <th>Finca</th>
-                        <th>Follow on</th>
-                        <th>Última actividad</th>
-                      </tr>
-                    </thead>
-                    <tbody id="monitor-table-body"></tbody>
-                  </table>
+                <div class="monitor-list-wrap">
+                  <div id="monitor-list" class="monitor-list"></div>
                 </div>
               </div>
 
               <aside class="monitor-detail-card">
                 <header class="monitor-detail-card__header">
                   <div>
-                    <p class="eyebrow">Detalle</p>
+                    <p class="eyebrow">Resumen</p>
                     <h2 id="monitor-detail-title">Selecciona una conversación</h2>
                   </div>
                 </header>
                 <div id="monitor-detail-body" class="monitor-detail-card__body">
                   <div class="inspector-empty">
-                    <p>Selecciona una conversación para ver contexto, follow ons y mensajes recientes.</p>
+                    <p>Haz click en una conversación para ver un resumen operativo y abrirla en Chatwoot.</p>
                   </div>
                 </div>
               </aside>
@@ -221,110 +219,143 @@
             <header class="settings-header">
               <div>
                 <p class="eyebrow">Configuración viva</p>
-                <h2>Settings del agente</h2>
+                <h2>Configuración del asistente</h2>
               </div>
               <div class="settings-header__actions">
                 <div id="settings-save-state" class="chat-panel__badge">Sin cambios</div>
-                <button id="settings-save-btn" class="primary-btn">Guardar settings</button>
+                <button id="settings-save-btn" class="primary-btn">Guardar cambios</button>
               </div>
             </header>
 
             <div id="settings-alert" class="settings-alert" hidden></div>
 
-            <form id="settings-form" class="settings-grid">
-              <section class="settings-card">
-                <h3>Tono y estilo</h3>
-                <label class="settings-field">
-                  <span>Preset de tono</span>
-                  <select id="settings-tone-preset" name="tonePreset">
-                    <option value="calido_profesional">Cálido profesional</option>
-                    <option value="premium_cercano">Premium cercano</option>
-                    <option value="directo_eficiente">Directo eficiente</option>
-                  </select>
-                </label>
-                <label class="settings-field">
-                  <span>Instrucciones extra</span>
-                  <textarea
-                    id="settings-tone-extra"
-                    name="toneGuidelinesExtra"
-                    rows="5"
-                    placeholder="Ejemplo: evita diminutivos, mantén tono premium, no uses más de 1 emoji."
-                  ></textarea>
-                </label>
-              </section>
+            <section id="settings-overview" class="settings-overview"></section>
 
-              <section class="settings-card settings-card--wide">
-                <h3>Mensaje inicial y handoff</h3>
+            <form id="settings-form" class="settings-grid">
+              <section class="settings-card settings-card--wide settings-card--hero">
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Cómo responde el asistente</h3>
+                    <p class="settings-card__subtext">
+                      Aquí defines el estilo del asistente y el primer mensaje que verá el cliente al iniciar una conversación.
+                    </p>
+                  </div>
+                </div>
+                <div class="settings-row settings-row--double">
+                  <label class="settings-field">
+                    <span>Estilo de conversación</span>
+                    <select id="settings-tone-preset" name="tonePreset">
+                      <option value="calido_profesional">Cálido profesional</option>
+                      <option value="premium_cercano">Premium cercano</option>
+                      <option value="directo_eficiente">Directo eficiente</option>
+                    </select>
+                    <small class="settings-help">Elige cómo quieres que suene el asistente en general.</small>
+                  </label>
+                  <label class="settings-field">
+                    <span>Indicaciones adicionales (opcional)</span>
+                    <textarea
+                      id="settings-tone-extra"
+                      name="toneGuidelinesExtra"
+                      rows="5"
+                      placeholder="Ejemplo: evita diminutivos, mantén un tono premium o usa pocas emojis."
+                    ></textarea>
+                    <small class="settings-help">Úsalo solo si quieres ajustar detalles del estilo de respuesta.</small>
+                  </label>
+                </div>
                 <label class="settings-field">
-                  <span>Mensaje inicial</span>
+                  <span>Primer mensaje de bienvenida</span>
                   <textarea
                     id="settings-initial-message"
                     name="initialMessageTemplate"
-                    rows="10"
-                    placeholder="Mensaje que el agente usa al abrir conversación."
+                    rows="9"
+                    placeholder="Mensaje que el asistente enviará cuando se abra una conversación nueva."
                   ></textarea>
+                  <small class="settings-help">Este es el saludo inicial que verá el cliente al comenzar la atención.</small>
                 </label>
                 <label class="settings-field">
-                  <span>Mensaje de handoff</span>
+                  <span>Mensaje cuando pasa a una persona del equipo</span>
                   <textarea
                     id="settings-handoff-message"
                     name="handoffMessage"
                     rows="4"
-                    placeholder="Mensaje cuando el bot cede a humano."
+                    placeholder="Mensaje que se enviará cuando el asistente deje la conversación en manos del equipo."
                   ></textarea>
+                  <small class="settings-help">Se usa cuando la conversación deja de ser atendida por el asistente.</small>
                 </label>
               </section>
 
               <section class="settings-card">
-                <h3>Inventario</h3>
-                <label class="settings-field settings-field--inline">
-                  <span>Inventario habilitado</span>
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Base de propiedades</h3>
+                    <p class="settings-card__subtext">Define de dónde lee el asistente la información de las fincas.</p>
+                  </div>
+                </div>
+                <label class="settings-field settings-field--inline settings-toggle">
+                  <span>Usar la base de propiedades</span>
                   <input id="settings-inventory-enabled" name="inventorySheetEnabled" type="checkbox" />
                 </label>
                 <label class="settings-field">
-                  <span>Spreadsheet ID</span>
+                  <span>ID del archivo de Google Sheets</span>
                   <input id="settings-inventory-doc" name="inventorySheetDocumentId" type="text" />
+                  <small class="settings-help">Normalmente no necesitas cambiarlo. Modifícalo solo si tu equipo cambió el archivo fuente.</small>
                 </label>
                 <label class="settings-field">
-                  <span>Pestaña</span>
+                  <span>Nombre de la pestaña</span>
                   <input id="settings-inventory-tab" name="inventorySheetTabName" type="text" />
+                  <small class="settings-help">Es la hoja dentro del archivo donde están cargadas las propiedades.</small>
                 </label>
                 <label class="settings-field">
-                  <span>Máximo de fincas por respuesta</span>
+                  <span>Máximo de opciones por mensaje</span>
                   <input id="settings-max-properties" name="maxPropertiesToShow" type="number" min="1" max="10" />
+                  <small class="settings-help">Limita cuántas propiedades puede mostrar el asistente en una sola respuesta.</small>
                 </label>
               </section>
 
               <section class="settings-card">
-                <h3>Propietarios y operación</h3>
-                <label class="settings-field settings-field--inline">
-                  <span>Bot global habilitado</span>
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Operación general</h3>
+                    <p class="settings-card__subtext">Controla si el asistente atiende, qué zonas comunica y qué número usar en pruebas.</p>
+                  </div>
+                </div>
+                <label class="settings-field settings-field--inline settings-toggle">
+                  <span>Asistente automático activo</span>
                   <input id="settings-global-bot" name="globalBotEnabled" type="checkbox" />
                 </label>
                 <label class="settings-field">
-                  <span>Teléfono override del propietario</span>
+                  <span>Número de prueba para el propietario</span>
                   <input
                     id="settings-owner-override"
                     name="ownerContactOverride"
                     type="text"
-                    placeholder="Si tiene valor, se usa este número en vez del real."
+                    placeholder="Si escribes un número aquí, el asistente usará ese número en lugar del real."
                   />
+                  <small class="settings-help">Ideal para pruebas. Si lo dejas vacío, se usará el número real del propietario.</small>
                 </label>
                 <label class="settings-field">
-                  <span>Zonas de cobertura</span>
+                  <span>Zonas que quieres comunicar como cobertura</span>
                   <textarea
                     id="settings-coverage-zones"
                     name="coverageZonesText"
-                    rows="4"
-                    placeholder="Zonas que se mencionan como cobertura comercial."
+                    rows="5"
+                    placeholder="Escribe aquí las zonas que el asistente debe mencionar como parte de la cobertura comercial."
                   ></textarea>
+                  <small class="settings-help">Puedes usar una lista simple de lugares o una explicación breve.</small>
                 </label>
               </section>
 
               <section class="settings-card">
-                <h3>Notificación de selección</h3>
-                <label class="settings-field settings-field--inline">
-                  <span>Notificación habilitada</span>
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Aviso interno cuando el cliente elige una finca</h3>
+                    <p class="settings-card__subtext">
+                      Estas alertas se envían a tu equipo para continuar el proceso cuando el cliente elige una propiedad.
+                    </p>
+                  </div>
+                </div>
+                <label class="settings-field settings-field--inline settings-toggle">
+                  <span>Enviar aviso interno</span>
                   <input
                     id="settings-selection-enabled"
                     name="selectionNotificationEnabled"
@@ -332,64 +363,75 @@
                   />
                 </label>
                 <label class="settings-field">
-                  <span>Teléfonos destino</span>
+                  <span>Números que recibirán el aviso</span>
                   <input
                     id="settings-selection-recipients"
                     name="selectionNotificationRecipients"
                     type="text"
                     placeholder="573001112233, 573004445566"
                   />
+                  <small class="settings-help">Escríbelos separados por comas. Ejemplo: 573001112233, 573004445566.</small>
                 </label>
-                <label class="settings-field">
-                  <span>Nombre del template</span>
-                  <input
-                    id="settings-selection-template-name"
-                    name="selectionNotificationTemplateName"
-                    type="text"
-                    placeholder="staff_finca_selected_v1"
-                  />
-                </label>
-                <label class="settings-field">
-                  <span>Idioma del template</span>
-                  <input
-                    id="settings-selection-template-language"
-                    name="selectionNotificationTemplateLanguage"
-                    type="text"
-                    placeholder="es_CO"
-                  />
-                </label>
+                <div class="settings-row settings-row--double">
+                  <label class="settings-field">
+                    <span>Nombre del template de WhatsApp</span>
+                    <input
+                      id="settings-selection-template-name"
+                      name="selectionNotificationTemplateName"
+                      type="text"
+                      placeholder="staff_finca_selected_v1"
+                    />
+                    <small class="settings-help">Campo avanzado. Si no sabes qué poner, déjalo tal como está.</small>
+                  </label>
+                  <label class="settings-field">
+                    <span>Idioma del template</span>
+                    <input
+                      id="settings-selection-template-language"
+                      name="selectionNotificationTemplateLanguage"
+                      type="text"
+                      placeholder="es_CO"
+                    />
+                    <small class="settings-help">Campo avanzado. Normalmente no necesitas cambiarlo.</small>
+                  </label>
+                </div>
                 <p class="settings-help">
-                  Esta alerta se dispara cuando el cliente elige una finca y el flujo entra a
-                  <strong>VERIFYING_AVAILABILITY</strong>.
+                  Este aviso se envía cuando el cliente elige una finca y el equipo debe continuar la gestión.
                 </p>
               </section>
 
               <section class="settings-card settings-card--wide">
-                <h3>Follow-ons</h3>
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Recordatorios automáticos</h3>
+                    <p class="settings-card__subtext">
+                      Configura cuándo y con qué mensaje el asistente vuelve a escribir si el cliente deja de responder.
+                    </p>
+                  </div>
+                </div>
                 <div class="settings-row settings-row--triple">
-                  <label class="settings-field settings-field--inline">
-                    <span>Follow-on habilitado</span>
+                  <label class="settings-field settings-field--inline settings-toggle">
+                    <span>Activar recordatorios automáticos</span>
                     <input id="settings-followup-enabled" name="followupEnabled" type="checkbox" />
                   </label>
                   <label class="settings-field">
-                    <span>Desde</span>
+                    <span>Hora de inicio</span>
                     <input id="settings-followup-start" name="followupWindowStart" type="time" />
                   </label>
                   <label class="settings-field">
-                    <span>Hasta</span>
+                    <span>Hora límite</span>
                     <input id="settings-followup-end" name="followupWindowEnd" type="time" />
                   </label>
                 </div>
                 <label class="settings-field">
-                  <span>Mensaje follow-on en qualifying</span>
+                  <span>Mensaje cuando aún faltan datos del cliente</span>
                   <textarea id="settings-followup-qualifying" name="followupMessageQualifying" rows="4"></textarea>
                 </label>
                 <label class="settings-field">
-                  <span>Mensaje follow-on en offering</span>
+                  <span>Mensaje cuando ya se mostraron opciones</span>
                   <textarea id="settings-followup-offering" name="followupMessageOffering" rows="4"></textarea>
                 </label>
                 <label class="settings-field">
-                  <span>Mensaje follow-on en verifying availability</span>
+                  <span>Mensaje mientras se confirma disponibilidad</span>
                   <textarea
                     id="settings-followup-verifying"
                     name="followupMessageVerifyingAvailability"
@@ -420,5 +462,6 @@
     </template>
 
     <script type="module" src="/app.js"></script>
+    <script src="/nav.js"></script>
   </body>
 </html>

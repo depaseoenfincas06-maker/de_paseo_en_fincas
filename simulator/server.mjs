@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import express from 'express';
 import pkg from 'pg';
 
-const { Pool } = pkg;
+import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_media_relay.mjs';
+
+const { Pool, types } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +21,10 @@ const N8N_BASE_URL = process.env.N8N_BASE_URL;
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
 const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
+const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
+const CHATWOOT_ACCOUNT_ID = process.env.CHATWOOT_ACCOUNT_ID || '1';
 const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
+const BURST_WINDOW_MS = 4000;
 const RAW_SUPABASE_DB_PORT = Number(process.env.SUPABASE_DB_PORT || 0);
 const SUPABASE_DB_PORT =
   /\.pooler\.supabase\.com$/i.test(String(SUPABASE_DB_HOST || '')) && RAW_SUPABASE_DB_PORT === 5432
@@ -32,6 +37,17 @@ if (!N8N_BASE_URL) {
 
 const publicDir = path.join(rootDir, 'public');
 const POOL_SYMBOL = Symbol.for('depaseo.simulator.pg.pool');
+
+types.setTypeParser(1114, (value) => {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim().replace(' ', 'T');
+  return new Date(normalized.endsWith('Z') ? normalized : `${normalized}Z`);
+});
+
+types.setTypeParser(1184, (value) => {
+  if (value === null || value === undefined) return null;
+  return new Date(value);
+});
 
 function createPool() {
   return new Pool({
@@ -55,7 +71,6 @@ if (!globalThis[POOL_SYMBOL]) {
 }
 
 const simulatorWebhookUrl = `${N8N_BASE_URL.replace(/\/$/, '')}/webhook/${SIMULATOR_WEBHOOK_PATH}`;
-const outboundQueueByConversation = new Map();
 const recentClientMessageIds = new Map();
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -90,10 +105,28 @@ const DEFAULT_SETTINGS = Object.freeze({
   updatedAt: null,
 });
 
-function toIsoString(value) {
+function parseTimestamp(value) {
   if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (
+      /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(trimmed) &&
+      !/(Z|[+-]\d{2}(?::?\d{2})?)$/i.test(trimmed)
+    ) {
+      const utcDate = new Date(trimmed.replace(' ', 'T') + 'Z');
+      return Number.isNaN(utcDate.getTime()) ? null : utcDate;
+    }
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toIsoString(value) {
+  const date = parseTimestamp(value);
+  return date ? date.toISOString() : null;
 }
 
 function toBogotaDateKey(value) {
@@ -132,6 +165,22 @@ function matchesTimeframe(value, timeframe = 'all') {
 
 function compactText(value) {
   return String(value || '').trim();
+}
+
+function toSerializable(value) {
+  if (value instanceof Date) return toIsoString(value);
+  if (Array.isArray(value)) return value.map((item) => toSerializable(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, toSerializable(entry)]));
+  }
+  return value;
+}
+
+function serializeConversationRecord(conversation) {
+  if (!conversation) return null;
+  return Object.fromEntries(
+    Object.entries(conversation).map(([key, value]) => [key, toSerializable(value)]),
+  );
 }
 
 function presentApiError(error) {
@@ -652,24 +701,7 @@ async function sendWebhookMessage({ waId, chatInput, clientName, clientMessageId
 }
 
 function enqueueWebhookMessage({ waId, chatInput, clientName, clientMessageId, localSequence }) {
-  const previous = outboundQueueByConversation.get(waId) || Promise.resolve();
-  const next = previous
-    .catch(() => null)
-    .then(() =>
-      sendWebhookMessage({ waId, chatInput, clientName, clientMessageId, localSequence }),
-    );
-  const settled = next.catch(() => null);
-
-  outboundQueueByConversation.set(
-    waId,
-    settled.finally(() => {
-      if (outboundQueueByConversation.get(waId) === settled) {
-        outboundQueueByConversation.delete(waId);
-      }
-    }),
-  );
-
-  return next;
+  return sendWebhookMessage({ waId, chatInput, clientName, clientMessageId, localSequence });
 }
 
 async function getConversationRow(conversationId) {
@@ -916,6 +948,8 @@ function buildMonitoringSummary(conversations) {
 function buildContext(conversation) {
   if (!conversation) return null;
 
+  const operationalRecord = serializeConversationRecord(conversation);
+
   return {
     conversation: {
       id: conversation.wa_id,
@@ -923,7 +957,9 @@ function buildContext(conversation) {
       current_state: conversation.current_state,
       previous_state: conversation.previous_state,
       started_at: conversation.created_at,
-      channel: 'SIMULATOR',
+      last_interaction: conversation.last_interaction,
+      updated_at: conversation.updated_at,
+      channel: conversation.chatwoot_id ? 'CHATWOOT' : 'SIMULATOR',
     },
     search_criteria: conversation.search_criteria || {},
     selected_finca_id: conversation.selected_finca_id,
@@ -949,8 +985,76 @@ function buildContext(conversation) {
       next_followup_at: conversation.next_followup_at,
       waiting_for: conversation.waiting_for,
     },
+    huespedes: conversation.huespedes || null,
+    huespedes_completos: conversation.huespedes_completos ?? false,
+    titular_data: conversation.titular_data || null,
+    correcciones: conversation.correcciones || null,
+    confirmacion: {
+      enviada: conversation.confirmacion_enviada ?? false,
+      aceptada: conversation.confirmacion_aceptada ?? false,
+      version: conversation.confirmacion_version ?? 0,
+    },
+    owner_tracking: {
+      contacted_at: conversation.owner_contacted_at,
+      confirmed_payment: conversation.owner_confirmed_payment ?? false,
+      response: conversation.owner_response || null,
+    },
+    lifecycle: {
+      state_changed_at: conversation.state_changed_at,
+      closed_at: conversation.closed_at,
+      loss_reason: conversation.loss_reason || null,
+      hitl_activated_at: conversation.hitl_activated_at,
+      last_message_from: conversation.last_message_from || null,
+    },
+    chatwoot: {
+      conversation_id: conversation.chatwoot_id || null,
+    },
     agente_activo: conversation.agente_activo,
     hitl_reason: conversation.hitl_reason,
+    operational_record: operationalRecord,
+  };
+}
+
+function buildBurstStatus(conversation, messages = []) {
+  if (!conversation) {
+    return {
+      pending: false,
+      pendingCount: 0,
+      waitingUntil: null,
+      activeClaim: null,
+    };
+  }
+
+  const lastProcessedInboundAt = parseTimestamp(conversation.last_processed_inbound_at)?.getTime()
+    ?? Number.NEGATIVE_INFINITY;
+  const pendingBurstLastMessageAt = parseTimestamp(conversation.pending_burst_last_message_at)?.getTime()
+    ?? Number.NEGATIVE_INFINITY;
+
+  if (!conversation.active_burst_claim && pendingBurstLastMessageAt <= lastProcessedInboundAt) {
+    return {
+      pending: false,
+      pendingCount: 0,
+      waitingUntil: null,
+      activeClaim: null,
+    };
+  }
+
+  const pendingMessages = (messages || []).filter((message) => {
+    if (message.direction !== 'INBOUND') return false;
+    const createdAt = parseTimestamp(message.created_at || message.createdAt)?.getTime();
+    if (!Number.isFinite(createdAt)) return false;
+    return createdAt > lastProcessedInboundAt;
+  });
+
+  const waitingUntil = conversation.pending_burst_last_message_at
+    ? new Date((parseTimestamp(conversation.pending_burst_last_message_at)?.getTime() || 0) + BURST_WINDOW_MS).toISOString()
+    : null;
+
+  return {
+    pending: pendingMessages.length > 0 || Boolean(conversation.active_burst_claim),
+    pendingCount: pendingMessages.length,
+    waitingUntil,
+    activeClaim: conversation.active_burst_claim || null,
   };
 }
 
@@ -958,12 +1062,13 @@ async function getConversationSnapshot(record) {
   const conversation = await getConversationRow(record.id);
   const messages = await getMessages(record.id);
   const lastMessage = messages.at(-1) || null;
+  const burstStatus = buildBurstStatus(conversation, messages);
 
   return {
     id: record.id,
     title: record.title,
     createdAt: record.createdAt,
-    updatedAt: conversation?.updated_at || record.updatedAt || record.createdAt,
+    updatedAt: toIsoString(conversation?.updated_at || record.updatedAt || record.createdAt),
     stage: conversation?.current_state || 'NEW',
     waitingFor: conversation?.waiting_for || 'CLIENT',
     agenteActivo: conversation?.agente_activo ?? true,
@@ -971,7 +1076,7 @@ async function getConversationSnapshot(record) {
       ? {
           direction: lastMessage.direction,
           content: lastMessage.content,
-          created_at: lastMessage.created_at,
+          created_at: toIsoString(lastMessage.created_at),
         }
       : null,
     messages: messages.map((message) => ({
@@ -981,10 +1086,11 @@ async function getConversationSnapshot(record) {
       messageType: message.message_type,
       stateAtTime: message.state_at_time,
       agentUsed: message.agent_used,
-      createdAt: message.created_at,
+      createdAt: toIsoString(message.created_at),
     })),
     context: buildContext(conversation),
     conversationRow: conversation,
+    burstStatus,
   };
 }
 
@@ -1016,6 +1122,8 @@ function createApp() {
         workflowName: 'De paseo en fincas customer agent',
         workflowId: SIMULATOR_WEBHOOK_PATH,
       },
+      chatwootBaseUrl: CHATWOOT_BASE_URL,
+      chatwootAccountId: CHATWOOT_ACCOUNT_ID,
       settings,
       conversations,
     });
@@ -1060,21 +1168,91 @@ function createApp() {
   }
   });
 
+  app.post('/api/chatwoot/send-drive-asset', async (req, res) => {
+    const payload = req.body || {};
+    const chatwootId = compactText(payload.chatwoot_id);
+    const downloadUrl = compactText(payload.download_url);
+    const sourceUrl = compactText(payload.source_url) || downloadUrl;
+    const propertyTitle = compactText(payload.property_title) || null;
+    const caption = payload.caption == null ? '' : String(payload.caption);
+    const privateMessage = normalizeBoolean(payload.private, false);
+    const chatwootBaseUrl = compactText(payload.chatwoot_base_url || CHATWOOT_BASE_URL);
+    const chatwootAccountId = compactText(payload.chatwoot_account_id || CHATWOOT_ACCOUNT_ID) || '1';
+    const chatwootApiToken = compactText(payload.chatwoot_api_token || process.env.CHATWOOT_API_TOKEN || '');
+
+    if (!chatwootId) {
+      res.status(400).json({ ok: false, message: 'chatwoot_id is required' });
+      return;
+    }
+
+    if (!downloadUrl) {
+      res.status(400).json({ ok: false, message: 'download_url is required' });
+      return;
+    }
+
+    if (!chatwootBaseUrl || !chatwootApiToken) {
+      res.status(500).json({
+        ok: false,
+        message: 'Missing Chatwoot relay configuration',
+        details: {
+          chatwootBaseUrlPresent: Boolean(chatwootBaseUrl),
+          chatwootApiTokenPresent: Boolean(chatwootApiToken),
+        },
+      });
+      return;
+    }
+
+    try {
+      const file = await downloadAssetBuffer(downloadUrl, { sourceUrl });
+      const response = await sendChatwootAttachment({
+        chatwootBaseUrl,
+        chatwootAccountId,
+        chatwootApiToken,
+        chatwootId,
+        file,
+        caption,
+        privateMessage,
+      });
+
+      res.json({
+        ok: true,
+        chatwoot_id: chatwootId,
+        filename: file.filename,
+        contentType: file.contentType,
+        source_url: sourceUrl,
+        property_title: propertyTitle,
+        response,
+      });
+    } catch (error) {
+      const apiError = presentApiError(error);
+      const message = String(error?.message || apiError.message || 'chatwoot_media_relay_failed');
+
+      res.status(502).json({
+        ok: false,
+        message: apiError.message,
+        error: message,
+        chatwoot_id: chatwootId,
+        source_url: sourceUrl,
+        property_title: propertyTitle,
+      });
+    }
+  });
+
   app.post('/api/conversations', async (_req, res) => {
-  try {
-    const record = await createSimulatorConversationRecord();
-    const snapshot = await getConversationSnapshot(record);
-    res.status(201).json(snapshot);
-  } catch (error) {
-    const apiError = presentApiError(error);
-    res.status(500).json({
-      message: apiError.message,
-    });
-  }
+    try {
+      const record = await createSimulatorConversationRecord();
+      const snapshot = await getConversationSnapshot(record);
+      res.status(201).json(snapshot);
+    } catch (error) {
+      const apiError = presentApiError(error);
+      res.status(500).json({
+        message: apiError.message,
+      });
+    }
   });
 
   app.get('/api/conversations', async (_req, res) => {
-  try {
+    try {
     const conversations = await listConversationSnapshots();
     res.json(conversations);
   } catch (error) {

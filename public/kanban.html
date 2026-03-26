@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pipeline · De Paseo en Fincas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/kanban.css" />
+  </head>
+  <body>
+    <div class="kb-shell">
+      <header class="kb-header">
+        <div class="kb-header__left">
+          <img src="/depaseoenfincas-logo.png" alt="Logo" class="kb-logo" />
+          <div>
+            <p class="kb-eyebrow">De Paseo en Fincas</p>
+            <h1 class="kb-title">Pipeline</h1>
+          </div>
+        </div>
+        <div class="kb-header__right">
+          <div class="kb-nav" id="main-nav">
+            <a href="/" class="kb-nav__link" data-page="simulator">Simulador</a>
+            <a href="/monitoring" class="kb-nav__link" data-page="monitoring">Monitoreo</a>
+            <a href="/kanban.html" class="kb-nav__link" data-page="kanban">Pipeline</a>
+            <a href="/settings" class="kb-nav__link" data-page="settings">Ajustes</a>
+          </div>
+          <select id="kb-timeframe" class="kb-select">
+            <option value="last7">Últimos 7 días</option>
+            <option value="last30" selected>Últimos 30 días</option>
+            <option value="all">Todo</option>
+          </select>
+          <button id="kb-refresh" class="kb-btn-icon" title="Refrescar">↻</button>
+        </div>
+      </header>
+
+      <main class="kb-board" id="kb-board">
+        <div class="kb-loading">Cargando pipeline...</div>
+      </main>
+
+      <aside class="kb-detail" id="kb-detail">
+        <div class="kb-detail__header">
+          <div>
+            <p class="kb-eyebrow">Detalle</p>
+            <h2 id="kb-detail-title">—</h2>
+          </div>
+          <button id="kb-detail-close" class="kb-btn-icon">✕</button>
+        </div>
+        <div class="kb-detail__body" id="kb-detail-body">
+          <p class="kb-detail__empty">Selecciona un lead para ver el historial.</p>
+        </div>
+      </aside>
+    </div>
+
+    <script type="module" src="/kanban.js"></script>
+    <script src="/nav.js"></script>
+  </body>
+</html>
