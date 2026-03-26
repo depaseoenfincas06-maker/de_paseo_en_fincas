@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-25T05:39:08.939Z",
+  "updatedAt": "2026-03-26T05:16:59.452Z",
   "createdAt": "2026-03-08T02:07:41.406Z",
   "id": "RrIniaNJCUC72nfI",
   "name": "De paseo en fincas customer agent",
@@ -535,7 +535,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        5712,
+        6624,
         0
       ],
       "id": "21fa9ced-bc9b-47be-97fd-c392f2e0e109",
@@ -576,7 +576,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        6304,
+        7200,
         0
       ],
       "id": "5c318b8c-0979-4658-9bcc-b18c56750850",
@@ -593,7 +593,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        6608,
+        7504,
         -96
       ],
       "credentials": {
@@ -606,7 +606,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('actualizar contexto1').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Code in JavaScript1').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
+        "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('actualizar contexto1').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Finalize offering outbound').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Finalize offering outbound').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Finalize offering outbound').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
         "options": {}
       },
       "id": "0fe46bb1-7674-4d0a-bc69-3aa9f1f17574",
@@ -614,7 +614,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        6608,
+        7504,
         112
       ],
       "credentials": {
@@ -636,7 +636,7 @@
           "conditions": [
             {
               "id": "21eae4b3-b997-4c6a-aa4a-343ef68ead51",
-              "leftValue": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+              "leftValue": "={{ $('Finalize offering outbound').item.json.should_immediate_loop === true }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -684,19 +684,19 @@
             {
               "id": "c904bbf4-953c-44cb-a3d7-221c5c3aee2e",
               "name": "forced_state",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_next_state || null }}",
+              "value": "={{ $('Finalize offering outbound').item.json.loop_next_state || null }}",
               "type": "string"
             },
             {
               "id": "1f3d9946-12ee-4488-9353-5cf3603d2dcd",
               "name": "loop_reason",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_reason || null }}",
+              "value": "={{ $('Finalize offering outbound').item.json.loop_reason || null }}",
               "type": "string"
             },
             {
               "id": "3f238684-1e5f-4b7b-93dc-8563b644d54e",
               "name": "owner_unavailable",
-              "value": "={{ $('Code in JavaScript1').item.json.loop_owner_unavailable === true }}",
+              "value": "={{ $('Finalize offering outbound').item.json.loop_owner_unavailable === true }}",
               "type": "boolean"
             }
           ]
@@ -723,7 +723,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        6912,
+        7808,
         0
       ],
       "credentials": {
@@ -1179,25 +1179,25 @@
             {
               "id": "19a2963e-b82d-4965-81f7-f2ffddc6da33",
               "name": "outbound_message",
-              "value": "={{ $('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '' }}",
+              "value": "={{ $('Finalize offering outbound').item.json.outbound_message || $('Finalize offering outbound').item.json.final_whatsapp_text || '' }}",
               "type": "string"
             },
             {
               "id": "8465f7e1-db6c-494d-9d64-45baa49526ff",
               "name": "final_whatsapp_text",
-              "value": "={{ $('Code in JavaScript1').item.json.final_whatsapp_text || $('Code in JavaScript1').item.json.outbound_message || '' }}",
+              "value": "={{ $('Finalize offering outbound').item.json.final_whatsapp_text || $('Finalize offering outbound').item.json.outbound_message || '' }}",
               "type": "string"
             },
             {
               "id": "aa2496c0-f955-47ce-bec3-28c1bd850825",
               "name": "tool_chosen",
-              "value": "={{ $('Code in JavaScript1').item.json.tool_chosen || 'NONE' }}",
+              "value": "={{ $('Finalize offering outbound').item.json.tool_chosen || 'NONE' }}",
               "type": "string"
             },
             {
               "id": "1056a125-f117-4a0f-b706-a77b5925a66a",
               "name": "action",
-              "value": "={{ $('Code in JavaScript1').item.json.action || 'RUN_TOOL' }}",
+              "value": "={{ $('Finalize offering outbound').item.json.action || 'RUN_TOOL' }}",
               "type": "string"
             },
             {
@@ -1215,37 +1215,37 @@
             {
               "id": "c6a1a567-6aee-4b71-9401-d819c57b1571",
               "name": "current_state_changed",
-              "value": "={{ $('Code in JavaScript1').item.json.current_state_changed === true }}",
+              "value": "={{ $('Finalize offering outbound').item.json.current_state_changed === true }}",
               "type": "boolean"
             },
             {
               "id": "ee4d8b93-7178-4c8b-9735-ae74049cf43e",
               "name": "send_to_customer",
-              "value": "={{ Boolean(String($('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '').trim()) }}",
+              "value": "={{ Boolean(String($('Finalize offering outbound').item.json.outbound_message || $('Finalize offering outbound').item.json.final_whatsapp_text || '').trim()) }}",
               "type": "boolean"
             },
             {
               "id": "e97ac9fd-39b7-40b1-8d2b-f1650b56f125",
               "name": "should_immediate_loop",
-              "value": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+              "value": "={{ $('Finalize offering outbound').item.json.should_immediate_loop === true }}",
               "type": "boolean"
             },
             {
               "id": "85c08fb1-c850-4738-853d-6a54ba6324a4",
               "name": "outbound_sequence_json",
-              "value": "={{ $('Code in JavaScript1').item.json.outbound_sequence_json || '[]' }}",
+              "value": "={{ $('Finalize offering outbound').item.json.outbound_sequence_json || '[]' }}",
               "type": "string"
             },
             {
               "id": "7d788a81-24ff-448e-91d6-4657cbea2c5c",
               "name": "selection_notification_candidate",
-              "value": "={{ $('Code in JavaScript1').item.json.selection_notification_candidate || null }}",
+              "value": "={{ $('Finalize offering outbound').item.json.selection_notification_candidate || null }}",
               "type": "object"
             },
             {
               "id": "297863ed-c852-476f-8f61-5e7d468f75fc",
               "name": "current_state_after",
-              "value": "={{ $('Code in JavaScript1').item.json.current_state_after || $('actualizar contexto1').item.json.current_state || null }}",
+              "value": "={{ $('Finalize offering outbound').item.json.current_state_after || $('actualizar contexto1').item.json.current_state || null }}",
               "type": "string"
             }
           ]
@@ -1257,7 +1257,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        7200,
+        8112,
         0
       ]
     },
@@ -1420,7 +1420,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        7504,
+        8416,
         0
       ]
     },
@@ -1796,7 +1796,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        6000,
+        6912,
         0
       ]
     },
@@ -1827,14 +1827,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        6000,
+        6912,
         208
       ],
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "const engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst searchCriteria = candidate.searchCriteria || {};\nconst clientName = String(engine.client_name || engine.wa_id || 'Sin dato').trim() || 'Sin dato';\nconst waId = String(engine.wa_id || '').trim();\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : 'Sin dato';\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink,\n        },\n      }))\n    : [];\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n    },\n  },\n];"
+        "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
       },
       "id": "eb439357-e40c-4dd5-b473-83bff820deba",
       "name": "Prepare selection notifications",
@@ -2714,6 +2714,128 @@
         -240
       ],
       "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "afc556ef-23dd-4c87-83ac-318294dc4241",
+              "leftValue": "={{ $json.owner_reservation_request_should_send === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "d89fe91a-41b2-4e93-96bb-abc8d17ce6f3",
+      "name": "Should send owner reservation request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        8400,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/owner-reservation-request",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.owner_reservation_request_payload || {}) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "f0426629-2194-4caf-887b-c94f0913ecaa",
+      "name": "Fire owner reservation request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        8704,
+        368
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d1225730-39ee-4707-b789-f974bb01a096",
+              "leftValue": "={{ $('Code in JavaScript1').item.json.tool_chosen === 'offering_agent' && $('Code in JavaScript1').item.json.tool_output_parsed?.intent === 'SHOW_OPTIONS' && Array.isArray($('Code in JavaScript1').item.json.tool_output_parsed?.fincas_mostradas) && $('Code in JavaScript1').item.json.tool_output_parsed.fincas_mostradas.length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ddcb2439-3e30-4d6e-a545-da2d015e0789",
+      "name": "Should generate offering context?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5712,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=RUNTIME INPUT\n\ncurrent_message:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\ncurrent_search_criteria:\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || $('Get Context-conversations1').item.json.context?.search_criteria || {}, null, 2) }}\n\noffering_result:\n{{ JSON.stringify($('Code in JavaScript1').item.json.tool_output_parsed || {}, null, 2) }}\n\nderived_scenario:\n{{ JSON.stringify((() => {\n  const parsed = $('Code in JavaScript1').item.json.tool_output_parsed || {};\n  const currentCriteria =\n    $('Get Context-conversations1').item.json.search_criteria ||\n    $('Get Context-conversations1').item.json.context?.search_criteria ||\n    {};\n  const fincas = Array.isArray(parsed.fincas_mostradas) ? parsed.fincas_mostradas : [];\n  const normalize = (value) =>\n    String(value || '')\n      .normalize('NFD')\n      .replace(/[\\u0300-\\u036f]/g, '')\n      .toLowerCase()\n      .trim();\n  const requestedZone = String(parsed.search_criteria_update?.zona || currentCriteria.zona || '').trim();\n  const offeredZones = Array.from(new Set(fincas.map((finca) => String(finca?.zona || '').trim()).filter(Boolean)));\n  const offeredMunicipios = Array.from(new Set(fincas.map((finca) => String(finca?.municipio || '').trim()).filter(Boolean)));\n  const positiveFilters = Array.from(new Set([\n    ...(Array.isArray(currentCriteria.amenidades) ? currentCriteria.amenidades : []),\n    ...(Array.isArray(parsed.search_criteria_update?.amenidades) ? parsed.search_criteria_update.amenidades : []),\n  ].map((item) => String(item || '').trim()).filter(Boolean)));\n  const allOfferedOutsideRequestedZone = requestedZone\n    ? fincas.length > 0 && fincas.every((finca) => {\n        const zone = normalize(finca?.zona);\n        const municipio = normalize(finca?.municipio);\n        const requested = normalize(requestedZone);\n        return zone !== requested && municipio !== requested;\n      })\n    : false;\n  return {\n    requested_zone: requestedZone || null,\n    offered_zones: offeredZones,\n    offered_municipios: offeredMunicipios,\n    offered_count: fincas.length,\n    all_offered_outside_requested_zone: allOfferedOutsideRequestedZone,\n    has_filter_updates: Boolean(\n      parsed.search_criteria_update &&\n      Object.entries(parsed.search_criteria_update).some(([key, value]) => {\n        if (key === 'zona') return String(value || '').trim() !== '';\n        if (Array.isArray(value)) return value.length > 0;\n        return value !== null && value !== undefined && String(value).trim() !== '';\n      })\n    ),\n    positive_filters: positiveFilters,\n    raw_offering_text: String(parsed.respuesta || '').trim() || null\n  };\n})(), null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"context_message\": \"...\"\n}",
+        "options": {
+          "systemMessage": "=Eres un micro-agente de copy comercial para el estado OFFERING del sistema \"De Paseo en Finca\".\n\nTu única tarea es redactar un mensaje corto que vaya ANTES de las fichas de fincas.\nDebes explicar el escenario encontrado y abrir la puerta a las opciones que vienen enseguida.\n\nREGLAS\n- Responde EXCLUSIVAMENTE JSON válido con: {\"context_message\":\"...\"}\n- El mensaje debe ser una sola idea breve, máximo 25 palabras.\n- Debe sonar natural, comercial y orientador.\n- Debe incluir un conector explícito como \"pero\", \"y\", \"así que\", \"por eso\" o \"igual\".\n- Si hay contraste, falta de match exacto o cambio de zona, prefiere \"pero\".\n- Si hubo refinamiento exitoso o ajuste de filtros, prefiere \"y\".\n- Si lo que viene es consecuencia natural de la búsqueda, puedes usar \"así que\" o \"por eso\".\n- Nunca termines en una negación seca o cortada.\n- Siempre cierra abriendo la puerta a las opciones que vienen después.\n- No enumeres fincas.\n- No repitas descripciones, precios ni fichas.\n- No inventes datos, zonas ni filtros.\n- Si el escenario muestra que no hubo match exacto en la zona pedida, dilo y conéctalo con las opciones que sí vas a mostrar.\n- Si el escenario muestra que el filtro cambió y ahora sí hay opciones, dilo y conéctalo con las opciones que sí vas a mostrar.\n\nEJEMPLOS DE ESTILO\n- \"En Melgar no tengo opciones exactas, pero encontré estas que de pronto te pueden gustar.\"\n- \"Busqué opciones que sí cumplen con jacuzzi y encontré estas para ti.\"\n- \"En esta zona no vi tantas opciones exactas, pero sí encontré estas alternativas cercanas.\" ",
+          "maxIterations": 2
+        }
+      },
+      "id": "63e39fc3-7f4d-48fa-a059-1d8967f04ae5",
+      "name": "Run offering context pass",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        6016,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = source[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === open) depth += 1;\n    else if (char === close) {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 8000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 8000) };\n    }\n  }\n}\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction createTextMessage(content) {\n  const text = String(content || '').trim();\n  if (!text) return null;\n  return {\n    type: 'text',\n    content: text,\n    media_url: null,\n    property_title: null,\n    property_id: null,\n  };\n}\n\nfunction extractContextMessage(source) {\n  if (!source || typeof source !== 'object') return '';\n\n  if (typeof source.context_message === 'string' && source.context_message.trim()) {\n    return source.context_message.trim();\n  }\n\n  const candidates = [];\n  if (typeof source.output === 'string') candidates.push(source.output);\n  if (Array.isArray(source.output) && typeof source.output[0]?.output === 'string') {\n    candidates.push(source.output[0].output);\n  }\n\n  for (const candidate of candidates) {\n    const parsed = safeParse(candidate);\n    if (parsed && typeof parsed.context_message === 'string' && parsed.context_message.trim()) {\n      return parsed.context_message.trim();\n    }\n  }\n\n  return '';\n}\n\nconst base = $('Code in JavaScript1').item.json || {};\nconst outboundSequence = parseSequence(base.outbound_sequence || base.outbound_sequence_json || '[]');\n\nlet contextSource = null;\ntry {\n  contextSource = $('Run offering context pass').item.json || null;\n} catch {\n  contextSource = null;\n}\n\nconst contextMessage = extractContextMessage(contextSource);\nconst shouldInject =\n  base.tool_chosen === 'offering_agent' &&\n  base.tool_output_parsed?.intent === 'SHOW_OPTIONS' &&\n  Array.isArray(base.tool_output_parsed?.fincas_mostradas) &&\n  base.tool_output_parsed.fincas_mostradas.length > 0 &&\n  Boolean(contextMessage) &&\n  outboundSequence.length > 0;\n\nif (!shouldInject) {\n  return [\n    {\n      json: {\n        ...base,\n        offering_context_message: null,\n      },\n    },\n  ];\n}\n\nconst contextItem = createTextMessage(contextMessage);\nconst firstExistingText = String(outboundSequence[0]?.content || '').trim();\nconst nextSequence =\n  contextItem && firstExistingText !== contextMessage\n    ? [contextItem, ...outboundSequence]\n    : outboundSequence;\n\nconst primaryOutboundMessage =\n  [...nextSequence]\n    .reverse()\n    .map((item) => String(item?.content || '').trim())\n    .find(Boolean) || base.outbound_message || base.final_whatsapp_text || null;\n\nreturn [\n  {\n    json: {\n      ...base,\n      offering_context_message: contextMessage,\n      outbound_sequence: nextSequence,\n      outbound_sequence_json: JSON.stringify(nextSequence),\n      outbound_message: primaryOutboundMessage,\n      final_whatsapp_text: primaryOutboundMessage,\n    },\n  },\n];"
+      },
+      "id": "c103917e-f16c-4694-a2ae-280d4446dff5",
+      "name": "Finalize offering outbound",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6320,
+        0
+      ]
     }
   ],
   "connections": {
@@ -2799,6 +2921,11 @@
             "node": "QA validator",
             "type": "ai_languageModel",
             "index": 0
+          },
+          {
+            "node": "Run offering context pass",
+            "type": "ai_languageModel",
+            "index": 0
           }
         ]
       ]
@@ -2807,7 +2934,7 @@
       "main": [
         [
           {
-            "node": "actualizar contexto1",
+            "node": "Should generate offering context?",
             "type": "main",
             "index": 0
           }
@@ -3232,6 +3359,11 @@
         [
           {
             "node": "Should send selection notifications?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Should send owner reservation request?",
             "type": "main",
             "index": 0
           }
@@ -3706,6 +3838,63 @@
           }
         ]
       ]
+    },
+    "Should send owner reservation request?": {
+      "main": [
+        [
+          {
+            "node": "Fire owner reservation request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Fire owner reservation request": {
+      "main": [
+        []
+      ]
+    },
+    "Should generate offering context?": {
+      "main": [
+        [
+          {
+            "node": "Run offering context pass",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finalize offering outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run offering context pass": {
+      "main": [
+        [
+          {
+            "node": "Finalize offering outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize offering outbound": {
+      "main": [
+        [
+          {
+            "node": "actualizar contexto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -3733,13 +3922,13 @@
             "x-forwarded-proto": "https",
             "x-forwarded-port": "443",
             "connection": "close",
-            "content-length": "2529",
+            "content-length": "3142",
             "accept": "application/json",
             "user-agent": "rest-client/2.1.0 (linux-musl x86_64) ruby/3.4.4p34",
             "content-type": "application/json",
-            "x-chatwoot-delivery": "bc134075-dabe-4557-b341-293ad2938dc2",
-            "x-chatwoot-timestamp": "1774374717",
-            "x-chatwoot-signature": "sha256=e9308e41801d7a540935e034164ed055bf753bbe2dccac0d4d228bc2b60b0fef",
+            "x-chatwoot-delivery": "f08e71b4-664d-4c5d-bcc1-038650816f46",
+            "x-chatwoot-timestamp": "1774420701",
+            "x-chatwoot-signature": "sha256=225d07f97852a62a767894607e77ef857dd892c9c0c307e7ccb14f487c2f5e68",
             "accept-encoding": "gzip;q=1.0,deflate;q=0.6,identity;q=0.3"
           },
           "params": {},
@@ -3752,7 +3941,7 @@
             "additional_attributes": {},
             "content_attributes": {},
             "content_type": "text",
-            "content": "4 personas, muestrane lonqie tengas para ese número de personas",
+            "content": null,
             "conversation": {
               "additional_attributes": {},
               "can_reply": true,
@@ -3771,33 +3960,48 @@
               "inbox_id": 3,
               "messages": [
                 {
-                  "id": 400,
-                  "content": "4 personas, muestrane lonqie tengas para ese número de personas",
+                  "id": 834,
+                  "content": null,
                   "account_id": 1,
                   "inbox_id": 3,
                   "conversation_id": 2,
                   "message_type": 0,
-                  "created_at": 1774374717,
-                  "updated_at": "2026-03-24T17:51:57.384Z",
+                  "created_at": 1774420701,
+                  "updated_at": "2026-03-25T06:38:21.193Z",
                   "private": false,
                   "status": "sent",
-                  "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0E3RkYwRjFDNUNCRjM0OTM3MTcA",
+                  "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0ExQURGNDJCNEVDNkFFMUZEMDkA",
                   "content_type": "text",
                   "content_attributes": {},
                   "sender_type": "Contact",
                   "sender_id": 2,
                   "external_source_ids": {},
                   "additional_attributes": {},
-                  "processed_message_content": "4 personas, muestrane lonqie tengas para ese número de personas",
+                  "processed_message_content": null,
                   "sentiment": {},
                   "conversation": {
                     "assignee_id": null,
                     "unread_count": 10,
-                    "last_activity_at": 1774374717,
+                    "last_activity_at": 1774420701,
                     "contact_inbox": {
                       "source_id": "573007750712"
                     }
                   },
+                  "attachments": [
+                    {
+                      "id": 387,
+                      "message_id": 834,
+                      "file_type": "audio",
+                      "account_id": 1,
+                      "extension": null,
+                      "data_url": "https://chatwoot-9qe1j-u48275.vm.elestio.app/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBb01CIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--d319a849c3dc7c62bf405ffa00b49095414b5de7/File.ogg",
+                      "thumb_url": "",
+                      "file_size": 14809,
+                      "width": null,
+                      "height": null,
+                      "transcribed_text": ""
+                    }
+                  ],
                   "sender": {
                     "additional_attributes": {},
                     "custom_attributes": {},
@@ -3839,16 +4043,16 @@
               "unread_count": 10,
               "first_reply_created_at": "2026-03-10T05:25:27.233Z",
               "priority": null,
-              "waiting_since": 1774374717,
+              "waiting_since": 0,
               "agent_last_seen_at": 1774335834,
               "contact_last_seen_at": 0,
-              "last_activity_at": 1774374717,
-              "timestamp": 1774374717,
+              "last_activity_at": 1774420701,
+              "timestamp": 1774420701,
               "created_at": 1773120305,
-              "updated_at": 1774374717.3982332
+              "updated_at": 1774420701.2005801
             },
-            "created_at": "2026-03-24T17:51:57.384Z",
-            "id": 400,
+            "created_at": "2026-03-25T06:38:21.193Z",
+            "id": 834,
             "inbox": {
               "id": 3,
               "name": "customer_support_agent"
@@ -3871,7 +4075,22 @@
               "thumbnail": "",
               "blocked": false
             },
-            "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0E3RkYwRjFDNUNCRjM0OTM3MTcA",
+            "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0ExQURGNDJCNEVDNkFFMUZEMDkA",
+            "attachments": [
+              {
+                "id": 387,
+                "message_id": 834,
+                "file_type": "audio",
+                "account_id": 1,
+                "extension": null,
+                "data_url": "https://chatwoot-9qe1j-u48275.vm.elestio.app/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBb01CIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--d319a849c3dc7c62bf405ffa00b49095414b5de7/File.ogg",
+                "thumb_url": "",
+                "file_size": 14809,
+                "width": null,
+                "height": null,
+                "transcribed_text": ""
+              }
+            ],
             "event": "message_created"
           },
           "webhookUrl": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound",
@@ -3883,9 +4102,9 @@
       }
     ]
   },
-  "versionId": "9c6556f0-0e29-4226-931a-b0b70393c80b",
-  "activeVersionId": "9c6556f0-0e29-4226-931a-b0b70393c80b",
-  "versionCounter": 508,
+  "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
+  "activeVersionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
+  "versionCounter": 544,
   "triggerCount": 1,
   "shared": [
     {
@@ -3908,9 +4127,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-25T05:39:08.953Z",
-    "createdAt": "2026-03-25T05:39:08.953Z",
-    "versionId": "9c6556f0-0e29-4226-931a-b0b70393c80b",
+    "updatedAt": "2026-03-26T05:16:59.458Z",
+    "createdAt": "2026-03-26T05:16:59.458Z",
+    "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
     "workflowId": "RrIniaNJCUC72nfI",
     "nodes": [
       {
@@ -4441,7 +4660,7 @@
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2.6,
         "position": [
-          5712,
+          6624,
           0
         ],
         "id": "21fa9ced-bc9b-47be-97fd-c392f2e0e109",
@@ -4482,7 +4701,7 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          6304,
+          7200,
           0
         ],
         "id": "5c318b8c-0979-4658-9bcc-b18c56750850",
@@ -4499,7 +4718,7 @@
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2,
         "position": [
-          6608,
+          7504,
           -96
         ],
         "credentials": {
@@ -4512,7 +4731,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('actualizar contexto1').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Code in JavaScript1').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Code in JavaScript1').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
+          "query": "with payload as (\n  select\n    {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ \"'\" + String($('actualizar contexto1').item.json.current_state || '').replace(/'/g, \"''\") + \"'\" }}::text as current_state,\n    {{ \"'\" + String($('Finalize offering outbound').item.json.tool_chosen || 'NONE').replace(/'/g, \"''\") + \"'\" }}::text as agent_used,\n    {{ \"'\" + JSON.stringify($('Finalize offering outbound').item.json.tool_output_parsed?.datos_extraidos || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as extracted_data,\n    {{ \"'\" + JSON.stringify($('Finalize offering outbound').item.json.outbound_sequence || []).replace(/'/g, \"''\") + \"'\" }}::jsonb as outbound_sequence\n),\ninserted_messages as (\n  insert into public.messages (\n    conversation_id,\n    direction,\n    message_type,\n    content,\n    media_url,\n    state_at_time,\n    agent_used,\n    extracted_data,\n    created_at\n  )\n  select\n    payload.conversation_id,\n    'OUTBOUND',\n    'TEXT',\n    message.value->>'content',\n    nullif(message.value->>'media_url', ''),\n    nullif(payload.current_state, ''),\n    payload.agent_used,\n    payload.extracted_data,\n    now() + ((message.ordinality - 1) * interval '1 second')\n  from payload\n  cross join lateral jsonb_array_elements(payload.outbound_sequence) with ordinality as message(value, ordinality)\n  where\n    nullif(trim(coalesce(message.value->>'content', '')), '') is not null\n    or nullif(trim(coalesce(message.value->>'media_url', '')), '') is not null\n  returning id\n)\nupdate public.conversations\nset\n  last_interaction = now(),\n  last_message_from = 'AGENT',\n  updated_at = now()\nwhere wa_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}\nreturning wa_id;",
           "options": {}
         },
         "id": "0fe46bb1-7674-4d0a-bc69-3aa9f1f17574",
@@ -4520,7 +4739,7 @@
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2,
         "position": [
-          6608,
+          7504,
           112
         ],
         "credentials": {
@@ -4542,7 +4761,7 @@
             "conditions": [
               {
                 "id": "21eae4b3-b997-4c6a-aa4a-343ef68ead51",
-                "leftValue": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+                "leftValue": "={{ $('Finalize offering outbound').item.json.should_immediate_loop === true }}",
                 "rightValue": "",
                 "operator": {
                   "type": "boolean",
@@ -4590,19 +4809,19 @@
               {
                 "id": "c904bbf4-953c-44cb-a3d7-221c5c3aee2e",
                 "name": "forced_state",
-                "value": "={{ $('Code in JavaScript1').item.json.loop_next_state || null }}",
+                "value": "={{ $('Finalize offering outbound').item.json.loop_next_state || null }}",
                 "type": "string"
               },
               {
                 "id": "1f3d9946-12ee-4488-9353-5cf3603d2dcd",
                 "name": "loop_reason",
-                "value": "={{ $('Code in JavaScript1').item.json.loop_reason || null }}",
+                "value": "={{ $('Finalize offering outbound').item.json.loop_reason || null }}",
                 "type": "string"
               },
               {
                 "id": "3f238684-1e5f-4b7b-93dc-8563b644d54e",
                 "name": "owner_unavailable",
-                "value": "={{ $('Code in JavaScript1').item.json.loop_owner_unavailable === true }}",
+                "value": "={{ $('Finalize offering outbound').item.json.loop_owner_unavailable === true }}",
                 "type": "boolean"
               }
             ]
@@ -4629,7 +4848,7 @@
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2.6,
         "position": [
-          6912,
+          7808,
           0
         ],
         "credentials": {
@@ -5085,25 +5304,25 @@
               {
                 "id": "19a2963e-b82d-4965-81f7-f2ffddc6da33",
                 "name": "outbound_message",
-                "value": "={{ $('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '' }}",
+                "value": "={{ $('Finalize offering outbound').item.json.outbound_message || $('Finalize offering outbound').item.json.final_whatsapp_text || '' }}",
                 "type": "string"
               },
               {
                 "id": "8465f7e1-db6c-494d-9d64-45baa49526ff",
                 "name": "final_whatsapp_text",
-                "value": "={{ $('Code in JavaScript1').item.json.final_whatsapp_text || $('Code in JavaScript1').item.json.outbound_message || '' }}",
+                "value": "={{ $('Finalize offering outbound').item.json.final_whatsapp_text || $('Finalize offering outbound').item.json.outbound_message || '' }}",
                 "type": "string"
               },
               {
                 "id": "aa2496c0-f955-47ce-bec3-28c1bd850825",
                 "name": "tool_chosen",
-                "value": "={{ $('Code in JavaScript1').item.json.tool_chosen || 'NONE' }}",
+                "value": "={{ $('Finalize offering outbound').item.json.tool_chosen || 'NONE' }}",
                 "type": "string"
               },
               {
                 "id": "1056a125-f117-4a0f-b706-a77b5925a66a",
                 "name": "action",
-                "value": "={{ $('Code in JavaScript1').item.json.action || 'RUN_TOOL' }}",
+                "value": "={{ $('Finalize offering outbound').item.json.action || 'RUN_TOOL' }}",
                 "type": "string"
               },
               {
@@ -5121,37 +5340,37 @@
               {
                 "id": "c6a1a567-6aee-4b71-9401-d819c57b1571",
                 "name": "current_state_changed",
-                "value": "={{ $('Code in JavaScript1').item.json.current_state_changed === true }}",
+                "value": "={{ $('Finalize offering outbound').item.json.current_state_changed === true }}",
                 "type": "boolean"
               },
               {
                 "id": "ee4d8b93-7178-4c8b-9735-ae74049cf43e",
                 "name": "send_to_customer",
-                "value": "={{ Boolean(String($('Code in JavaScript1').item.json.outbound_message || $('Code in JavaScript1').item.json.final_whatsapp_text || '').trim()) }}",
+                "value": "={{ Boolean(String($('Finalize offering outbound').item.json.outbound_message || $('Finalize offering outbound').item.json.final_whatsapp_text || '').trim()) }}",
                 "type": "boolean"
               },
               {
                 "id": "e97ac9fd-39b7-40b1-8d2b-f1650b56f125",
                 "name": "should_immediate_loop",
-                "value": "={{ $('Code in JavaScript1').item.json.should_immediate_loop === true }}",
+                "value": "={{ $('Finalize offering outbound').item.json.should_immediate_loop === true }}",
                 "type": "boolean"
               },
               {
                 "id": "85c08fb1-c850-4738-853d-6a54ba6324a4",
                 "name": "outbound_sequence_json",
-                "value": "={{ $('Code in JavaScript1').item.json.outbound_sequence_json || '[]' }}",
+                "value": "={{ $('Finalize offering outbound').item.json.outbound_sequence_json || '[]' }}",
                 "type": "string"
               },
               {
                 "id": "7d788a81-24ff-448e-91d6-4657cbea2c5c",
                 "name": "selection_notification_candidate",
-                "value": "={{ $('Code in JavaScript1').item.json.selection_notification_candidate || null }}",
+                "value": "={{ $('Finalize offering outbound').item.json.selection_notification_candidate || null }}",
                 "type": "object"
               },
               {
                 "id": "297863ed-c852-476f-8f61-5e7d468f75fc",
                 "name": "current_state_after",
-                "value": "={{ $('Code in JavaScript1').item.json.current_state_after || $('actualizar contexto1').item.json.current_state || null }}",
+                "value": "={{ $('Finalize offering outbound').item.json.current_state_after || $('actualizar contexto1').item.json.current_state || null }}",
                 "type": "string"
               }
             ]
@@ -5163,7 +5382,7 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          7200,
+          8112,
           0
         ]
       },
@@ -5326,7 +5545,7 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          7504,
+          8416,
           0
         ]
       },
@@ -5702,7 +5921,7 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          6000,
+          6912,
           0
         ]
       },
@@ -5733,14 +5952,14 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          6000,
+          6912,
           208
         ],
         "onError": "continueRegularOutput"
       },
       {
         "parameters": {
-          "jsCode": "const engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst searchCriteria = candidate.searchCriteria || {};\nconst clientName = String(engine.client_name || engine.wa_id || 'Sin dato').trim() || 'Sin dato';\nconst waId = String(engine.wa_id || '').trim();\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : 'Sin dato';\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink,\n        },\n      }))\n    : [];\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n    },\n  },\n];"
+          "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
         },
         "id": "eb439357-e40c-4dd5-b473-83bff820deba",
         "name": "Prepare selection notifications",
@@ -6620,6 +6839,128 @@
           -240
         ],
         "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "afc556ef-23dd-4c87-83ac-318294dc4241",
+                "leftValue": "={{ $json.owner_reservation_request_should_send === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "d89fe91a-41b2-4e93-96bb-abc8d17ce6f3",
+        "name": "Should send owner reservation request?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          8400,
+          368
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/owner-reservation-request",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.owner_reservation_request_payload || {}) }}",
+          "options": {
+            "timeout": 10000
+          }
+        },
+        "id": "f0426629-2194-4caf-887b-c94f0913ecaa",
+        "name": "Fire owner reservation request",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          8704,
+          368
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d1225730-39ee-4707-b789-f974bb01a096",
+                "leftValue": "={{ $('Code in JavaScript1').item.json.tool_chosen === 'offering_agent' && $('Code in JavaScript1').item.json.tool_output_parsed?.intent === 'SHOW_OPTIONS' && Array.isArray($('Code in JavaScript1').item.json.tool_output_parsed?.fincas_mostradas) && $('Code in JavaScript1').item.json.tool_output_parsed.fincas_mostradas.length > 0 }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "ddcb2439-3e30-4d6e-a545-da2d015e0789",
+        "name": "Should generate offering context?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          5712,
+          -224
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=RUNTIME INPUT\n\ncurrent_message:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\ncurrent_search_criteria:\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || $('Get Context-conversations1').item.json.context?.search_criteria || {}, null, 2) }}\n\noffering_result:\n{{ JSON.stringify($('Code in JavaScript1').item.json.tool_output_parsed || {}, null, 2) }}\n\nderived_scenario:\n{{ JSON.stringify((() => {\n  const parsed = $('Code in JavaScript1').item.json.tool_output_parsed || {};\n  const currentCriteria =\n    $('Get Context-conversations1').item.json.search_criteria ||\n    $('Get Context-conversations1').item.json.context?.search_criteria ||\n    {};\n  const fincas = Array.isArray(parsed.fincas_mostradas) ? parsed.fincas_mostradas : [];\n  const normalize = (value) =>\n    String(value || '')\n      .normalize('NFD')\n      .replace(/[\\u0300-\\u036f]/g, '')\n      .toLowerCase()\n      .trim();\n  const requestedZone = String(parsed.search_criteria_update?.zona || currentCriteria.zona || '').trim();\n  const offeredZones = Array.from(new Set(fincas.map((finca) => String(finca?.zona || '').trim()).filter(Boolean)));\n  const offeredMunicipios = Array.from(new Set(fincas.map((finca) => String(finca?.municipio || '').trim()).filter(Boolean)));\n  const positiveFilters = Array.from(new Set([\n    ...(Array.isArray(currentCriteria.amenidades) ? currentCriteria.amenidades : []),\n    ...(Array.isArray(parsed.search_criteria_update?.amenidades) ? parsed.search_criteria_update.amenidades : []),\n  ].map((item) => String(item || '').trim()).filter(Boolean)));\n  const allOfferedOutsideRequestedZone = requestedZone\n    ? fincas.length > 0 && fincas.every((finca) => {\n        const zone = normalize(finca?.zona);\n        const municipio = normalize(finca?.municipio);\n        const requested = normalize(requestedZone);\n        return zone !== requested && municipio !== requested;\n      })\n    : false;\n  return {\n    requested_zone: requestedZone || null,\n    offered_zones: offeredZones,\n    offered_municipios: offeredMunicipios,\n    offered_count: fincas.length,\n    all_offered_outside_requested_zone: allOfferedOutsideRequestedZone,\n    has_filter_updates: Boolean(\n      parsed.search_criteria_update &&\n      Object.entries(parsed.search_criteria_update).some(([key, value]) => {\n        if (key === 'zona') return String(value || '').trim() !== '';\n        if (Array.isArray(value)) return value.length > 0;\n        return value !== null && value !== undefined && String(value).trim() !== '';\n      })\n    ),\n    positive_filters: positiveFilters,\n    raw_offering_text: String(parsed.respuesta || '').trim() || null\n  };\n})(), null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"context_message\": \"...\"\n}",
+          "options": {
+            "systemMessage": "=Eres un micro-agente de copy comercial para el estado OFFERING del sistema \"De Paseo en Finca\".\n\nTu única tarea es redactar un mensaje corto que vaya ANTES de las fichas de fincas.\nDebes explicar el escenario encontrado y abrir la puerta a las opciones que vienen enseguida.\n\nREGLAS\n- Responde EXCLUSIVAMENTE JSON válido con: {\"context_message\":\"...\"}\n- El mensaje debe ser una sola idea breve, máximo 25 palabras.\n- Debe sonar natural, comercial y orientador.\n- Debe incluir un conector explícito como \"pero\", \"y\", \"así que\", \"por eso\" o \"igual\".\n- Si hay contraste, falta de match exacto o cambio de zona, prefiere \"pero\".\n- Si hubo refinamiento exitoso o ajuste de filtros, prefiere \"y\".\n- Si lo que viene es consecuencia natural de la búsqueda, puedes usar \"así que\" o \"por eso\".\n- Nunca termines en una negación seca o cortada.\n- Siempre cierra abriendo la puerta a las opciones que vienen después.\n- No enumeres fincas.\n- No repitas descripciones, precios ni fichas.\n- No inventes datos, zonas ni filtros.\n- Si el escenario muestra que no hubo match exacto en la zona pedida, dilo y conéctalo con las opciones que sí vas a mostrar.\n- Si el escenario muestra que el filtro cambió y ahora sí hay opciones, dilo y conéctalo con las opciones que sí vas a mostrar.\n\nEJEMPLOS DE ESTILO\n- \"En Melgar no tengo opciones exactas, pero encontré estas que de pronto te pueden gustar.\"\n- \"Busqué opciones que sí cumplen con jacuzzi y encontré estas para ti.\"\n- \"En esta zona no vi tantas opciones exactas, pero sí encontré estas alternativas cercanas.\" ",
+            "maxIterations": 2
+          }
+        },
+        "id": "63e39fc3-7f4d-48fa-a059-1d8967f04ae5",
+        "name": "Run offering context pass",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          6016,
+          -224
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "function stripCodeFences(str) {\n  if (!str) return '';\n  return String(str)\n    .trim()\n    .replace(/^\\s*\\`\\`\\`json\\s*/i, '')\n    .replace(/^\\s*\\`\\`\\`\\s*/i, '')\n    .replace(/\\s*\\`\\`\\`\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.search(/[\\[{]/);\n  if (start === -1) return null;\n  const open = source[start];\n  const close = open === '{' ? '}' : ']';\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === open) depth += 1;\n    else if (char === close) {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n\n  return null;\n}\n\nfunction safeParse(text) {\n  if (text == null) return null;\n  const raw = String(text).trim();\n  try {\n    return JSON.parse(raw);\n  } catch {\n    const candidate = extractFirstJsonObject(stripCodeFences(raw));\n    if (!candidate) return { _raw: raw.slice(0, 8000) };\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return { _raw: raw.slice(0, 8000) };\n    }\n  }\n}\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction createTextMessage(content) {\n  const text = String(content || '').trim();\n  if (!text) return null;\n  return {\n    type: 'text',\n    content: text,\n    media_url: null,\n    property_title: null,\n    property_id: null,\n  };\n}\n\nfunction extractContextMessage(source) {\n  if (!source || typeof source !== 'object') return '';\n\n  if (typeof source.context_message === 'string' && source.context_message.trim()) {\n    return source.context_message.trim();\n  }\n\n  const candidates = [];\n  if (typeof source.output === 'string') candidates.push(source.output);\n  if (Array.isArray(source.output) && typeof source.output[0]?.output === 'string') {\n    candidates.push(source.output[0].output);\n  }\n\n  for (const candidate of candidates) {\n    const parsed = safeParse(candidate);\n    if (parsed && typeof parsed.context_message === 'string' && parsed.context_message.trim()) {\n      return parsed.context_message.trim();\n    }\n  }\n\n  return '';\n}\n\nconst base = $('Code in JavaScript1').item.json || {};\nconst outboundSequence = parseSequence(base.outbound_sequence || base.outbound_sequence_json || '[]');\n\nlet contextSource = null;\ntry {\n  contextSource = $('Run offering context pass').item.json || null;\n} catch {\n  contextSource = null;\n}\n\nconst contextMessage = extractContextMessage(contextSource);\nconst shouldInject =\n  base.tool_chosen === 'offering_agent' &&\n  base.tool_output_parsed?.intent === 'SHOW_OPTIONS' &&\n  Array.isArray(base.tool_output_parsed?.fincas_mostradas) &&\n  base.tool_output_parsed.fincas_mostradas.length > 0 &&\n  Boolean(contextMessage) &&\n  outboundSequence.length > 0;\n\nif (!shouldInject) {\n  return [\n    {\n      json: {\n        ...base,\n        offering_context_message: null,\n      },\n    },\n  ];\n}\n\nconst contextItem = createTextMessage(contextMessage);\nconst firstExistingText = String(outboundSequence[0]?.content || '').trim();\nconst nextSequence =\n  contextItem && firstExistingText !== contextMessage\n    ? [contextItem, ...outboundSequence]\n    : outboundSequence;\n\nconst primaryOutboundMessage =\n  [...nextSequence]\n    .reverse()\n    .map((item) => String(item?.content || '').trim())\n    .find(Boolean) || base.outbound_message || base.final_whatsapp_text || null;\n\nreturn [\n  {\n    json: {\n      ...base,\n      offering_context_message: contextMessage,\n      outbound_sequence: nextSequence,\n      outbound_sequence_json: JSON.stringify(nextSequence),\n      outbound_message: primaryOutboundMessage,\n      final_whatsapp_text: primaryOutboundMessage,\n    },\n  },\n];"
+        },
+        "id": "c103917e-f16c-4694-a2ae-280d4446dff5",
+        "name": "Finalize offering outbound",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          6320,
+          0
+        ]
       }
     ],
     "connections": {
@@ -6705,6 +7046,11 @@
               "node": "QA validator",
               "type": "ai_languageModel",
               "index": 0
+            },
+            {
+              "node": "Run offering context pass",
+              "type": "ai_languageModel",
+              "index": 0
             }
           ]
         ]
@@ -6713,7 +7059,7 @@
         "main": [
           [
             {
-              "node": "actualizar contexto1",
+              "node": "Should generate offering context?",
               "type": "main",
               "index": 0
             }
@@ -7138,6 +7484,11 @@
           [
             {
               "node": "Should send selection notifications?",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Should send owner reservation request?",
               "type": "main",
               "index": 0
             }
@@ -7612,6 +7963,63 @@
             }
           ]
         ]
+      },
+      "Should send owner reservation request?": {
+        "main": [
+          [
+            {
+              "node": "Fire owner reservation request",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "Fire owner reservation request": {
+        "main": [
+          []
+        ]
+      },
+      "Should generate offering context?": {
+        "main": [
+          [
+            {
+              "node": "Run offering context pass",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Finalize offering outbound",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run offering context pass": {
+        "main": [
+          [
+            {
+              "node": "Finalize offering outbound",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Finalize offering outbound": {
+        "main": [
+          [
+            {
+              "node": "actualizar contexto1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "JUANDAVID VIZCAYA",
@@ -7620,10 +8028,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-25T05:39:09.610Z",
-        "id": 571,
+        "createdAt": "2026-03-26T05:17:01.235Z",
+        "id": 611,
         "workflowId": "RrIniaNJCUC72nfI",
-        "versionId": "9c6556f0-0e29-4226-931a-b0b70393c80b",
+        "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }
