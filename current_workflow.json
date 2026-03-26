@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-26T05:16:59.452Z",
+  "updatedAt": "2026-03-26T18:10:19.711Z",
   "createdAt": "2026-03-08T02:07:41.406Z",
   "id": "RrIniaNJCUC72nfI",
   "name": "De paseo en fincas customer agent",
@@ -540,6 +540,7 @@
       ],
       "id": "21fa9ced-bc9b-47be-97fd-c392f2e0e109",
       "name": "actualizar contexto1",
+      "retryOnFail": true,
       "credentials": {
         "postgres": {
           "id": "CKoiBGlPXq82taIc",
@@ -1279,7 +1280,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.conversation?.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
+        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
       },
       "id": "dc55b447-c09b-4da6-907b-e80a61c6ae7b",
       "name": "Normalize inbound payload",
@@ -2008,9 +2009,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Get Context-conversations1').item.json.wa_id }}\nclient_name: {{ $('Get Context-conversations1').item.json.client_name || null }}\ncurrent_state: {{ $('Get Context-conversations1').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge Sets1').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
+        "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Get Context-conversations1').item.json.wa_id }}\nclient_name: {{ $('Get Context-conversations1').item.json.client_name || null }}\ncurrent_state: {{ $('Get Context-conversations1').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge Sets1').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\nGREETING_CONTEXT:\n{{ JSON.stringify({\n  is_initial_qualifying_turn: $('Prepare qualifying greeting context').item.json.is_initial_qualifying_turn,\n  greeting_time_bucket: $('Prepare qualifying greeting context').item.json.greeting_time_bucket,\n  greeting_name_candidate: $('Prepare qualifying greeting context').item.json.greeting_name_candidate,\n  greeting_name_usable: $('Prepare qualifying greeting context').item.json.greeting_name_usable\n}, null, 2) }}\n\nINITIAL_MESSAGE_TEMPLATE_BASE:\n{{ JSON.stringify($('config').item.json.initial_message_template || null) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
         "options": {
-          "systemMessage": "=Eres el agente del estado QUALIFYING del sistema “De Paseo en Finca”.\n\nOBJETIVO\nRecopilar 3 datos mínimos del cliente:\n1) fechas (fecha_inicio y fecha_fin)\n2) número de personas (personas)\n3) zona/destino (zona)\n\nREGLAS\n- Si necesitas validar la fecha u hora actual para interpretar referencias como \"hoy\", \"mañana\", \"este fin de semana\" o similares, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Extrae cualquier dato del mensaje actual, incluso si viene mezclado.\n- Si falta info, pregunta los datos a la vez cuando sea posible.\n- Si el mensaje es solo saludo, saluda y pregunta por fechas.\n- Si el cliente dice “este finde”, “el próximo puente”, “en marzo”, etc., calcula fechas reales usando la fecha_actual dada.\n- Si ya están completos los 3 datos, confirma lo entendido y di que vas a buscar opciones.\n- Si de manera repetitiva el cliente dice no saber el valor de algunos de los datos mínimo pedir un aproximado. Si eventualmente insiste en que no tiene la información, decirle que defortunadamente para ofrecerle fincas necesitas un aproximado de los datos mínimos y que así no puede ayudarle\n- Si el cliente te pide una zona donde no tenemos corbertura, no preguntes por los datos mínimos\n- Si en los mensajes recientes ya enviaste el listado de las zonas con cobertura, no lo envíes de nuevo\n\n\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n- Interpreta restricciones negativas del cliente como filtros reales.\n- Si el cliente dice \"sin jacuzzi\", \"que no tenga piscina\", \"pero no Anapoima\", \"menos Guatapé\" o frases equivalentes, guárdalas en los campos negativos correspondientes.\n- Usa estos campos cuando aplique: amenidades_excluidas, zonas_excluidas, municipios_excluidos, fincas_excluidas.\n- Si el cliente usa un cluster como \"cerca a Bogotá\" o \"cerca a Medellín\" pero excluye un municipio interno, conserva el cluster positivo y guarda el municipio excluido por separado.\n- Si el cliente levanta una restricción previa, por ejemplo \"ya no importa si tiene jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON válido con este schema:\n\n{\n  \"respuesta\": \"texto para enviar por WhatsApp\",\n  \"datos_extraidos\": {\n    \"fecha_inicio\": null | \"YYYY-MM-DD\",\n    \"fecha_fin\": null | \"YYYY-MM-DD\",\n    \"personas\": null | número,\n    \"zona\": null | \"string\",\n    \"presupuesto_max\": null | número,\n    \"tipo_evento\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": [],\n    \"mascotas\": null | boolean\n  },\n  \"datos_completos\": boolean,\n  \"intent\": \"GREETING | QUALIFYING | QUESTION | HITL_REQUEST | OFF_TOPIC | CANCEL\"\n}\n\nNota:\n- Si el current meessage es el único mensajes responde con este texto para whatsapp, ajustando el saludo dependiendo de la hora del día:\n\"Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche \n\n🌎En el momento disponemos de propiedades en Anapoima ,Villeta, La Vega,Girardot , Eje cafetero , Carmen de Apicala , Antioquia y Villavicencio\"\n- NO cierres fechas flexibles automáticamente.\n- Si el cliente dice \"cualquier día\", \"algún día\", \"la otra semana\", \"próxima semana\", \"3 noches\", \"un fin de semana\" o cualquier ventana flexible SIN dar día exacto de inicio, NO conviertas eso en fecha_inicio y fecha_fin cerradas.\n- En ese caso debes tratar las fechas como incompletas y pedir un día de inicio preferido antes de marcar datos_completos = true.\n- Sí puedes normalizar referencias amplias de descanso cuando corresponden a clusters claros de cobertura.\n- Interpreta \"cerca a Bogotá\", \"cerca de Bogotá\", \"Bogotá y alrededores\" o equivalentes como una búsqueda amplia sobre municipios vacacionales cercanos como Anapoima, Villeta, La Vega, Girardot, Carmen de Apicalá, La Mesa, Mesitas del Colegio, Ricaurte y Melgar.\n- Interpreta \"cerca a Medellín\", \"cerca de Medellín\", \"Medellín o cerca\" o equivalentes como una búsqueda amplia sobre municipios vacacionales de nuestra cobertura en Antioquia, por ejemplo Santa Fe de Antioquia, Guatapé, San Jerónimo, Sopetrán, Barbosa y Rionegro.\n- En esos casos puedes guardar la zona como \"cerca a Bogotá\" o \"cerca a Medellín\" y considerarla válida para continuar.\n- Solo pide una zona más concreta si el cliente quiere restringir más la búsqueda dentro de ese cluster.\n- Si la referencia es una ciudad fuera de cobertura que no corresponde a uno de esos clusters, ahí sí aclara las zonas disponibles y pide ajustar.\n",
+          "systemMessage": "=Eres el agente del estado QUALIFYING del sistema “De Paseo en Finca”.\n\nOBJETIVO\nRecopilar 3 datos mínimos del cliente:\n1) fechas (fecha_inicio y fecha_fin)\n2) número de personas (personas)\n3) zona/destino (zona)\n\nREGLAS\n- Si necesitas validar la fecha u hora actual para interpretar referencias como \"hoy\", \"mañana\", \"este fin de semana\" o similares, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Extrae cualquier dato del mensaje actual, incluso si viene mezclado.\n- Si falta info, pregunta los datos a la vez cuando sea posible.\n- Si el mensaje es solo saludo, saluda y pregunta por fechas.\n- Si el cliente dice “este finde”, “el próximo puente”, “en marzo”, etc., calcula fechas reales usando la fecha_actual dada.\n- Si ya están completos los 3 datos, confirma lo entendido y di que vas a buscar opciones.\n- Si de manera repetitiva el cliente dice no saber el valor de algunos de los datos mínimo pedir un aproximado. Si eventualmente insiste en que no tiene la información, decirle que defortunadamente para ofrecerle fincas necesitas un aproximado de los datos mínimos y que así no puede ayudarle\n- Si el cliente te pide una zona donde no tenemos corbertura, no preguntes por los datos mínimos\n- Si en los mensajes recientes ya enviaste el listado de las zonas con cobertura, no lo envíes de nuevo\n\n\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n- Interpreta restricciones negativas del cliente como filtros reales.\n- Si el cliente dice \"sin jacuzzi\", \"que no tenga piscina\", \"pero no Anapoima\", \"menos Guatapé\" o frases equivalentes, guárdalas en los campos negativos correspondientes.\n- Usa estos campos cuando aplique: amenidades_excluidas, zonas_excluidas, municipios_excluidos, fincas_excluidas.\n- Si el cliente usa un cluster como \"cerca a Bogotá\" o \"cerca a Medellín\" pero excluye un municipio interno, conserva el cluster positivo y guarda el municipio excluido por separado.\n- Si el cliente levanta una restricción previa, por ejemplo \"ya no importa si tiene jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON válido con este schema:\n\n{\n  \"respuesta\": \"texto para enviar por WhatsApp\",\n  \"datos_extraidos\": {\n    \"fecha_inicio\": null | \"YYYY-MM-DD\",\n    \"fecha_fin\": null | \"YYYY-MM-DD\",\n    \"personas\": null | número,\n    \"zona\": null | \"string\",\n    \"presupuesto_max\": null | número,\n    \"tipo_evento\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": [],\n    \"mascotas\": null | boolean\n  },\n  \"datos_completos\": boolean,\n  \"intent\": \"GREETING | QUALIFYING | QUESTION | HITL_REQUEST | OFF_TOPIC | CANCEL\"\n}\n\nNota:\n- Si GREETING_CONTEXT.is_initial_qualifying_turn = true, usa INITIAL_MESSAGE_TEMPLATE_BASE como estructura comercial de referencia, pero NO lo copies literal salvo que el mensaje actual sea solo un saludo.\n- Mantén el estilo actual del saludo y ajústalo por hora con GREETING_CONTEXT.greeting_time_bucket:\n  - morning => \"¡Excelente día!\"\n  - afternoon => \"¡Excelente tarde!\"\n  - night => \"¡Excelente noche!\"\n- Si GREETING_CONTEXT.greeting_name_usable = true, personaliza el saludo de forma formal usando GREETING_CONTEXT.greeting_name_candidate.\n- Si GREETING_CONTEXT.greeting_name_usable = false, no uses nombre.\n- Si el cliente ya compartió uno o más datos, reconócelos y pide solo los faltantes.\n- Si el cliente ya pregunta por una zona o destino, responde de forma contextual y no como si hubiera mandado solo \"hola\".\n- Si el cliente solo saluda, sí puedes usar la estructura completa del mensaje inicial.\n- Si el cliente pide una zona fuera de cobertura, respeta la regla de cobertura y no fuerces el bloque genérico de captura completa.\n- NO cierres fechas flexibles automáticamente.\n- Si el cliente dice \"cualquier día\", \"algún día\", \"la otra semana\", \"próxima semana\", \"3 noches\", \"un fin de semana\" o cualquier ventana flexible SIN dar día exacto de inicio, NO conviertas eso en fecha_inicio y fecha_fin cerradas.\n- En ese caso debes tratar las fechas como incompletas y pedir un día de inicio preferido antes de marcar datos_completos = true.\n- Sí puedes normalizar referencias amplias de descanso cuando corresponden a clusters claros de cobertura.\n- Interpreta \"cerca a Bogotá\", \"cerca de Bogotá\", \"Bogotá y alrededores\" o equivalentes como una búsqueda amplia sobre municipios vacacionales cercanos como Anapoima, Villeta, La Vega, Girardot, Carmen de Apicalá, La Mesa, Mesitas del Colegio, Ricaurte y Melgar.\n- Interpreta \"cerca a Medellín\", \"cerca de Medellín\", \"Medellín o cerca\" o equivalentes como una búsqueda amplia sobre municipios vacacionales de nuestra cobertura en Antioquia, por ejemplo Santa Fe de Antioquia, Guatapé, San Jerónimo, Sopetrán, Barbosa y Rionegro.\n- En esos casos puedes guardar la zona como \"cerca a Bogotá\" o \"cerca a Medellín\" y considerarla válida para continuar.\n- Solo pide una zona más concreta si el cliente quiere restringir más la búsqueda dentro de ese cluster.\n- Si la referencia es una ciudad fuera de cobertura que no corresponde a uno de esos clusters, ahí sí aclara las zonas disponibles y pide ajustar.\n",
           "maxIterations": 4
         }
       },
@@ -2700,7 +2701,7 @@
         "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/outbound-sender/async",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: $json.sender_sequence_json || $json.outbound_sequence_json || '[]', private: false, chatwoot_account_id: $json.chatwoot_account_id || '1', chatwoot_api_token: $json.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq' }) }}",
+        "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: $json.sender_sequence_json || $json.outbound_sequence_json || '[]', private: false, chatwoot_account_id: $json.chatwoot_account_id || '1', chatwoot_api_token: $json.chatwoot_api_token || '__CHATWOOT_API_TOKEN__' }) }}",
         "options": {
           "timeout": 10000
         }
@@ -2835,6 +2836,157 @@
       "position": [
         6320,
         0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5587eb3d-2d8b-4dda-9738-a68056213222",
+              "leftValue": "={{ $('Normalize inbound payload').item.json.eligible === true && String($('Normalize inbound payload').item.json.chatInput || '').trim().toUpperCase() === 'RESET' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "7a31a739-6591-4f84-a4fa-6cd14fd92623",
+      "name": "Is RESET command?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1952,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with params as (\n  select nullif({{ \"'\" + String($('Normalize inbound payload').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}, '')::text as wa_id\n),\ndeleted as (\n  delete from public.messages m\n  using params p\n  where p.wa_id is not null\n    and m.conversation_id = p.wa_id\n  returning m.id\n)\nselect\n  (select wa_id from params) as wa_id,\n  count(*)::integer as deleted_messages_count\nfrom deleted;",
+        "options": {}
+      },
+      "id": "5d5b4601-d085-4d2b-92be-59e40ee86c83",
+      "name": "Delete RESET messages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1728,
+        -304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with params as (\n  select nullif({{ \"'\" + String($('Normalize inbound payload').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}, '')::text as wa_id\n),\ndeleted as (\n  delete from public.conversations c\n  using params p\n  where p.wa_id is not null\n    and c.wa_id = p.wa_id\n  returning c.wa_id\n)\nselect\n  (select wa_id from params) as wa_id,\n  count(*)::integer as deleted_conversations_count\nfrom deleted;",
+        "options": {}
+      },
+      "id": "6d04340b-44db-46d3-8e1b-f18cc1349e46",
+      "name": "Delete RESET conversation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        -304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inbound = $('Normalize inbound payload').item.json || {};\nconst deletedMessages = $('Delete RESET messages').item.json || {};\nconst deletedConversation = $json || {};\nconst replyText = \"Listo. Reinici\\u00e9 tu conversaci\\u00f3n y borr\\u00e9 el historial para empezar desde cero. Escr\\u00edbeme de nuevo y arrancamos.\";\n\nreturn [\n  {\n    json: {\n      ...inbound,\n      action: 'RESET',\n      tool_chosen: 'NONE',\n      final_whatsapp_text: replyText,\n      outbound_message: replyText,\n      send_to_customer: inbound.source !== 'simulator' && Boolean(inbound.chatwoot_id),\n      reset_applied: true,\n      reset_deleted_messages_count: Number(deletedMessages.deleted_messages_count || 0) || 0,\n      reset_deleted_conversations_count: Number(deletedConversation.deleted_conversations_count || 0) || 0,\n      current_state: null,\n      agente_activo: true,\n    },\n  },\n];"
+      },
+      "id": "e030eba8-36bd-4bf7-b154-e7c0de15cfc1",
+      "name": "Build RESET response payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "120356dc-f244-4d4f-9350-3e68f1c28771",
+              "leftValue": "={{ $json.send_to_customer === true && Boolean($json.chatwoot_id) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "e42f243c-89dd-4b5b-b4c9-51c869fdf9ab",
+      "name": "Should send RESET confirmation via Chatwoot?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -960,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n\n  const response = await helperRequest({\n    url: \"https://chatwoot-9qe1j-u48275.vm.elestio.app\" + '/api/v1/accounts/' + \"1\" + '/conversations/' + String(input.chatwoot_id) + '/messages',\n    method: 'POST',\n    headers: {\n      api_access_token: \"__CHATWOOT_API_TOKEN__\",\n      'Content-Type': 'application/json',\n      Accept: 'application/json',\n    },\n    body: {\n      content: String(input.outbound_message || input.final_whatsapp_text || '').trim(),\n      message_type: 'outgoing',\n      private: false,\n      content_type: 'text',\n      content_attributes: {},\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n\n  responseStatus = Number(response.statusCode || response.status || 0) || null;\n  const raw = response.body;\n  responseBody =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n\n  providerMessageId =\n    responseBody?.source_id ||\n    responseBody?.id ||\n    responseBody?.messages?.[0]?.id ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      responseBody?.error?.message ||\n      responseBody?.message ||\n      (raw == null ? null : String(raw)) ||\n      'reset_chatwoot_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message;\n  responseBody = { error: error.message };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      reset_chatwoot_delivery_status: responseStatus,\n      reset_chatwoot_delivery_body: responseBody,\n      provider_message_id: providerMessageId,\n      reset_delivery_ok: !errorMessage,\n      reset_delivery_error: errorMessage,\n    },\n  },\n];"
+      },
+      "id": "35c50726-7377-4bff-8725-4f5a15c31819",
+      "name": "Send RESET confirmation to Chatwoot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst fetchedMessages = $('Fetch messages1').item.json || {};\nconst recentMessages = Array.isArray(fetchedMessages.recent_messages) ? fetchedMessages.recent_messages : [];\nconst contextRow = $('Get Context-conversations1').item.json || {};\nconst raw = input.raw && typeof input.raw === 'object' ? input.raw : {};\n\nconst compact = (value) => String(value ?? '').trim();\nconst collapseSpaces = (value) => compact(value).replace(/\\s+/g, ' ');\nconst normalize = (value) =>\n  collapseSpaces(value)\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase();\n\nconst now = new Date();\nconst hourFormatter = new Intl.DateTimeFormat('en-US', {\n  timeZone: 'America/Bogota',\n  hour: '2-digit',\n  hour12: false,\n});\nconst bogotaHour = Number(hourFormatter.format(now));\nlet greetingTimeBucket = 'morning';\nif (Number.isFinite(bogotaHour)) {\n  if (bogotaHour >= 12 && bogotaHour < 19) greetingTimeBucket = 'afternoon';\n  else if (bogotaHour >= 19 || bogotaHour < 5) greetingTimeBucket = 'night';\n}\n\nconst stopwords = new Set([\n  'amor',\n  'bb',\n  'bebe',\n  'bebé',\n  'bebé',\n  'corazon',\n  'corazón',\n  'gorda',\n  'gordo',\n  'hija',\n  'hijo',\n  'mama',\n  'mamá',\n  'mami',\n  'mi',\n  'miamor',\n  'papa',\n  'papá',\n  'papi',\n  'princesa',\n  'principe',\n  'príncipe',\n  'reina',\n  'rey',\n  'te',\n  'amo',\n  'vida',\n]);\n\nfunction isLikelyWord(token) {\n  return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ'-]*$/.test(token);\n}\n\nfunction resolveGreetingNameCandidate() {\n  const sourceCandidates = [\n    raw?.conversation?.meta?.sender?.name,\n    input.client_name,\n    raw?.contact?.name,\n    raw?.sender?.name,\n    raw?.meta?.name,\n    raw?.meta?.sender?.name,\n  ];\n\n  for (const sourceValue of sourceCandidates) {\n    const collapsed = collapseSpaces(sourceValue);\n    if (!collapsed) continue;\n    if (/\\d/.test(collapsed)) continue;\n    if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\s'-]+$/.test(collapsed)) continue;\n\n    const parts = collapsed.split(' ').filter(Boolean);\n    if (!parts.length || parts.length > 4) continue;\n    if (!parts.every(isLikelyWord)) continue;\n\n    const normalizedParts = parts.map(normalize);\n    if (normalizedParts.some((part) => stopwords.has(part))) continue;\n\n    const first = parts[0];\n    const normalizedFirst = normalize(first);\n    if (!first || first.length < 3) continue;\n    if (stopwords.has(normalizedFirst)) continue;\n    if (/^[A-ZÁÉÍÓÚÜÑ]{2,3}$/.test(first)) continue;\n\n    return first;\n  }\n\n  return null;\n}\n\nconst greetingNameCandidate = resolveGreetingNameCandidate();\nconst isInitialQualifyingTurn =\n  String(contextRow.current_state || '').trim() === 'QUALIFYING' &&\n  recentMessages.length === 0;\n\nreturn [\n  {\n    json: {\n      ...input,\n      is_initial_qualifying_turn: isInitialQualifyingTurn,\n      greeting_time_bucket: greetingTimeBucket,\n      greeting_name_candidate: greetingNameCandidate,\n      greeting_name_usable: Boolean(greetingNameCandidate),\n      greeting_context: {\n        is_initial_qualifying_turn: isInitialQualifyingTurn,\n        greeting_time_bucket: greetingTimeBucket,\n        greeting_name_candidate: greetingNameCandidate,\n        greeting_name_usable: Boolean(greetingNameCandidate),\n      },\n    },\n  },\n];\n"
+      },
+      "id": "37bd01b5-fda5-4fa6-88b0-f33b31d1d345",
+      "name": "Prepare qualifying greeting context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        -208
       ]
     }
   ],
@@ -3159,7 +3311,7 @@
       "main": [
         [
           {
-            "node": "Resolve existing phone mapping",
+            "node": "Is RESET command?",
             "type": "main",
             "index": 0
           }
@@ -3687,7 +3839,7 @@
       "main": [
         [
           {
-            "node": "Run qualifying pass",
+            "node": "Prepare qualifying greeting context",
             "type": "main",
             "index": 0
           }
@@ -3895,6 +4047,97 @@
           }
         ]
       ]
+    },
+    "Is RESET command?": {
+      "main": [
+        [
+          {
+            "node": "Delete RESET messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resolve existing phone mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete RESET messages": {
+      "main": [
+        [
+          {
+            "node": "Delete RESET conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete RESET conversation": {
+      "main": [
+        [
+          {
+            "node": "Build RESET response payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build RESET response payload": {
+      "main": [
+        [
+          {
+            "node": "Should send RESET confirmation via Chatwoot?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should send RESET confirmation via Chatwoot?": {
+      "main": [
+        [
+          {
+            "node": "Send RESET confirmation to Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send RESET confirmation to Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare qualifying greeting context": {
+      "main": [
+        [
+          {
+            "node": "Run qualifying pass",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -3922,13 +4165,13 @@
             "x-forwarded-proto": "https",
             "x-forwarded-port": "443",
             "connection": "close",
-            "content-length": "3142",
+            "content-length": "2348",
             "accept": "application/json",
             "user-agent": "rest-client/2.1.0 (linux-musl x86_64) ruby/3.4.4p34",
             "content-type": "application/json",
-            "x-chatwoot-delivery": "f08e71b4-664d-4c5d-bcc1-038650816f46",
-            "x-chatwoot-timestamp": "1774420701",
-            "x-chatwoot-signature": "sha256=225d07f97852a62a767894607e77ef857dd892c9c0c307e7ccb14f487c2f5e68",
+            "x-chatwoot-delivery": "e03137e2-a778-446b-bf9e-4d78278513a0",
+            "x-chatwoot-timestamp": "1774539319",
+            "x-chatwoot-signature": "sha256=9ab010a076dbc57a7172d1a8a80bbe6b7a99d309c788f0a092fe9b5fdca96ccb",
             "accept-encoding": "gzip;q=1.0,deflate;q=0.6,identity;q=0.3"
           },
           "params": {},
@@ -3941,7 +4184,7 @@
             "additional_attributes": {},
             "content_attributes": {},
             "content_type": "text",
-            "content": null,
+            "content": "hola",
             "conversation": {
               "additional_attributes": {},
               "can_reply": true,
@@ -3960,48 +4203,33 @@
               "inbox_id": 3,
               "messages": [
                 {
-                  "id": 834,
-                  "content": null,
+                  "id": 1206,
+                  "content": "hola",
                   "account_id": 1,
                   "inbox_id": 3,
                   "conversation_id": 2,
                   "message_type": 0,
-                  "created_at": 1774420701,
-                  "updated_at": "2026-03-25T06:38:21.193Z",
+                  "created_at": 1774539319,
+                  "updated_at": "2026-03-26T15:35:19.902Z",
                   "private": false,
                   "status": "sent",
-                  "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0ExQURGNDJCNEVDNkFFMUZEMDkA",
+                  "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0JGMEVEMjQyNjBFMERCNERCODIA",
                   "content_type": "text",
                   "content_attributes": {},
                   "sender_type": "Contact",
                   "sender_id": 2,
                   "external_source_ids": {},
                   "additional_attributes": {},
-                  "processed_message_content": null,
+                  "processed_message_content": "hola",
                   "sentiment": {},
                   "conversation": {
                     "assignee_id": null,
-                    "unread_count": 10,
-                    "last_activity_at": 1774420701,
+                    "unread_count": 9,
+                    "last_activity_at": 1774539319,
                     "contact_inbox": {
                       "source_id": "573007750712"
                     }
                   },
-                  "attachments": [
-                    {
-                      "id": 387,
-                      "message_id": 834,
-                      "file_type": "audio",
-                      "account_id": 1,
-                      "extension": null,
-                      "data_url": "https://chatwoot-9qe1j-u48275.vm.elestio.app/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBb01CIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--d319a849c3dc7c62bf405ffa00b49095414b5de7/File.ogg",
-                      "thumb_url": "",
-                      "file_size": 14809,
-                      "width": null,
-                      "height": null,
-                      "transcribed_text": ""
-                    }
-                  ],
                   "sender": {
                     "additional_attributes": {},
                     "custom_attributes": {},
@@ -4040,19 +4268,19 @@
                 "ia_activa": true
               },
               "snoozed_until": null,
-              "unread_count": 10,
+              "unread_count": 9,
               "first_reply_created_at": "2026-03-10T05:25:27.233Z",
               "priority": null,
-              "waiting_since": 0,
-              "agent_last_seen_at": 1774335834,
+              "waiting_since": 1774539319,
+              "agent_last_seen_at": 1774530773,
               "contact_last_seen_at": 0,
-              "last_activity_at": 1774420701,
-              "timestamp": 1774420701,
+              "last_activity_at": 1774539319,
+              "timestamp": 1774539319,
               "created_at": 1773120305,
-              "updated_at": 1774420701.2005801
+              "updated_at": 1774539319.916529
             },
-            "created_at": "2026-03-25T06:38:21.193Z",
-            "id": 834,
+            "created_at": "2026-03-26T15:35:19.902Z",
+            "id": 1206,
             "inbox": {
               "id": 3,
               "name": "customer_support_agent"
@@ -4075,22 +4303,7 @@
               "thumbnail": "",
               "blocked": false
             },
-            "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0ExQURGNDJCNEVDNkFFMUZEMDkA",
-            "attachments": [
-              {
-                "id": 387,
-                "message_id": 834,
-                "file_type": "audio",
-                "account_id": 1,
-                "extension": null,
-                "data_url": "https://chatwoot-9qe1j-u48275.vm.elestio.app/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBb01CIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--d319a849c3dc7c62bf405ffa00b49095414b5de7/File.ogg",
-                "thumb_url": "",
-                "file_size": 14809,
-                "width": null,
-                "height": null,
-                "transcribed_text": ""
-              }
-            ],
+            "source_id": "wamid.HBgMNTczMDA3NzUwNzEyFQIAEhgUM0JGMEVEMjQyNjBFMERCNERCODIA",
             "event": "message_created"
           },
           "webhookUrl": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound",
@@ -4102,9 +4315,9 @@
       }
     ]
   },
-  "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
-  "activeVersionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
-  "versionCounter": 544,
+  "versionId": "7ef505f1-c839-4e3f-a008-5a28d3b21d55",
+  "activeVersionId": "7ef505f1-c839-4e3f-a008-5a28d3b21d55",
+  "versionCounter": 556,
   "triggerCount": 1,
   "shared": [
     {
@@ -4127,9 +4340,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-26T05:16:59.458Z",
-    "createdAt": "2026-03-26T05:16:59.458Z",
-    "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
+    "updatedAt": "2026-03-26T18:10:19.717Z",
+    "createdAt": "2026-03-26T18:10:19.717Z",
+    "versionId": "7ef505f1-c839-4e3f-a008-5a28d3b21d55",
     "workflowId": "RrIniaNJCUC72nfI",
     "nodes": [
       {
@@ -4665,6 +4878,7 @@
         ],
         "id": "21fa9ced-bc9b-47be-97fd-c392f2e0e109",
         "name": "actualizar contexto1",
+        "retryOnFail": true,
         "credentials": {
           "postgres": {
             "id": "CKoiBGlPXq82taIc",
@@ -5404,7 +5618,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.conversation?.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
+          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
         },
         "id": "dc55b447-c09b-4da6-907b-e80a61c6ae7b",
         "name": "Normalize inbound payload",
@@ -6133,9 +6347,9 @@
       {
         "parameters": {
           "promptType": "define",
-          "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Get Context-conversations1').item.json.wa_id }}\nclient_name: {{ $('Get Context-conversations1').item.json.client_name || null }}\ncurrent_state: {{ $('Get Context-conversations1').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge Sets1').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
+          "text": "=Hoy es (fecha_actual): {{ \n  new Date().toLocaleString(\"sv-SE\", { \n    timeZone: \"America/Bogota\" \n  }).slice(0, 10) \n}}\n\nCONVERSATION (fila de DB):\nwa_id: {{ $('Get Context-conversations1').item.json.wa_id }}\nclient_name: {{ $('Get Context-conversations1').item.json.client_name || null }}\ncurrent_state: {{ $('Get Context-conversations1').item.json.current_state }}\n\nSEARCH_CRITERIA ACTUAL (de conversations.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.search_criteria || {}, null, 2) }}\n\nDATOS FALTANTES (normalizados en conversations.context.search_criteria):\n{{ JSON.stringify($('Get Context-conversations1').item.json.context?.search_criteria?.datos_faltantes || [], null, 2) }}\n\nMENSAJES RECIENTES (últimos 20, desc):\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\nMENSAJE ACTUAL:\n{{ JSON.stringify(\n $('Merge Sets1').item.json['last-message'] ) }}\n\nINSTRUCCIÓN:\nGREETING_CONTEXT:\n{{ JSON.stringify({\n  is_initial_qualifying_turn: $('Prepare qualifying greeting context').item.json.is_initial_qualifying_turn,\n  greeting_time_bucket: $('Prepare qualifying greeting context').item.json.greeting_time_bucket,\n  greeting_name_candidate: $('Prepare qualifying greeting context').item.json.greeting_name_candidate,\n  greeting_name_usable: $('Prepare qualifying greeting context').item.json.greeting_name_usable\n}, null, 2) }}\n\nINITIAL_MESSAGE_TEMPLATE_BASE:\n{{ JSON.stringify($('config').item.json.initial_message_template || null) }}\n\nINSTRUCCIÓN:\n- Usa SOLO la info relevante para QUALIFYING (fechas, personas, zona y opcionalmente presupuesto, tipo_evento, amenidades, mascotas).\n- Extrae del mensaje actual cualquier dato útil y devuelve el JSON de salida.\n\n\nLOOP_CONTEXT:\n{{ JSON.stringify({\n  loop_reason: $('Merge Sets1').item.json.loop_reason || null,\n  owner_unavailable: $('Merge Sets1').item.json.owner_unavailable === true,\n  forced_state: $('Merge Sets1').item.json.forced_state || null\n}, null, 2) }}",
           "options": {
-            "systemMessage": "=Eres el agente del estado QUALIFYING del sistema “De Paseo en Finca”.\n\nOBJETIVO\nRecopilar 3 datos mínimos del cliente:\n1) fechas (fecha_inicio y fecha_fin)\n2) número de personas (personas)\n3) zona/destino (zona)\n\nREGLAS\n- Si necesitas validar la fecha u hora actual para interpretar referencias como \"hoy\", \"mañana\", \"este fin de semana\" o similares, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Extrae cualquier dato del mensaje actual, incluso si viene mezclado.\n- Si falta info, pregunta los datos a la vez cuando sea posible.\n- Si el mensaje es solo saludo, saluda y pregunta por fechas.\n- Si el cliente dice “este finde”, “el próximo puente”, “en marzo”, etc., calcula fechas reales usando la fecha_actual dada.\n- Si ya están completos los 3 datos, confirma lo entendido y di que vas a buscar opciones.\n- Si de manera repetitiva el cliente dice no saber el valor de algunos de los datos mínimo pedir un aproximado. Si eventualmente insiste en que no tiene la información, decirle que defortunadamente para ofrecerle fincas necesitas un aproximado de los datos mínimos y que así no puede ayudarle\n- Si el cliente te pide una zona donde no tenemos corbertura, no preguntes por los datos mínimos\n- Si en los mensajes recientes ya enviaste el listado de las zonas con cobertura, no lo envíes de nuevo\n\n\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n- Interpreta restricciones negativas del cliente como filtros reales.\n- Si el cliente dice \"sin jacuzzi\", \"que no tenga piscina\", \"pero no Anapoima\", \"menos Guatapé\" o frases equivalentes, guárdalas en los campos negativos correspondientes.\n- Usa estos campos cuando aplique: amenidades_excluidas, zonas_excluidas, municipios_excluidos, fincas_excluidas.\n- Si el cliente usa un cluster como \"cerca a Bogotá\" o \"cerca a Medellín\" pero excluye un municipio interno, conserva el cluster positivo y guarda el municipio excluido por separado.\n- Si el cliente levanta una restricción previa, por ejemplo \"ya no importa si tiene jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON válido con este schema:\n\n{\n  \"respuesta\": \"texto para enviar por WhatsApp\",\n  \"datos_extraidos\": {\n    \"fecha_inicio\": null | \"YYYY-MM-DD\",\n    \"fecha_fin\": null | \"YYYY-MM-DD\",\n    \"personas\": null | número,\n    \"zona\": null | \"string\",\n    \"presupuesto_max\": null | número,\n    \"tipo_evento\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": [],\n    \"mascotas\": null | boolean\n  },\n  \"datos_completos\": boolean,\n  \"intent\": \"GREETING | QUALIFYING | QUESTION | HITL_REQUEST | OFF_TOPIC | CANCEL\"\n}\n\nNota:\n- Si el current meessage es el único mensajes responde con este texto para whatsapp, ajustando el saludo dependiendo de la hora del día:\n\"Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche \n\n🌎En el momento disponemos de propiedades en Anapoima ,Villeta, La Vega,Girardot , Eje cafetero , Carmen de Apicala , Antioquia y Villavicencio\"\n- NO cierres fechas flexibles automáticamente.\n- Si el cliente dice \"cualquier día\", \"algún día\", \"la otra semana\", \"próxima semana\", \"3 noches\", \"un fin de semana\" o cualquier ventana flexible SIN dar día exacto de inicio, NO conviertas eso en fecha_inicio y fecha_fin cerradas.\n- En ese caso debes tratar las fechas como incompletas y pedir un día de inicio preferido antes de marcar datos_completos = true.\n- Sí puedes normalizar referencias amplias de descanso cuando corresponden a clusters claros de cobertura.\n- Interpreta \"cerca a Bogotá\", \"cerca de Bogotá\", \"Bogotá y alrededores\" o equivalentes como una búsqueda amplia sobre municipios vacacionales cercanos como Anapoima, Villeta, La Vega, Girardot, Carmen de Apicalá, La Mesa, Mesitas del Colegio, Ricaurte y Melgar.\n- Interpreta \"cerca a Medellín\", \"cerca de Medellín\", \"Medellín o cerca\" o equivalentes como una búsqueda amplia sobre municipios vacacionales de nuestra cobertura en Antioquia, por ejemplo Santa Fe de Antioquia, Guatapé, San Jerónimo, Sopetrán, Barbosa y Rionegro.\n- En esos casos puedes guardar la zona como \"cerca a Bogotá\" o \"cerca a Medellín\" y considerarla válida para continuar.\n- Solo pide una zona más concreta si el cliente quiere restringir más la búsqueda dentro de ese cluster.\n- Si la referencia es una ciudad fuera de cobertura que no corresponde a uno de esos clusters, ahí sí aclara las zonas disponibles y pide ajustar.\n",
+            "systemMessage": "=Eres el agente del estado QUALIFYING del sistema “De Paseo en Finca”.\n\nOBJETIVO\nRecopilar 3 datos mínimos del cliente:\n1) fechas (fecha_inicio y fecha_fin)\n2) número de personas (personas)\n3) zona/destino (zona)\n\nREGLAS\n- Si necesitas validar la fecha u hora actual para interpretar referencias como \"hoy\", \"mañana\", \"este fin de semana\" o similares, usa current_datetime_tool.\n{{ $('config').item.json.tono }}\n- Extrae cualquier dato del mensaje actual, incluso si viene mezclado.\n- Si falta info, pregunta los datos a la vez cuando sea posible.\n- Si el mensaje es solo saludo, saluda y pregunta por fechas.\n- Si el cliente dice “este finde”, “el próximo puente”, “en marzo”, etc., calcula fechas reales usando la fecha_actual dada.\n- Si ya están completos los 3 datos, confirma lo entendido y di que vas a buscar opciones.\n- Si de manera repetitiva el cliente dice no saber el valor de algunos de los datos mínimo pedir un aproximado. Si eventualmente insiste en que no tiene la información, decirle que defortunadamente para ofrecerle fincas necesitas un aproximado de los datos mínimos y que así no puede ayudarle\n- Si el cliente te pide una zona donde no tenemos corbertura, no preguntes por los datos mínimos\n- Si en los mensajes recientes ya enviaste el listado de las zonas con cobertura, no lo envíes de nuevo\n\n\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"resume_after_qa\", no repitas la respuesta QA. Reencarrila la conversación pidiendo de nuevo el dato faltante o indicando el siguiente paso comercial.\n- Si current_message viene vacío y LOOP_CONTEXT.loop_reason = \"state_transition\", actúa con base en el estado y el contexto ya persistido.\n- Interpreta restricciones negativas del cliente como filtros reales.\n- Si el cliente dice \"sin jacuzzi\", \"que no tenga piscina\", \"pero no Anapoima\", \"menos Guatapé\" o frases equivalentes, guárdalas en los campos negativos correspondientes.\n- Usa estos campos cuando aplique: amenidades_excluidas, zonas_excluidas, municipios_excluidos, fincas_excluidas.\n- Si el cliente usa un cluster como \"cerca a Bogotá\" o \"cerca a Medellín\" pero excluye un municipio interno, conserva el cluster positivo y guarda el municipio excluido por separado.\n- Si el cliente levanta una restricción previa, por ejemplo \"ya no importa si tiene jacuzzi\" o \"Anapoima sí puede ser\", devuelve el array correspondiente vacío para limpiarlo.\n\nOUTPUT\nResponde EXCLUSIVAMENTE en JSON válido con este schema:\n\n{\n  \"respuesta\": \"texto para enviar por WhatsApp\",\n  \"datos_extraidos\": {\n    \"fecha_inicio\": null | \"YYYY-MM-DD\",\n    \"fecha_fin\": null | \"YYYY-MM-DD\",\n    \"personas\": null | número,\n    \"zona\": null | \"string\",\n    \"presupuesto_max\": null | número,\n    \"tipo_evento\": null | \"string\",\n    \"amenidades\": [],\n    \"amenidades_excluidas\": [],\n    \"zonas_excluidas\": [],\n    \"municipios_excluidos\": [],\n    \"fincas_excluidas\": [],\n    \"mascotas\": null | boolean\n  },\n  \"datos_completos\": boolean,\n  \"intent\": \"GREETING | QUALIFYING | QUESTION | HITL_REQUEST | OFF_TOPIC | CANCEL\"\n}\n\nNota:\n- Si GREETING_CONTEXT.is_initial_qualifying_turn = true, usa INITIAL_MESSAGE_TEMPLATE_BASE como estructura comercial de referencia, pero NO lo copies literal salvo que el mensaje actual sea solo un saludo.\n- Mantén el estilo actual del saludo y ajústalo por hora con GREETING_CONTEXT.greeting_time_bucket:\n  - morning => \"¡Excelente día!\"\n  - afternoon => \"¡Excelente tarde!\"\n  - night => \"¡Excelente noche!\"\n- Si GREETING_CONTEXT.greeting_name_usable = true, personaliza el saludo de forma formal usando GREETING_CONTEXT.greeting_name_candidate.\n- Si GREETING_CONTEXT.greeting_name_usable = false, no uses nombre.\n- Si el cliente ya compartió uno o más datos, reconócelos y pide solo los faltantes.\n- Si el cliente ya pregunta por una zona o destino, responde de forma contextual y no como si hubiera mandado solo \"hola\".\n- Si el cliente solo saluda, sí puedes usar la estructura completa del mensaje inicial.\n- Si el cliente pide una zona fuera de cobertura, respeta la regla de cobertura y no fuerces el bloque genérico de captura completa.\n- NO cierres fechas flexibles automáticamente.\n- Si el cliente dice \"cualquier día\", \"algún día\", \"la otra semana\", \"próxima semana\", \"3 noches\", \"un fin de semana\" o cualquier ventana flexible SIN dar día exacto de inicio, NO conviertas eso en fecha_inicio y fecha_fin cerradas.\n- En ese caso debes tratar las fechas como incompletas y pedir un día de inicio preferido antes de marcar datos_completos = true.\n- Sí puedes normalizar referencias amplias de descanso cuando corresponden a clusters claros de cobertura.\n- Interpreta \"cerca a Bogotá\", \"cerca de Bogotá\", \"Bogotá y alrededores\" o equivalentes como una búsqueda amplia sobre municipios vacacionales cercanos como Anapoima, Villeta, La Vega, Girardot, Carmen de Apicalá, La Mesa, Mesitas del Colegio, Ricaurte y Melgar.\n- Interpreta \"cerca a Medellín\", \"cerca de Medellín\", \"Medellín o cerca\" o equivalentes como una búsqueda amplia sobre municipios vacacionales de nuestra cobertura en Antioquia, por ejemplo Santa Fe de Antioquia, Guatapé, San Jerónimo, Sopetrán, Barbosa y Rionegro.\n- En esos casos puedes guardar la zona como \"cerca a Bogotá\" o \"cerca a Medellín\" y considerarla válida para continuar.\n- Solo pide una zona más concreta si el cliente quiere restringir más la búsqueda dentro de ese cluster.\n- Si la referencia es una ciudad fuera de cobertura que no corresponde a uno de esos clusters, ahí sí aclara las zonas disponibles y pide ajustar.\n",
             "maxIterations": 4
           }
         },
@@ -6825,7 +7039,7 @@
           "url": "https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/outbound-sender/async",
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: $json.sender_sequence_json || $json.outbound_sequence_json || '[]', private: false, chatwoot_account_id: $json.chatwoot_account_id || '1', chatwoot_api_token: $json.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq' }) }}",
+        "jsonBody": "={{ JSON.stringify({ chatwoot_id: $json.chatwoot_id, outbound_sequence_json: $json.sender_sequence_json || $json.outbound_sequence_json || '[]', private: false, chatwoot_account_id: $json.chatwoot_account_id || '1', chatwoot_api_token: $json.chatwoot_api_token || '__CHATWOOT_API_TOKEN__' }) }}",
           "options": {
             "timeout": 10000
           }
@@ -6960,6 +7174,157 @@
         "position": [
           6320,
           0
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "5587eb3d-2d8b-4dda-9738-a68056213222",
+                "leftValue": "={{ $('Normalize inbound payload').item.json.eligible === true && String($('Normalize inbound payload').item.json.chatInput || '').trim().toUpperCase() === 'RESET' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "7a31a739-6591-4f84-a4fa-6cd14fd92623",
+        "name": "Is RESET command?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -1952,
+          -176
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with params as (\n  select nullif({{ \"'\" + String($('Normalize inbound payload').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}, '')::text as wa_id\n),\ndeleted as (\n  delete from public.messages m\n  using params p\n  where p.wa_id is not null\n    and m.conversation_id = p.wa_id\n  returning m.id\n)\nselect\n  (select wa_id from params) as wa_id,\n  count(*)::integer as deleted_messages_count\nfrom deleted;",
+          "options": {}
+        },
+        "id": "5d5b4601-d085-4d2b-92be-59e40ee86c83",
+        "name": "Delete RESET messages",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          -1728,
+          -304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with params as (\n  select nullif({{ \"'\" + String($('Normalize inbound payload').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }}, '')::text as wa_id\n),\ndeleted as (\n  delete from public.conversations c\n  using params p\n  where p.wa_id is not null\n    and c.wa_id = p.wa_id\n  returning c.wa_id\n)\nselect\n  (select wa_id from params) as wa_id,\n  count(*)::integer as deleted_conversations_count\nfrom deleted;",
+          "options": {}
+        },
+        "id": "6d04340b-44db-46d3-8e1b-f18cc1349e46",
+        "name": "Delete RESET conversation",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2,
+        "position": [
+          -1472,
+          -304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const inbound = $('Normalize inbound payload').item.json || {};\nconst deletedMessages = $('Delete RESET messages').item.json || {};\nconst deletedConversation = $json || {};\nconst replyText = \"Listo. Reinici\\u00e9 tu conversaci\\u00f3n y borr\\u00e9 el historial para empezar desde cero. Escr\\u00edbeme de nuevo y arrancamos.\";\n\nreturn [\n  {\n    json: {\n      ...inbound,\n      action: 'RESET',\n      tool_chosen: 'NONE',\n      final_whatsapp_text: replyText,\n      outbound_message: replyText,\n      send_to_customer: inbound.source !== 'simulator' && Boolean(inbound.chatwoot_id),\n      reset_applied: true,\n      reset_deleted_messages_count: Number(deletedMessages.deleted_messages_count || 0) || 0,\n      reset_deleted_conversations_count: Number(deletedConversation.deleted_conversations_count || 0) || 0,\n      current_state: null,\n      agente_activo: true,\n    },\n  },\n];"
+        },
+        "id": "e030eba8-36bd-4bf7-b154-e7c0de15cfc1",
+        "name": "Build RESET response payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1216,
+          -304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "120356dc-f244-4d4f-9350-3e68f1c28771",
+                "leftValue": "={{ $json.send_to_customer === true && Boolean($json.chatwoot_id) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "e42f243c-89dd-4b5b-b4c9-51c869fdf9ab",
+        "name": "Should send RESET confirmation via Chatwoot?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -960,
+          -304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n\n  const response = await helperRequest({\n    url: \"https://chatwoot-9qe1j-u48275.vm.elestio.app\" + '/api/v1/accounts/' + \"1\" + '/conversations/' + String(input.chatwoot_id) + '/messages',\n    method: 'POST',\n    headers: {\n      api_access_token: \"__CHATWOOT_API_TOKEN__\",\n      'Content-Type': 'application/json',\n      Accept: 'application/json',\n    },\n    body: {\n      content: String(input.outbound_message || input.final_whatsapp_text || '').trim(),\n      message_type: 'outgoing',\n      private: false,\n      content_type: 'text',\n      content_attributes: {},\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n\n  responseStatus = Number(response.statusCode || response.status || 0) || null;\n  const raw = response.body;\n  responseBody =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n\n  providerMessageId =\n    responseBody?.source_id ||\n    responseBody?.id ||\n    responseBody?.messages?.[0]?.id ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      responseBody?.error?.message ||\n      responseBody?.message ||\n      (raw == null ? null : String(raw)) ||\n      'reset_chatwoot_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message;\n  responseBody = { error: error.message };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      reset_chatwoot_delivery_status: responseStatus,\n      reset_chatwoot_delivery_body: responseBody,\n      provider_message_id: providerMessageId,\n      reset_delivery_ok: !errorMessage,\n      reset_delivery_error: errorMessage,\n    },\n  },\n];"
+        },
+        "id": "35c50726-7377-4bff-8725-4f5a15c31819",
+        "name": "Send RESET confirmation to Chatwoot",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -704,
+          -432
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst fetchedMessages = $('Fetch messages1').item.json || {};\nconst recentMessages = Array.isArray(fetchedMessages.recent_messages) ? fetchedMessages.recent_messages : [];\nconst contextRow = $('Get Context-conversations1').item.json || {};\nconst raw = input.raw && typeof input.raw === 'object' ? input.raw : {};\n\nconst compact = (value) => String(value ?? '').trim();\nconst collapseSpaces = (value) => compact(value).replace(/\\s+/g, ' ');\nconst normalize = (value) =>\n  collapseSpaces(value)\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase();\n\nconst now = new Date();\nconst hourFormatter = new Intl.DateTimeFormat('en-US', {\n  timeZone: 'America/Bogota',\n  hour: '2-digit',\n  hour12: false,\n});\nconst bogotaHour = Number(hourFormatter.format(now));\nlet greetingTimeBucket = 'morning';\nif (Number.isFinite(bogotaHour)) {\n  if (bogotaHour >= 12 && bogotaHour < 19) greetingTimeBucket = 'afternoon';\n  else if (bogotaHour >= 19 || bogotaHour < 5) greetingTimeBucket = 'night';\n}\n\nconst stopwords = new Set([\n  'amor',\n  'bb',\n  'bebe',\n  'bebé',\n  'bebé',\n  'corazon',\n  'corazón',\n  'gorda',\n  'gordo',\n  'hija',\n  'hijo',\n  'mama',\n  'mamá',\n  'mami',\n  'mi',\n  'miamor',\n  'papa',\n  'papá',\n  'papi',\n  'princesa',\n  'principe',\n  'príncipe',\n  'reina',\n  'rey',\n  'te',\n  'amo',\n  'vida',\n]);\n\nfunction isLikelyWord(token) {\n  return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ'-]*$/.test(token);\n}\n\nfunction resolveGreetingNameCandidate() {\n  const sourceCandidates = [\n    raw?.conversation?.meta?.sender?.name,\n    input.client_name,\n    raw?.contact?.name,\n    raw?.sender?.name,\n    raw?.meta?.name,\n    raw?.meta?.sender?.name,\n  ];\n\n  for (const sourceValue of sourceCandidates) {\n    const collapsed = collapseSpaces(sourceValue);\n    if (!collapsed) continue;\n    if (/\\d/.test(collapsed)) continue;\n    if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\s'-]+$/.test(collapsed)) continue;\n\n    const parts = collapsed.split(' ').filter(Boolean);\n    if (!parts.length || parts.length > 4) continue;\n    if (!parts.every(isLikelyWord)) continue;\n\n    const normalizedParts = parts.map(normalize);\n    if (normalizedParts.some((part) => stopwords.has(part))) continue;\n\n    const first = parts[0];\n    const normalizedFirst = normalize(first);\n    if (!first || first.length < 3) continue;\n    if (stopwords.has(normalizedFirst)) continue;\n    if (/^[A-ZÁÉÍÓÚÜÑ]{2,3}$/.test(first)) continue;\n\n    return first;\n  }\n\n  return null;\n}\n\nconst greetingNameCandidate = resolveGreetingNameCandidate();\nconst isInitialQualifyingTurn =\n  String(contextRow.current_state || '').trim() === 'QUALIFYING' &&\n  recentMessages.length === 0;\n\nreturn [\n  {\n    json: {\n      ...input,\n      is_initial_qualifying_turn: isInitialQualifyingTurn,\n      greeting_time_bucket: greetingTimeBucket,\n      greeting_name_candidate: greetingNameCandidate,\n      greeting_name_usable: Boolean(greetingNameCandidate),\n      greeting_context: {\n        is_initial_qualifying_turn: isInitialQualifyingTurn,\n        greeting_time_bucket: greetingTimeBucket,\n        greeting_name_candidate: greetingNameCandidate,\n        greeting_name_usable: Boolean(greetingNameCandidate),\n      },\n    },\n  },\n];\n"
+        },
+        "id": "37bd01b5-fda5-4fa6-88b0-f33b31d1d345",
+        "name": "Prepare qualifying greeting context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4560,
+          -208
         ]
       }
     ],
@@ -7284,7 +7649,7 @@
         "main": [
           [
             {
-              "node": "Resolve existing phone mapping",
+              "node": "Is RESET command?",
               "type": "main",
               "index": 0
             }
@@ -7812,7 +8177,7 @@
         "main": [
           [
             {
-              "node": "Run qualifying pass",
+              "node": "Prepare qualifying greeting context",
               "type": "main",
               "index": 0
             }
@@ -8020,6 +8385,97 @@
             }
           ]
         ]
+      },
+      "Is RESET command?": {
+        "main": [
+          [
+            {
+              "node": "Delete RESET messages",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Resolve existing phone mapping",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete RESET messages": {
+        "main": [
+          [
+            {
+              "node": "Delete RESET conversation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete RESET conversation": {
+        "main": [
+          [
+            {
+              "node": "Build RESET response payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build RESET response payload": {
+        "main": [
+          [
+            {
+              "node": "Should send RESET confirmation via Chatwoot?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Should send RESET confirmation via Chatwoot?": {
+        "main": [
+          [
+            {
+              "node": "Send RESET confirmation to Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Webhook Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send RESET confirmation to Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Webhook Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare qualifying greeting context": {
+        "main": [
+          [
+            {
+              "node": "Run qualifying pass",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "JUANDAVID VIZCAYA",
@@ -8028,10 +8484,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-26T05:17:01.235Z",
-        "id": 611,
+        "createdAt": "2026-03-26T18:10:21.896Z",
+        "id": 623,
         "workflowId": "RrIniaNJCUC72nfI",
-        "versionId": "805f33f6-d138-4b1c-8211-02182d84ecf9",
+        "versionId": "7ef505f1-c839-4e3f-a008-5a28d3b21d55",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }
