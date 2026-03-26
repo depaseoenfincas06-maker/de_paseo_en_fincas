@@ -33,16 +33,15 @@ const $refresh = document.getElementById('kb-refresh');
 async function fetchConversations() {
   const tf = $timeframe.value;
   const res = await fetch(`/api/monitoring?timeframe=${tf}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
   return data.conversations || [];
 }
 
 async function fetchConversationDetail(waId) {
   const res = await fetch(`/api/monitoring/conversations/${encodeURIComponent(waId)}`);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
-  return data;
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 // ── Helpers ──
