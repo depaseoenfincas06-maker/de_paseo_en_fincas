@@ -1,0 +1,1153 @@
+{
+  "updatedAt": "2026-03-27T03:20:48.427Z",
+  "createdAt": "2026-03-26T03:36:41.541Z",
+  "id": "SBEqIgPw7rGQ3Ef8",
+  "name": "Owner Reservation Request Sender - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "owner-reservation-request",
+        "options": {}
+      },
+      "id": "6efcf198-0570-4c5b-b748-7255989d5479",
+      "name": "Owner reservation webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        320
+      ],
+      "webhookId": "owner-reservation-request"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst compact = (value) => String(value ?? '').trim();\nconst parseObject = (value) => {\n  if (value && typeof value === 'object') return value;\n  if (!value) return null;\n  try {\n    const parsed = JSON.parse(String(value));\n    return parsed && typeof parsed === 'object' ? parsed : null;\n  } catch {\n    return null;\n  }\n};\n\nconst selectedFinca = parseObject(payload.selected_finca || payload.selectedFinca || payload.selected_finca_snapshot) || {};\nconst selectedFincaId =\n  compact(payload.selected_finca_id || payload.selectedFincaId || selectedFinca?.finca_id || selectedFinca?.id) || null;\nconst selectedFincaName =\n  compact(payload.selected_finca_name || payload.selectedFincaName || selectedFinca?.nombre || selectedFincaId) || null;\nconst chatwootId = compact(payload.chatwoot_id || payload.chatwootId) || null;\nconst conversationLink =\n  compact(payload.conversation_link) ||\n  (chatwootId ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId : null);\n\nreturn [\n  {\n    json: {\n      conversation_id: compact(payload.conversation_id || payload.conversationId || payload.wa_id || payload.waId) || null,\n      chatwoot_id: chatwootId,\n      wa_id: compact(payload.wa_id || payload.waId) || null,\n      client_name: compact(payload.client_name || payload.clientName) || null,\n      selected_finca_id: selectedFincaId,\n      selected_finca_name: selectedFincaName,\n      selected_finca_snapshot: selectedFinca && Object.keys(selectedFinca).length ? selectedFinca : {},\n      fecha_inicio: compact(payload.fecha_inicio || payload.fechaInicio) || null,\n      fecha_fin: compact(payload.fecha_fin || payload.fechaFin) || null,\n      personas: compact(payload.personas) || null,\n      zona: compact(payload.zona) || null,\n      conversation_link: conversationLink,\n      template_name: compact(payload.template_name) || 'solicitud_reserva',\n      reminder_template_name: compact(payload.reminder_template_name) || 'solicitud_reserva_reminder',\n      template_language: compact(payload.template_language) || 'es_CO',\n      reminder_template_language: compact(payload.reminder_template_language) || 'en',\n      inventory_sheet_document_id: compact(payload.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name: compact(payload.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      owner_chatwoot_inbox_name: compact(payload.owner_chatwoot_inbox_name || payload.ownerChatwootInboxName) || \"Agent_propietarios\",\n      owner_chatwoot_inbox_phone: compact(payload.owner_chatwoot_inbox_phone || payload.ownerChatwootInboxPhone) || \"+573105639334\",\n      received_at: new Date().toISOString(),\n    },\n  },\n];\n"
+      },
+      "id": "08c1e828-9c80-40c4-86e5-8fc8b3909ebe",
+      "name": "Normalize owner reservation request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $json || {};\nconst BOGOTA_OFFSET_HOURS = -5;\nconst WINDOW_START_HOUR = 8;\nconst WINDOW_END_HOUR = 23;\nconst MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];\n\nconst compact = (value) => String(value ?? '').trim();\nconst normalizeText = (value) =>\n  compact(value)\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase();\n\nfunction toBogotaParts(date = new Date()) {\n  const shifted = new Date(date.getTime() + BOGOTA_OFFSET_HOURS * 60 * 60 * 1000);\n  return {\n    year: shifted.getUTCFullYear(),\n    month: shifted.getUTCMonth() + 1,\n    day: shifted.getUTCDate(),\n    hour: shifted.getUTCHours(),\n    minute: shifted.getUTCMinutes(),\n    second: shifted.getUTCSeconds(),\n  };\n}\n\nfunction bogotaDateToUtc(year, month, day, hour = 0, minute = 0, second = 0) {\n  return new Date(Date.UTC(year, month - 1, day, hour - BOGOTA_OFFSET_HOURS, minute, second));\n}\n\nfunction nextDay(year, month, day) {\n  const date = new Date(Date.UTC(year, month - 1, day) + 24 * 60 * 60 * 1000);\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction normalizeToAllowedWindow(date) {\n  const parts = toBogotaParts(date);\n  if (parts.hour < WINDOW_START_HOUR) {\n    return bogotaDateToUtc(parts.year, parts.month, parts.day, WINDOW_START_HOUR, 0, 0);\n  }\n  if (parts.hour >= WINDOW_END_HOUR) {\n    const tomorrow = nextDay(parts.year, parts.month, parts.day);\n    return bogotaDateToUtc(tomorrow.year, tomorrow.month, tomorrow.day, WINDOW_START_HOUR, 0, 0);\n  }\n  return date;\n}\n\nfunction parseDateOnly(value) {\n  const source = compact(value);\n  if (!source) return null;\n  const match = source.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (match) {\n    return {\n      year: Number(match[1]),\n      month: Number(match[2]),\n      day: Number(match[3]),\n    };\n  }\n  const date = new Date(source);\n  if (Number.isNaN(date.getTime())) return null;\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction formatDateForTemplate(parts, includeYear) {\n  if (!parts) return null;\n  const monthLabel = MONTHS[(parts.month || 1) - 1] || MONTHS[0];\n  return includeYear\n    ? `${parts.day} de ${monthLabel} de ${parts.year}`\n    : `${parts.day} de ${monthLabel}`;\n}\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let index = 0; index < text.length; index += 1) {\n    const char = text[index];\n    const next = text[index + 1];\n    if (inQuotes) {\n      if (char === '\"' && next === '\"') {\n        cell += '\"';\n        index += 1;\n      } else if (char === '\"') {\n        inQuotes = false;\n      } else {\n        cell += char;\n      }\n      continue;\n    }\n\n    if (char === '\"') {\n      inQuotes = true;\n      continue;\n    }\n    if (char === ',') {\n      row.push(cell);\n      cell = '';\n      continue;\n    }\n    if (char === '\\n') {\n      row.push(cell);\n      rows.push(row);\n      row = [];\n      cell = '';\n      continue;\n    }\n    if (char === '\\r') {\n      continue;\n    }\n    cell += char;\n  }\n  row.push(cell);\n  rows.push(row);\n  return rows.filter((entry) => entry.some((value) => compact(value) !== ''));\n}\n\nfunction normalizeHeader(value) {\n  return normalizeText(value).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');\n}\n\nfunction pick(row, keys) {\n  for (const key of keys) {\n    if (row[key] !== undefined && row[key] !== null && compact(row[key]) !== '') return compact(row[key]);\n  }\n  return null;\n}\n\nfunction normalizePhone(rawValue) {\n  const digits = String(rawValue || '').replace(/\\D+/g, '').trim();\n  if (!digits) return null;\n  if (digits.startsWith('0057') && digits.length >= 12) return digits.slice(2);\n  if (digits.startsWith('57') && digits.length >= 12 && digits.length <= 15) return digits;\n  if (digits.length === 10) return '57' + digits;\n  return null;\n}\n\nfunction mergeSnapshot(base = {}, row = {}) {\n  return {\n    ...row,\n    ...base,\n    finca_id: compact(base.finca_id || row.finca_id || row.codigo_original) || null,\n    nombre: compact(base.nombre || row.nombre || row.finca_id) || null,\n  };\n}\n\nconst now = new Date();\nconst resolved = {\n  ...input,\n  can_send_initial: false,\n  error_message: null,\n  recipient_phone: null,\n  phone_source: null,\n  send_after_at: null,\n  should_wait_before_initial_send: false,\n};\n\nif (!input.conversation_id || !input.selected_finca_id) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: 'missing_conversation_id_or_selected_finca_id',\n      },\n    },\n  ];\n}\n\nconst startParts = parseDateOnly(input.fecha_inicio);\nconst endParts = parseDateOnly(input.fecha_fin);\nconst includeYear = Boolean(startParts && endParts && startParts.year !== endParts.year);\n\nresolved.fecha_inicio_text = formatDateForTemplate(startParts, includeYear);\nresolved.fecha_fin_text = formatDateForTemplate(endParts, includeYear);\n\nlet inventoryRows = [];\nlet inventoryError = null;\nconst inventoryDocumentId = compact(input.inventory_sheet_document_id);\nconst inventorySheetTabName = compact(input.inventory_sheet_tab_name);\nconst inventoryCsvUrl =\n  inventoryDocumentId && inventorySheetTabName\n    ? `https://docs.google.com/spreadsheets/d/${inventoryDocumentId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(inventorySheetTabName)}`\n    : null;\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nif (!inventoryCsvUrl) {\n  inventoryError = 'missing_inventory_sheet_config';\n} else if (!helperRequest) {\n  inventoryError = 'http_request_helper_unavailable';\n} else {\n  try {\n    const response = await helperRequest({\n      url: inventoryCsvUrl,\n      method: 'GET',\n      headers: {\n        Accept: 'text/csv,text/plain;q=0.9,*/*;q=0.8',\n      },\n      json: false,\n      timeout: 30000,\n      ignoreHttpStatusErrors: true,\n      returnFullResponse: true,\n    });\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const responseBody = response.body ?? response.data ?? '';\n    const csvText =\n      typeof responseBody === 'string'\n        ? responseBody\n        : responseBody == null\n          ? ''\n          : JSON.stringify(responseBody);\n    if (!(statusCode >= 200 && statusCode < 300)) {\n      inventoryError = `inventory_http_${statusCode || 'unknown'}`;\n    } else {\n      const parsed = parseCsv(csvText);\n      const headers = parsed[0] || [];\n      const normalizedHeaders = headers.map((header) => normalizeHeader(header));\n      inventoryRows = parsed.slice(1).map((cells) => {\n        const row = {};\n        normalizedHeaders.forEach((header, index) => {\n          if (!header) return;\n          row[header] = cells[index] ?? null;\n        });\n        row.__raw_cells = cells;\n        return row;\n      });\n    }\n  } catch (error) {\n    inventoryError = error.message || 'inventory_fetch_failed';\n  }\n}\n\nif (inventoryError) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: inventoryError,\n      },\n    },\n  ];\n}\n\nconst selectedIdNormalized = normalizeText(input.selected_finca_id);\nconst selectedNameNormalized = normalizeText(input.selected_finca_name || input.selected_finca_snapshot?.nombre || '');\n\nconst matchedRow =\n  inventoryRows.find((row) => normalizeText(pick(row, ['finca_id', 'id']) || '') === selectedIdNormalized) ||\n  inventoryRows.find((row) => normalizeText(pick(row, ['codigo_original']) || '') === selectedIdNormalized) ||\n  inventoryRows.find((row) => selectedNameNormalized && normalizeText(pick(row, ['nombre']) || '') === selectedNameNormalized) ||\n  null;\n\nif (!matchedRow) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: 'selected_finca_not_found_in_inventory',\n      },\n    },\n  ];\n}\n\nconst rawCells = Array.isArray(matchedRow.__raw_cells) ? matchedRow.__raw_cells : [];\nconst phoneCandidates = [\n  ['administrador_contacto', pick(matchedRow, ['administrador_contacto'])],\n  ['owner_contacto', pick(matchedRow, ['owner_contacto', 'owner_contacto_1', 'owner_contacto_2'])],\n  ['ah', compact(rawCells[33]) || null],\n];\n\nlet phoneSource = null;\nlet recipientPhone = null;\nfor (const [source, rawValue] of phoneCandidates) {\n  const normalized = normalizePhone(rawValue);\n  if (normalized) {\n    phoneSource = source;\n    recipientPhone = normalized;\n    break;\n  }\n}\n\nconst inventorySnapshot = {\n  finca_id: compact(pick(matchedRow, ['finca_id', 'id']) || input.selected_finca_id),\n  nombre: compact(pick(matchedRow, ['nombre']) || input.selected_finca_name || input.selected_finca_id),\n  codigo_original: pick(matchedRow, ['codigo_original']),\n  zona: pick(matchedRow, ['zona']),\n  municipio: pick(matchedRow, ['municipio']),\n  owner_nombre: pick(matchedRow, ['owner_nombre']),\n  owner_contacto: pick(matchedRow, ['owner_contacto']),\n  administrador_nombre: pick(matchedRow, ['administrador_nombre']),\n  administrador_contacto: pick(matchedRow, ['administrador_contacto']),\n  foto_url: pick(matchedRow, ['foto_url']),\n};\n\nconst selectedFincaSnapshot = mergeSnapshot(input.selected_finca_snapshot || {}, inventorySnapshot);\nconst sendAfterAt = normalizeToAllowedWindow(now);\n\nconst payload = {\n  source: 'owner_reservation_request_workflow',\n  client_name: input.client_name || null,\n  wa_id: input.wa_id || null,\n  chatwoot_id: input.chatwoot_id || null,\n  chatwoot_link: input.conversation_link || null,\n  selected_finca_id: input.selected_finca_id,\n  selected_finca_name: selectedFincaSnapshot.nombre || input.selected_finca_name || input.selected_finca_id,\n  fecha_inicio: input.fecha_inicio || null,\n  fecha_fin: input.fecha_fin || null,\n  fecha_inicio_text: resolved.fecha_inicio_text || null,\n  fecha_fin_text: resolved.fecha_fin_text || null,\n  personas: input.personas || null,\n  zona: input.zona || null,\n  phone_source: phoneSource,\n  template_name: input.template_name || 'solicitud_reserva',\n  reminder_template_name: input.reminder_template_name || 'solicitud_reserva_reminder',\n  template_language: input.template_language || 'es_CO',\n  reminder_template_language: input.reminder_template_language || 'en',\n  inventory_sheet_document_id: input.inventory_sheet_document_id || null,\n  inventory_sheet_tab_name: input.inventory_sheet_tab_name || null,\n  conversation_link: input.conversation_link || null,\n};\n\nconst errorMessage =\n  !recipientPhone\n    ? 'owner_phone_not_found'\n    : !resolved.fecha_inicio_text || !resolved.fecha_fin_text\n      ? 'missing_or_invalid_reservation_dates'\n      : null;\n\nreturn [\n  {\n    json: {\n      ...resolved,\n      selected_finca_name: selectedFincaSnapshot.nombre || input.selected_finca_name || input.selected_finca_id,\n      selected_finca_snapshot: selectedFincaSnapshot,\n      payload,\n      recipient_phone: recipientPhone,\n      phone_source: phoneSource,\n      send_after_at: sendAfterAt.toISOString(),\n      should_wait_before_initial_send: sendAfterAt.getTime() - now.getTime() > 1000,\n      can_send_initial: !errorMessage,\n      error_message: errorMessage,\n    },\n  },\n];\n"
+      },
+      "id": "322c6871-d1b5-43db-b2d6-ea5ec98a36ba",
+      "name": "Resolve owner reservation target",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "51f36d69-e762-44ed-a0b9-0c5c5aa3d099",
+              "leftValue": "={{ $json.can_send_initial === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ec5fdda6-c2d0-4ccd-aad2-64cde3637b0f",
+      "name": "Owner reservation request ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        960,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into public.owner_reservation_requests (\n  conversation_id,\n  chatwoot_id,\n  selected_finca_id,\n  selected_finca_name,\n  selected_finca_snapshot,\n  recipient_phone,\n  phone_source,\n  template_name,\n  reminder_template_name,\n  template_language,\n  status,\n  error_message,\n  payload,\n  updated_at\n)\nvalues (\n  {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ $json.chatwoot_id ? \"'\" + String($json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.selected_finca_name || $json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + JSON.stringify($json.selected_finca_snapshot || {}).replace(/'/g, \"''\") + \"'::jsonb\" }},\n  {{ $json.recipient_phone ? \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ $json.phone_source ? \"'\" + String($json.phone_source).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ \"'\" + String($json.template_name || 'solicitud_reserva').replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.reminder_template_name || 'solicitud_reserva_reminder').replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }},\n  'failed',\n  {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reservation_request_invalid'\" }},\n  {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'::jsonb\" }},\n  now()\n)\nreturning id, status, error_message;",
+        "options": {}
+      },
+      "id": "863b5b4b-a9cd-4fdc-8834-b69b8a74629e",
+      "name": "Record failed owner reservation request",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        480
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with input as (\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ $json.chatwoot_id ? \"'\" + String($json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as chatwoot_id,\n    {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_id,\n    {{ \"'\" + String($json.selected_finca_name || $json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_name,\n    {{ \"'\" + JSON.stringify($json.selected_finca_snapshot || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as selected_finca_snapshot,\n    {{ \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" }}::text as recipient_phone,\n    {{ $json.phone_source ? \"'\" + String($json.phone_source).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as phone_source,\n    {{ \"'\" + String($json.template_name || 'solicitud_reserva').replace(/'/g, \"''\") + \"'\" }}::text as template_name,\n    {{ \"'\" + String($json.reminder_template_name || 'solicitud_reserva_reminder').replace(/'/g, \"''\") + \"'\" }}::text as reminder_template_name,\n    {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }}::text as template_language,\n    {{ \"'\" + String($json.send_after_at).replace(/'/g, \"''\") + \"'\" }}::timestamptz as send_after_at,\n    {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as payload\n),\ninserted as (\n  insert into public.owner_reservation_requests (\n    conversation_id,\n    chatwoot_id,\n    selected_finca_id,\n    selected_finca_name,\n    selected_finca_snapshot,\n    recipient_phone,\n    phone_source,\n    template_name,\n    reminder_template_name,\n    template_language,\n    status,\n    send_after_at,\n    payload,\n    updated_at\n  )\n  select\n    input.conversation_id,\n    input.chatwoot_id,\n    input.selected_finca_id,\n    input.selected_finca_name,\n    input.selected_finca_snapshot,\n    input.recipient_phone,\n    input.phone_source,\n    input.template_name,\n    input.reminder_template_name,\n    input.template_language,\n    'pending_send',\n    input.send_after_at,\n    input.payload,\n    now()\n  from input\n  on conflict (conversation_id, selected_finca_id, recipient_phone)\n  where recipient_phone is not null\n    and status in ('pending_send', 'initial_sent', 'reminder_sent')\n  do nothing\n  returning *\n)\nselect * from inserted;",
+        "options": {}
+      },
+      "id": "66018820-e3d4-47f9-94bc-725c449a57a0",
+      "name": "Insert pending owner reservation request",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5a21bf97-39be-48e7-8b51-6e48f69e2fdc",
+              "leftValue": "={{ $json.send_after_at && $json.should_wait_before_initial_send === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "6d59b6c4-78f4-4d93-a12d-0e82496ff635",
+      "name": "Wait before initial owner send?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1440,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "specificTime",
+        "dateTime": "={{ $json.send_after_at }}"
+      },
+      "id": "b91c2807-273d-4f8d-9c5f-499842032115",
+      "name": "Wait until owner send window",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        64
+      ],
+      "webhookId": "9f445a68-9c25-44c6-9d06-94f64550bfde"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst normalizePhone = (value) => {\n  const digits = String(value || '').replace(/\\D+/g, '').trim();\n  if (!digits) return '';\n  if (digits.startsWith('57') && digits.length === 12) return '+' + digits;\n  if (digits.length === 10) return '+57' + digits;\n  return '+' + digits;\n};\nconst sourceIdForPhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst parseNumber = (value) => {\n  const num = Number(value);\n  return Number.isFinite(num) && num > 0 ? num : null;\n};\nconst templateName = compact(input.template_name || input.reminder_template_name || input.payload?.template_name || input.payload?.reminder_template_name);\nconst templateLanguage = compact(input.template_language || input.payload?.template_language || 'es_CO') || 'es_CO';\nconst fincaName = compact(input.selected_finca_name || input.payload?.selected_finca_name || input.selected_finca_id || 'la finca');\nconst fechaInicioText = compact(input.fecha_inicio_text || input.payload?.fecha_inicio_text || input.payload?.fecha_inicio || 'Sin dato');\nconst fechaFinText = compact(input.fecha_fin_text || input.payload?.fecha_fin_text || input.payload?.fecha_fin || 'Sin dato');\nconst recipientPhone = normalizePhone(input.recipient_phone);\nconst ownerInboxName = compact(input.owner_chatwoot_inbox_name || input.payload?.owner_chatwoot_inbox_name || \"Agent_propietarios\") || \"Agent_propietarios\";\nconst ownerInboxPhone = normalizePhone(input.owner_chatwoot_inbox_phone || input.payload?.owner_chatwoot_inbox_phone || \"+573105639334\");\nconst chatwootBaseUrl = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst chatwootAccountId = \"1\";\nconst chatwootApiToken =\n  (typeof process !== 'undefined' && process?.env?.CHATWOOT_API_TOKEN)\n    ? String(process.env.CHATWOOT_API_TOKEN).trim()\n    : \"__CHATWOOT_API_TOKEN__\";\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\nlet ownerChatwootInboxId = parseNumber(input.owner_chatwoot_inbox_id || input.payload?.owner_chatwoot_inbox_id);\nlet ownerChatwootContactId = parseNumber(input.owner_chatwoot_contact_id || input.payload?.owner_chatwoot_contact_id);\nlet ownerChatwootConversationId = parseNumber(input.owner_chatwoot_conversation_id || input.payload?.owner_chatwoot_conversation_id);\nlet ownerChatwootMessageId = null;\nlet ownerChatwootSourceId = compact(input.owner_chatwoot_source_id || input.payload?.owner_chatwoot_source_id) || sourceIdForPhone(recipientPhone);\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nasync function chatwootApi(pathname, method = 'GET', body = null, query = null) {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const normalizedBase = compact(chatwootBaseUrl).replace(/\\/+$/, '');\n  const normalizedPath = String(pathname || '').startsWith('/') ? String(pathname || '') : `/${String(pathname || '')}`;\n  const queryParts = [];\n  if (query && typeof query === 'object') {\n    for (const [key, value] of Object.entries(query)) {\n      if (value === undefined || value === null || value === '') continue;\n      queryParts.push(`${encodeURIComponent(String(key))}=${encodeURIComponent(String(value))}`);\n    }\n  }\n  const url = queryParts.length\n    ? `${normalizedBase}${normalizedPath}?${queryParts.join('&')}`\n    : `${normalizedBase}${normalizedPath}`;\n  const response = await helperRequest({\n    url,\n    method,\n    headers: {\n      api_access_token: chatwootApiToken,\n      Accept: 'application/json',\n      ...(body ? { 'Content-Type': 'application/json' } : {}),\n    },\n    body,\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  const status = Number(response.statusCode || response.status || 0) || 0;\n  const raw = response.body;\n  const parsed =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n  return { status, body: parsed };\n}\n\nfunction exactContactMatches(payload, targetPhone) {\n  const normalizedTarget = normalizePhone(targetPhone);\n  return ((payload || {}).payload || []).filter((item) => normalizePhone(item?.phone_number || '') === normalizedTarget);\n}\n\nasync function findInbox() {\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/inboxes`);\n  if (response.status >= 300) {\n    throw new Error(`owner_inbox_lookup_failed:${response.status}`);\n  }\n  const normalizedPhone = normalizePhone(ownerInboxPhone);\n  const payload = (response.body || {}).payload || [];\n  for (const inbox of payload) {\n    if (String(inbox?.name || '') !== ownerInboxName) continue;\n    const actualPhone = normalizePhone(inbox?.phone_number || '');\n    if (normalizedPhone && actualPhone !== normalizedPhone) {\n      throw new Error(`owner_chatwoot_inbox_phone_mismatch:${actualPhone || 'missing'}`);\n    }\n    return inbox;\n  }\n  throw new Error('owner_chatwoot_inbox_not_found');\n}\n\nasync function findOrCreateContact() {\n  if (ownerChatwootContactId) {\n    return { id: ownerChatwootContactId };\n  }\n  const search = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/search`, 'GET', null, {\n    q: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (search.status >= 300) {\n    throw new Error(`owner_contact_search_failed:${search.status}`);\n  }\n  const matches = exactContactMatches(search.body, recipientPhone);\n  if (matches.length) {\n    ownerChatwootContactId = parseNumber(matches[0]?.id);\n    return matches[0];\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts`, 'POST', {\n    inbox_id: null,\n    name: compact(input.selected_finca_name || input.client_name || 'Propietario'),\n    phone_number: recipientPhone,\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_create_failed:${created.status}`);\n  }\n  const payload = created.body?.payload || created.body || {};\n  ownerChatwootContactId = parseNumber(payload?.id);\n  return payload;\n}\n\nasync function ensureContactInbox(contactId, inboxId) {\n  const existing = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contactable_inboxes`);\n  if (existing.status >= 300) {\n    throw new Error(`owner_contactable_inboxes_failed:${existing.status}`);\n  }\n  for (const entry of (existing.body?.payload || [])) {\n    if (parseNumber(entry?.inbox?.id) === inboxId) {\n      ownerChatwootSourceId = compact(entry?.source_id) || ownerChatwootSourceId || sourceIdForPhone(recipientPhone);\n      return entry;\n    }\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contact_inboxes`, 'POST', {\n    inbox_id: inboxId,\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_inbox_create_failed:${created.status}`);\n  }\n  ownerChatwootSourceId =\n    compact(created.body?.source_id) ||\n    compact(created.body?.payload?.source_id) ||\n    ownerChatwootSourceId ||\n    sourceIdForPhone(recipientPhone);\n  return created.body?.payload || created.body || {};\n}\n\nasync function ensureConversation(contactId, inboxId) {\n  if (ownerChatwootConversationId) {\n    return ownerChatwootConversationId;\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations`, 'POST', {\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n    inbox_id: inboxId,\n    contact_id: contactId,\n    status: 'open',\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_conversation_create_failed:${created.status}`);\n  }\n  ownerChatwootConversationId = parseNumber(created.body?.id);\n  return ownerChatwootConversationId;\n}\n\nasync function fetchProviderMessageId(conversationId, messageId) {\n  if (!conversationId || !messageId) return null;\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}`);\n  if (response.status >= 300) return null;\n  const messages = response.body?.messages || [];\n  const matched = messages.find((item) => parseNumber(item?.id) === parseNumber(messageId));\n  return compact(matched?.source_id) || null;\n}\n\ntry {\n  if (!recipientPhone) throw new Error('owner_recipient_phone_missing');\n  if (!templateName) throw new Error('owner_template_name_missing');\n  if (!chatwootBaseUrl || !chatwootAccountId || !chatwootApiToken || chatwootApiToken.startsWith('__')) {\n    throw new Error('owner_chatwoot_config_missing');\n  }\n\n  const inbox = await findInbox();\n  ownerChatwootInboxId = parseNumber(inbox?.id);\n  const contact = await findOrCreateContact();\n  ownerChatwootContactId = parseNumber(contact?.id) || ownerChatwootContactId;\n  await ensureContactInbox(ownerChatwootContactId, ownerChatwootInboxId);\n  const conversationId = await ensureConversation(ownerChatwootContactId, ownerChatwootInboxId);\n\n  const sent = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`, 'POST', {\n    content: `Hola, te escribimos de De Paseo en Fincas. Tenemos una nueva solicitud de reserva para ${fincaName} del ${fechaInicioText} al ${fechaFinText}. ¿Nos confirmas por favor si está disponible?`,\n    message_type: 'outgoing',\n    private: false,\n    content_type: 'text',\n    content_attributes: {},\n    template_params: {\n      name: templateName,\n      category: 'UTILITY',\n      language: templateLanguage,\n      processed_params: {\n        body: {\n          '1': fincaName || 'la finca',\n          '2': fechaInicioText || 'Sin dato',\n          '3': fechaFinText || 'Sin dato',\n        },\n      },\n    },\n  });\n\n  responseStatus = sent.status;\n  responseBody = sent.body;\n  ownerChatwootMessageId = parseNumber(sent.body?.id);\n  providerMessageId =\n    compact(sent.body?.source_id) ||\n    compact(sent.body?.messages?.[0]?.source_id) ||\n    compact(await fetchProviderMessageId(conversationId, ownerChatwootMessageId)) ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      sent.body?.error?.message ||\n      sent.body?.message ||\n      'owner_chatwoot_template_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message || 'owner_chatwoot_template_send_failed';\n  responseBody = responseBody || { error: errorMessage };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n      owner_chatwoot_inbox_id: ownerChatwootInboxId,\n      owner_chatwoot_contact_id: ownerChatwootContactId,\n      owner_chatwoot_source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone) || null,\n      owner_chatwoot_conversation_id: ownerChatwootConversationId,\n      owner_chatwoot_message_id: ownerChatwootMessageId,\n      owner_chatwoot_inbox_name: ownerInboxName,\n      owner_chatwoot_inbox_phone: ownerInboxPhone,\n    },\n  },\n];"
+      },
+      "id": "4316cd95-32f6-46a4-9fad-1eb34fb1bafb",
+      "name": "Send initial owner reservation template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "11f15a53-0386-4b44-b5a1-e27807482dd3",
+              "leftValue": "={{ $json.ok === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "9af36ca4-189b-4f7c-96ad-2e91970b013c",
+      "name": "Initial owner delivery ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2160,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  status = 'initial_sent',\n  initial_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  initial_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning *;",
+        "options": {}
+      },
+      "id": "138bfd5d-3e75-448c-a7f2-20028e7c20e3",
+      "name": "Mark owner reservation initial sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2400,
+        64
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  status = 'failed',\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_initial_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+        "options": {}
+      },
+      "id": "394ddeea-07e3-4ca9-8b64-71a8c91ce6f9",
+      "name": "Mark owner reservation initial failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2400,
+        256
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "\n=Devuelve exclusivamente JSON válido con esta forma:\n{\n  \"reminder_delay_minutes\": 120,\n  \"reason\": \"explicacion corta\"\n}\n\nHora actual Bogotá:\n{{ new Date().toLocaleString(\"sv-SE\", { timeZone: \"America/Bogota\" }) }}\n\nReserva:\n- finca: {{ $json.selected_finca_name || $json.payload?.selected_finca_name || 'Sin dato' }}\n- fecha inicio: {{ $json.payload?.fecha_inicio || 'Sin dato' }}\n- fecha fin: {{ $json.payload?.fecha_fin || 'Sin dato' }}\n- personas: {{ $json.payload?.personas || 'Sin dato' }}\n\nReglas:\n- Solo habrá un reminder.\n- Si la reserva está muy cerca, usa un delay corto.\n- Si la reserva está lejos, usa un delay más amplio.\n- No devuelvas texto adicional fuera del JSON.\n",
+        "batching": {}
+      },
+      "id": "889162db-aafb-4027-a187-eecf8422d0ae",
+      "name": "Owner reservation reminder planner",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        2640,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {}
+      },
+      "id": "eb8972cf-8c88-40d7-ba5d-1a39a5203f2f",
+      "name": "Google Gemini Reminder Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        384
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "kUJjqNzjA77ADcqT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $json || {};\nconst BOGOTA_OFFSET_HOURS = -5;\nconst WINDOW_START_HOUR = 8;\nconst WINDOW_END_HOUR = 23;\n\nfunction toBogotaParts(date = new Date()) {\n  const shifted = new Date(date.getTime() + BOGOTA_OFFSET_HOURS * 60 * 60 * 1000);\n  return {\n    year: shifted.getUTCFullYear(),\n    month: shifted.getUTCMonth() + 1,\n    day: shifted.getUTCDate(),\n    hour: shifted.getUTCHours(),\n    minute: shifted.getUTCMinutes(),\n  };\n}\n\nfunction bogotaDateToUtc(year, month, day, hour = 0, minute = 0) {\n  return new Date(Date.UTC(year, month - 1, day, hour - BOGOTA_OFFSET_HOURS, minute, 0));\n}\n\nfunction nextDay(year, month, day) {\n  const date = new Date(Date.UTC(year, month - 1, day) + 24 * 60 * 60 * 1000);\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction normalizeToAllowedWindow(date) {\n  const parts = toBogotaParts(date);\n  if (parts.hour < WINDOW_START_HOUR) {\n    return bogotaDateToUtc(parts.year, parts.month, parts.day, WINDOW_START_HOUR, 0);\n  }\n  if (parts.hour >= WINDOW_END_HOUR) {\n    const tomorrow = nextDay(parts.year, parts.month, parts.day);\n    return bogotaDateToUtc(tomorrow.year, tomorrow.month, tomorrow.day, WINDOW_START_HOUR, 0);\n  }\n  return date;\n}\n\nfunction stripCodeFences(str) {\n  return String(str || '')\n    .trim()\n    .replace(/^\\s*```json\\s*/i, '')\n    .replace(/^\\s*```\\s*/i, '')\n    .replace(/\\s*```\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === '{') depth += 1;\n    else if (char === '}') {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n  return null;\n}\n\nfunction parseJsonSafe(value) {\n  const cleaned = stripCodeFences(value);\n  try {\n    return JSON.parse(cleaned);\n  } catch {\n    const candidate = extractFirstJsonObject(cleaned);\n    if (!candidate) return null;\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return null;\n    }\n  }\n}\n\nfunction parseDateOnly(value) {\n  const source = String(value || '').trim();\n  if (!source) return null;\n  const match = source.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (match) {\n    return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0));\n  }\n  const parsed = new Date(source);\n  return Number.isNaN(parsed.getTime()) ? null : parsed;\n}\n\nfunction fallbackReminderDelayMinutes(fechaInicio) {\n  const start = parseDateOnly(fechaInicio);\n  if (!start) return 120;\n  const diffMs = start.getTime() - Date.now();\n  const diffHours = diffMs / (1000 * 60 * 60);\n  if (diffHours <= 48) return 30;\n  if (diffHours <= 24 * 7) return 120;\n  return 720;\n}\n\nconst rawText =\n  input.text ||\n  input.output ||\n  input.response ||\n  input.message ||\n  (Array.isArray(input.data) ? input.data[0]?.text : '') ||\n  '';\nconst parsed = parseJsonSafe(rawText);\nconst fallbackDelay = fallbackReminderDelayMinutes(input.payload?.fecha_inicio);\nlet delay = Number(parsed?.reminder_delay_minutes);\nif (!Number.isFinite(delay) || delay <= 0) delay = fallbackDelay;\ndelay = Math.max(15, Math.min(Math.round(delay), 10080));\n\nconst reminderAt = normalizeToAllowedWindow(new Date(Date.now() + delay * 60 * 1000));\n\nreturn [\n  {\n    json: {\n      ...input,\n      reminder_delay_minutes: delay,\n      reminder_reason: String(parsed?.reason || `fallback:${fallbackDelay}`).trim(),\n      reminder_planner_raw: String(rawText || '').slice(0, 4000),\n      reminder_at: reminderAt.toISOString(),\n    },\n  },\n];\n"
+      },
+      "id": "7ed615ba-845a-45f0-bd3c-bcd7725eee8f",
+      "name": "Parse owner reservation reminder plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  reminder_at = {{ \"'\" + String($json.reminder_at).replace(/'/g, \"''\") + \"'\" }}::timestamptz,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'ai_reminder_delay_minutes', {{ Number($json.reminder_delay_minutes || 0) }},\n    'ai_reminder_reason', {{ \"'\" + String($json.reminder_reason || '').replace(/'/g, \"''\") + \"'\" }},\n    'ai_reminder_raw', {{ \"'\" + String($json.reminder_planner_raw || '').replace(/'/g, \"''\") + \"'\" }}\n  ),\n  updated_at = now()\nwhere id = {{ Number($('Initial owner delivery ok?').item.json.id) }}\nreturning *;",
+        "options": {}
+      },
+      "id": "0d522000-ad99-4efb-ad61-e7ba7c4d4716",
+      "name": "Save owner reservation reminder plan",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3120,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Owner reservation webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize owner reservation request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize owner reservation request": {
+      "main": [
+        [
+          {
+            "node": "Resolve owner reservation target",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve owner reservation target": {
+      "main": [
+        [
+          {
+            "node": "Owner reservation request ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner reservation request ready?": {
+      "main": [
+        [
+          {
+            "node": "Insert pending owner reservation request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record failed owner reservation request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert pending owner reservation request": {
+      "main": [
+        [
+          {
+            "node": "Wait before initial owner send?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait before initial owner send?": {
+      "main": [
+        [
+          {
+            "node": "Wait until owner send window",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send initial owner reservation template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait until owner send window": {
+      "main": [
+        [
+          {
+            "node": "Send initial owner reservation template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send initial owner reservation template": {
+      "main": [
+        [
+          {
+            "node": "Initial owner delivery ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial owner delivery ok?": {
+      "main": [
+        [
+          {
+            "node": "Mark owner reservation initial sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark owner reservation initial failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark owner reservation initial sent": {
+      "main": [
+        [
+          {
+            "node": "Owner reservation reminder planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Reminder Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Owner reservation reminder planner",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner reservation reminder planner": {
+      "main": [
+        [
+          {
+            "node": "Parse owner reservation reminder plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse owner reservation reminder plan": {
+      "main": [
+        [
+          {
+            "node": "Save owner reservation reminder plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save owner reservation reminder plan": {
+      "main": [
+        []
+      ]
+    },
+    "Record failed owner reservation request": {
+      "main": [
+        []
+      ]
+    },
+    "Mark owner reservation initial failed": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "Owner reservation webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "rh-n8n-u48275.vm.elestio.app",
+            "x-real-ip": "172.18.0.5",
+            "x-forwarded-for": "172.18.0.5",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "connection": "close",
+            "content-length": "1494",
+            "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+            "content-type": "application/json",
+            "user-agent": "axios/1.13.5",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "conversation_id": "573007750712",
+            "chatwoot_id": "2",
+            "wa_id": "573007750712",
+            "client_name": "JD",
+            "selected_finca_id": "CARMEN_DE_APICALA_#06",
+            "selected_finca": {
+              "finca_id": "CARMEN_DE_APICALA_#06",
+              "nombre": "DINASTIA DEL SOL 95",
+              "codigo_original": "CARMEN DE APICALA #06",
+              "zona": "Carmen de Apicala",
+              "municipio": "Carmen de Apicala",
+              "capacidad_max": 12,
+              "habitaciones": 4,
+              "precio_noche_base": 1000000,
+              "precio_fin_semana": 2000000,
+              "amenidades": [
+                "bbq",
+                "billar",
+                "empleada",
+                "jacuzzi",
+                "piscina",
+                "wifi"
+              ],
+              "descripcion_corta": "Hermosa finca en Carmen de apicala, cuenta con un total de 4 habitaciones, Piscina, Jacuzzi, Bbq, Wifi, Tv, Billar, Totalmente privada para que disfrutes tus vacaciones.",
+              "foto_url": "https://drive.google.com/drive/folders/11u6fFmjAlBdg0gtahALA0aXlcBZcMDxF",
+              "observaciones_originales": "NO PERMITE FIESTA",
+              "caracteristicas_originales": "Hermosa finca en Carmen de apicala, cuenta con un total de 4 habitaciones, Piscina, Jacuzzi, Bbq, Wifi, Tv, Billar, Totalmente privada para que disfrutes tus vacaciones."
+            },
+            "fecha_inicio": "2026-03-27",
+            "fecha_fin": "2026-03-29",
+            "personas": "10",
+            "zona": "Carmen de Apicalá",
+            "conversation_link": "https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/2",
+            "inventory_sheet_document_id": "1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo",
+            "inventory_sheet_tab_name": "fincas_inventory_ajustada_real",
+            "template_name": "solicitud_reserva",
+            "reminder_template_name": "solicitud_reserva_reminder",
+            "template_language": "es_CO",
+            "reminder_template_language": "en"
+          },
+          "webhookUrl": "https://rh-n8n-u48275.vm.elestio.app/webhook/owner-reservation-request",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "9a505f02-84d3-4556-bbc7-26baef9855bb",
+  "activeVersionId": "9a505f02-84d3-4556-bbc7-26baef9855bb",
+  "versionCounter": 44,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-26T03:36:41.541Z",
+      "createdAt": "2026-03-26T03:36:41.541Z",
+      "role": "workflow:owner",
+      "workflowId": "SBEqIgPw7rGQ3Ef8",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-27T03:20:48.433Z",
+    "createdAt": "2026-03-27T03:20:48.433Z",
+    "versionId": "9a505f02-84d3-4556-bbc7-26baef9855bb",
+    "workflowId": "SBEqIgPw7rGQ3Ef8",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "owner-reservation-request",
+          "options": {}
+        },
+        "id": "6efcf198-0570-4c5b-b748-7255989d5479",
+        "name": "Owner reservation webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          240,
+          320
+        ],
+        "webhookId": "owner-reservation-request"
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst compact = (value) => String(value ?? '').trim();\nconst parseObject = (value) => {\n  if (value && typeof value === 'object') return value;\n  if (!value) return null;\n  try {\n    const parsed = JSON.parse(String(value));\n    return parsed && typeof parsed === 'object' ? parsed : null;\n  } catch {\n    return null;\n  }\n};\n\nconst selectedFinca = parseObject(payload.selected_finca || payload.selectedFinca || payload.selected_finca_snapshot) || {};\nconst selectedFincaId =\n  compact(payload.selected_finca_id || payload.selectedFincaId || selectedFinca?.finca_id || selectedFinca?.id) || null;\nconst selectedFincaName =\n  compact(payload.selected_finca_name || payload.selectedFincaName || selectedFinca?.nombre || selectedFincaId) || null;\nconst chatwootId = compact(payload.chatwoot_id || payload.chatwootId) || null;\nconst conversationLink =\n  compact(payload.conversation_link) ||\n  (chatwootId ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId : null);\n\nreturn [\n  {\n    json: {\n      conversation_id: compact(payload.conversation_id || payload.conversationId || payload.wa_id || payload.waId) || null,\n      chatwoot_id: chatwootId,\n      wa_id: compact(payload.wa_id || payload.waId) || null,\n      client_name: compact(payload.client_name || payload.clientName) || null,\n      selected_finca_id: selectedFincaId,\n      selected_finca_name: selectedFincaName,\n      selected_finca_snapshot: selectedFinca && Object.keys(selectedFinca).length ? selectedFinca : {},\n      fecha_inicio: compact(payload.fecha_inicio || payload.fechaInicio) || null,\n      fecha_fin: compact(payload.fecha_fin || payload.fechaFin) || null,\n      personas: compact(payload.personas) || null,\n      zona: compact(payload.zona) || null,\n      conversation_link: conversationLink,\n      template_name: compact(payload.template_name) || 'solicitud_reserva',\n      reminder_template_name: compact(payload.reminder_template_name) || 'solicitud_reserva_reminder',\n      template_language: compact(payload.template_language) || 'es_CO',\n      reminder_template_language: compact(payload.reminder_template_language) || 'en',\n      inventory_sheet_document_id: compact(payload.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name: compact(payload.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      owner_chatwoot_inbox_name: compact(payload.owner_chatwoot_inbox_name || payload.ownerChatwootInboxName) || \"Agent_propietarios\",\n      owner_chatwoot_inbox_phone: compact(payload.owner_chatwoot_inbox_phone || payload.ownerChatwootInboxPhone) || \"+573105639334\",\n      received_at: new Date().toISOString(),\n    },\n  },\n];\n"
+        },
+        "id": "08c1e828-9c80-40c4-86e5-8fc8b3909ebe",
+        "name": "Normalize owner reservation request",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst input = $json || {};\nconst BOGOTA_OFFSET_HOURS = -5;\nconst WINDOW_START_HOUR = 8;\nconst WINDOW_END_HOUR = 23;\nconst MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];\n\nconst compact = (value) => String(value ?? '').trim();\nconst normalizeText = (value) =>\n  compact(value)\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase();\n\nfunction toBogotaParts(date = new Date()) {\n  const shifted = new Date(date.getTime() + BOGOTA_OFFSET_HOURS * 60 * 60 * 1000);\n  return {\n    year: shifted.getUTCFullYear(),\n    month: shifted.getUTCMonth() + 1,\n    day: shifted.getUTCDate(),\n    hour: shifted.getUTCHours(),\n    minute: shifted.getUTCMinutes(),\n    second: shifted.getUTCSeconds(),\n  };\n}\n\nfunction bogotaDateToUtc(year, month, day, hour = 0, minute = 0, second = 0) {\n  return new Date(Date.UTC(year, month - 1, day, hour - BOGOTA_OFFSET_HOURS, minute, second));\n}\n\nfunction nextDay(year, month, day) {\n  const date = new Date(Date.UTC(year, month - 1, day) + 24 * 60 * 60 * 1000);\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction normalizeToAllowedWindow(date) {\n  const parts = toBogotaParts(date);\n  if (parts.hour < WINDOW_START_HOUR) {\n    return bogotaDateToUtc(parts.year, parts.month, parts.day, WINDOW_START_HOUR, 0, 0);\n  }\n  if (parts.hour >= WINDOW_END_HOUR) {\n    const tomorrow = nextDay(parts.year, parts.month, parts.day);\n    return bogotaDateToUtc(tomorrow.year, tomorrow.month, tomorrow.day, WINDOW_START_HOUR, 0, 0);\n  }\n  return date;\n}\n\nfunction parseDateOnly(value) {\n  const source = compact(value);\n  if (!source) return null;\n  const match = source.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (match) {\n    return {\n      year: Number(match[1]),\n      month: Number(match[2]),\n      day: Number(match[3]),\n    };\n  }\n  const date = new Date(source);\n  if (Number.isNaN(date.getTime())) return null;\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction formatDateForTemplate(parts, includeYear) {\n  if (!parts) return null;\n  const monthLabel = MONTHS[(parts.month || 1) - 1] || MONTHS[0];\n  return includeYear\n    ? `${parts.day} de ${monthLabel} de ${parts.year}`\n    : `${parts.day} de ${monthLabel}`;\n}\n\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let cell = '';\n  let inQuotes = false;\n  for (let index = 0; index < text.length; index += 1) {\n    const char = text[index];\n    const next = text[index + 1];\n    if (inQuotes) {\n      if (char === '\"' && next === '\"') {\n        cell += '\"';\n        index += 1;\n      } else if (char === '\"') {\n        inQuotes = false;\n      } else {\n        cell += char;\n      }\n      continue;\n    }\n\n    if (char === '\"') {\n      inQuotes = true;\n      continue;\n    }\n    if (char === ',') {\n      row.push(cell);\n      cell = '';\n      continue;\n    }\n    if (char === '\\n') {\n      row.push(cell);\n      rows.push(row);\n      row = [];\n      cell = '';\n      continue;\n    }\n    if (char === '\\r') {\n      continue;\n    }\n    cell += char;\n  }\n  row.push(cell);\n  rows.push(row);\n  return rows.filter((entry) => entry.some((value) => compact(value) !== ''));\n}\n\nfunction normalizeHeader(value) {\n  return normalizeText(value).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');\n}\n\nfunction pick(row, keys) {\n  for (const key of keys) {\n    if (row[key] !== undefined && row[key] !== null && compact(row[key]) !== '') return compact(row[key]);\n  }\n  return null;\n}\n\nfunction normalizePhone(rawValue) {\n  const digits = String(rawValue || '').replace(/\\D+/g, '').trim();\n  if (!digits) return null;\n  if (digits.startsWith('0057') && digits.length >= 12) return digits.slice(2);\n  if (digits.startsWith('57') && digits.length >= 12 && digits.length <= 15) return digits;\n  if (digits.length === 10) return '57' + digits;\n  return null;\n}\n\nfunction mergeSnapshot(base = {}, row = {}) {\n  return {\n    ...row,\n    ...base,\n    finca_id: compact(base.finca_id || row.finca_id || row.codigo_original) || null,\n    nombre: compact(base.nombre || row.nombre || row.finca_id) || null,\n  };\n}\n\nconst now = new Date();\nconst resolved = {\n  ...input,\n  can_send_initial: false,\n  error_message: null,\n  recipient_phone: null,\n  phone_source: null,\n  send_after_at: null,\n  should_wait_before_initial_send: false,\n};\n\nif (!input.conversation_id || !input.selected_finca_id) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: 'missing_conversation_id_or_selected_finca_id',\n      },\n    },\n  ];\n}\n\nconst startParts = parseDateOnly(input.fecha_inicio);\nconst endParts = parseDateOnly(input.fecha_fin);\nconst includeYear = Boolean(startParts && endParts && startParts.year !== endParts.year);\n\nresolved.fecha_inicio_text = formatDateForTemplate(startParts, includeYear);\nresolved.fecha_fin_text = formatDateForTemplate(endParts, includeYear);\n\nlet inventoryRows = [];\nlet inventoryError = null;\nconst inventoryDocumentId = compact(input.inventory_sheet_document_id);\nconst inventorySheetTabName = compact(input.inventory_sheet_tab_name);\nconst inventoryCsvUrl =\n  inventoryDocumentId && inventorySheetTabName\n    ? `https://docs.google.com/spreadsheets/d/${inventoryDocumentId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(inventorySheetTabName)}`\n    : null;\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nif (!inventoryCsvUrl) {\n  inventoryError = 'missing_inventory_sheet_config';\n} else if (!helperRequest) {\n  inventoryError = 'http_request_helper_unavailable';\n} else {\n  try {\n    const response = await helperRequest({\n      url: inventoryCsvUrl,\n      method: 'GET',\n      headers: {\n        Accept: 'text/csv,text/plain;q=0.9,*/*;q=0.8',\n      },\n      json: false,\n      timeout: 30000,\n      ignoreHttpStatusErrors: true,\n      returnFullResponse: true,\n    });\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const responseBody = response.body ?? response.data ?? '';\n    const csvText =\n      typeof responseBody === 'string'\n        ? responseBody\n        : responseBody == null\n          ? ''\n          : JSON.stringify(responseBody);\n    if (!(statusCode >= 200 && statusCode < 300)) {\n      inventoryError = `inventory_http_${statusCode || 'unknown'}`;\n    } else {\n      const parsed = parseCsv(csvText);\n      const headers = parsed[0] || [];\n      const normalizedHeaders = headers.map((header) => normalizeHeader(header));\n      inventoryRows = parsed.slice(1).map((cells) => {\n        const row = {};\n        normalizedHeaders.forEach((header, index) => {\n          if (!header) return;\n          row[header] = cells[index] ?? null;\n        });\n        row.__raw_cells = cells;\n        return row;\n      });\n    }\n  } catch (error) {\n    inventoryError = error.message || 'inventory_fetch_failed';\n  }\n}\n\nif (inventoryError) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: inventoryError,\n      },\n    },\n  ];\n}\n\nconst selectedIdNormalized = normalizeText(input.selected_finca_id);\nconst selectedNameNormalized = normalizeText(input.selected_finca_name || input.selected_finca_snapshot?.nombre || '');\n\nconst matchedRow =\n  inventoryRows.find((row) => normalizeText(pick(row, ['finca_id', 'id']) || '') === selectedIdNormalized) ||\n  inventoryRows.find((row) => normalizeText(pick(row, ['codigo_original']) || '') === selectedIdNormalized) ||\n  inventoryRows.find((row) => selectedNameNormalized && normalizeText(pick(row, ['nombre']) || '') === selectedNameNormalized) ||\n  null;\n\nif (!matchedRow) {\n  return [\n    {\n      json: {\n        ...resolved,\n        error_message: 'selected_finca_not_found_in_inventory',\n      },\n    },\n  ];\n}\n\nconst rawCells = Array.isArray(matchedRow.__raw_cells) ? matchedRow.__raw_cells : [];\nconst phoneCandidates = [\n  ['administrador_contacto', pick(matchedRow, ['administrador_contacto'])],\n  ['owner_contacto', pick(matchedRow, ['owner_contacto', 'owner_contacto_1', 'owner_contacto_2'])],\n  ['ah', compact(rawCells[33]) || null],\n];\n\nlet phoneSource = null;\nlet recipientPhone = null;\nfor (const [source, rawValue] of phoneCandidates) {\n  const normalized = normalizePhone(rawValue);\n  if (normalized) {\n    phoneSource = source;\n    recipientPhone = normalized;\n    break;\n  }\n}\n\nconst inventorySnapshot = {\n  finca_id: compact(pick(matchedRow, ['finca_id', 'id']) || input.selected_finca_id),\n  nombre: compact(pick(matchedRow, ['nombre']) || input.selected_finca_name || input.selected_finca_id),\n  codigo_original: pick(matchedRow, ['codigo_original']),\n  zona: pick(matchedRow, ['zona']),\n  municipio: pick(matchedRow, ['municipio']),\n  owner_nombre: pick(matchedRow, ['owner_nombre']),\n  owner_contacto: pick(matchedRow, ['owner_contacto']),\n  administrador_nombre: pick(matchedRow, ['administrador_nombre']),\n  administrador_contacto: pick(matchedRow, ['administrador_contacto']),\n  foto_url: pick(matchedRow, ['foto_url']),\n};\n\nconst selectedFincaSnapshot = mergeSnapshot(input.selected_finca_snapshot || {}, inventorySnapshot);\nconst sendAfterAt = normalizeToAllowedWindow(now);\n\nconst payload = {\n  source: 'owner_reservation_request_workflow',\n  client_name: input.client_name || null,\n  wa_id: input.wa_id || null,\n  chatwoot_id: input.chatwoot_id || null,\n  chatwoot_link: input.conversation_link || null,\n  selected_finca_id: input.selected_finca_id,\n  selected_finca_name: selectedFincaSnapshot.nombre || input.selected_finca_name || input.selected_finca_id,\n  fecha_inicio: input.fecha_inicio || null,\n  fecha_fin: input.fecha_fin || null,\n  fecha_inicio_text: resolved.fecha_inicio_text || null,\n  fecha_fin_text: resolved.fecha_fin_text || null,\n  personas: input.personas || null,\n  zona: input.zona || null,\n  phone_source: phoneSource,\n  template_name: input.template_name || 'solicitud_reserva',\n  reminder_template_name: input.reminder_template_name || 'solicitud_reserva_reminder',\n  template_language: input.template_language || 'es_CO',\n  reminder_template_language: input.reminder_template_language || 'en',\n  inventory_sheet_document_id: input.inventory_sheet_document_id || null,\n  inventory_sheet_tab_name: input.inventory_sheet_tab_name || null,\n  conversation_link: input.conversation_link || null,\n};\n\nconst errorMessage =\n  !recipientPhone\n    ? 'owner_phone_not_found'\n    : !resolved.fecha_inicio_text || !resolved.fecha_fin_text\n      ? 'missing_or_invalid_reservation_dates'\n      : null;\n\nreturn [\n  {\n    json: {\n      ...resolved,\n      selected_finca_name: selectedFincaSnapshot.nombre || input.selected_finca_name || input.selected_finca_id,\n      selected_finca_snapshot: selectedFincaSnapshot,\n      payload,\n      recipient_phone: recipientPhone,\n      phone_source: phoneSource,\n      send_after_at: sendAfterAt.toISOString(),\n      should_wait_before_initial_send: sendAfterAt.getTime() - now.getTime() > 1000,\n      can_send_initial: !errorMessage,\n      error_message: errorMessage,\n    },\n  },\n];\n"
+        },
+        "id": "322c6871-d1b5-43db-b2d6-ea5ec98a36ba",
+        "name": "Resolve owner reservation target",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "51f36d69-e762-44ed-a0b9-0c5c5aa3d099",
+                "leftValue": "={{ $json.can_send_initial === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "ec5fdda6-c2d0-4ccd-aad2-64cde3637b0f",
+        "name": "Owner reservation request ready?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          960,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "insert into public.owner_reservation_requests (\n  conversation_id,\n  chatwoot_id,\n  selected_finca_id,\n  selected_finca_name,\n  selected_finca_snapshot,\n  recipient_phone,\n  phone_source,\n  template_name,\n  reminder_template_name,\n  template_language,\n  status,\n  error_message,\n  payload,\n  updated_at\n)\nvalues (\n  {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ $json.chatwoot_id ? \"'\" + String($json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.selected_finca_name || $json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + JSON.stringify($json.selected_finca_snapshot || {}).replace(/'/g, \"''\") + \"'::jsonb\" }},\n  {{ $json.recipient_phone ? \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ $json.phone_source ? \"'\" + String($json.phone_source).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  {{ \"'\" + String($json.template_name || 'solicitud_reserva').replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.reminder_template_name || 'solicitud_reserva_reminder').replace(/'/g, \"''\") + \"'\" }},\n  {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }},\n  'failed',\n  {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reservation_request_invalid'\" }},\n  {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'::jsonb\" }},\n  now()\n)\nreturning id, status, error_message;",
+          "options": {}
+        },
+        "id": "863b5b4b-a9cd-4fdc-8834-b69b8a74629e",
+        "name": "Record failed owner reservation request",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1200,
+          480
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with input as (\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}::text as conversation_id,\n    {{ $json.chatwoot_id ? \"'\" + String($json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as chatwoot_id,\n    {{ \"'\" + String($json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_id,\n    {{ \"'\" + String($json.selected_finca_name || $json.selected_finca_id).replace(/'/g, \"''\") + \"'\" }}::text as selected_finca_name,\n    {{ \"'\" + JSON.stringify($json.selected_finca_snapshot || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as selected_finca_snapshot,\n    {{ \"'\" + String($json.recipient_phone).replace(/'/g, \"''\") + \"'\" }}::text as recipient_phone,\n    {{ $json.phone_source ? \"'\" + String($json.phone_source).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as phone_source,\n    {{ \"'\" + String($json.template_name || 'solicitud_reserva').replace(/'/g, \"''\") + \"'\" }}::text as template_name,\n    {{ \"'\" + String($json.reminder_template_name || 'solicitud_reserva_reminder').replace(/'/g, \"''\") + \"'\" }}::text as reminder_template_name,\n    {{ \"'\" + String($json.template_language || 'es_CO').replace(/'/g, \"''\") + \"'\" }}::text as template_language,\n    {{ \"'\" + String($json.send_after_at).replace(/'/g, \"''\") + \"'\" }}::timestamptz as send_after_at,\n    {{ \"'\" + JSON.stringify($json.payload || {}).replace(/'/g, \"''\") + \"'\" }}::jsonb as payload\n),\ninserted as (\n  insert into public.owner_reservation_requests (\n    conversation_id,\n    chatwoot_id,\n    selected_finca_id,\n    selected_finca_name,\n    selected_finca_snapshot,\n    recipient_phone,\n    phone_source,\n    template_name,\n    reminder_template_name,\n    template_language,\n    status,\n    send_after_at,\n    payload,\n    updated_at\n  )\n  select\n    input.conversation_id,\n    input.chatwoot_id,\n    input.selected_finca_id,\n    input.selected_finca_name,\n    input.selected_finca_snapshot,\n    input.recipient_phone,\n    input.phone_source,\n    input.template_name,\n    input.reminder_template_name,\n    input.template_language,\n    'pending_send',\n    input.send_after_at,\n    input.payload,\n    now()\n  from input\n  on conflict (conversation_id, selected_finca_id, recipient_phone)\n  where recipient_phone is not null\n    and status in ('pending_send', 'initial_sent', 'reminder_sent')\n  do nothing\n  returning *\n)\nselect * from inserted;",
+          "options": {}
+        },
+        "id": "66018820-e3d4-47f9-94bc-725c449a57a0",
+        "name": "Insert pending owner reservation request",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1200,
+          160
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "5a21bf97-39be-48e7-8b51-6e48f69e2fdc",
+                "leftValue": "={{ $json.send_after_at && $json.should_wait_before_initial_send === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "6d59b6c4-78f4-4d93-a12d-0e82496ff635",
+        "name": "Wait before initial owner send?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1440,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "resume": "specificTime",
+          "dateTime": "={{ $json.send_after_at }}"
+        },
+        "id": "b91c2807-273d-4f8d-9c5f-499842032115",
+        "name": "Wait until owner send window",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1680,
+          64
+        ],
+        "webhookId": "9f445a68-9c25-44c6-9d06-94f64550bfde"
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst normalizePhone = (value) => {\n  const digits = String(value || '').replace(/\\D+/g, '').trim();\n  if (!digits) return '';\n  if (digits.startsWith('57') && digits.length === 12) return '+' + digits;\n  if (digits.length === 10) return '+57' + digits;\n  return '+' + digits;\n};\nconst sourceIdForPhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst parseNumber = (value) => {\n  const num = Number(value);\n  return Number.isFinite(num) && num > 0 ? num : null;\n};\nconst templateName = compact(input.template_name || input.reminder_template_name || input.payload?.template_name || input.payload?.reminder_template_name);\nconst templateLanguage = compact(input.template_language || input.payload?.template_language || 'es_CO') || 'es_CO';\nconst fincaName = compact(input.selected_finca_name || input.payload?.selected_finca_name || input.selected_finca_id || 'la finca');\nconst fechaInicioText = compact(input.fecha_inicio_text || input.payload?.fecha_inicio_text || input.payload?.fecha_inicio || 'Sin dato');\nconst fechaFinText = compact(input.fecha_fin_text || input.payload?.fecha_fin_text || input.payload?.fecha_fin || 'Sin dato');\nconst recipientPhone = normalizePhone(input.recipient_phone);\nconst ownerInboxName = compact(input.owner_chatwoot_inbox_name || input.payload?.owner_chatwoot_inbox_name || \"Agent_propietarios\") || \"Agent_propietarios\";\nconst ownerInboxPhone = normalizePhone(input.owner_chatwoot_inbox_phone || input.payload?.owner_chatwoot_inbox_phone || \"+573105639334\");\nconst chatwootBaseUrl = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst chatwootAccountId = \"1\";\nconst chatwootApiToken =\n  (typeof process !== 'undefined' && process?.env?.CHATWOOT_API_TOKEN)\n    ? String(process.env.CHATWOOT_API_TOKEN).trim()\n    : \"__CHATWOOT_API_TOKEN__\";\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\nlet ownerChatwootInboxId = parseNumber(input.owner_chatwoot_inbox_id || input.payload?.owner_chatwoot_inbox_id);\nlet ownerChatwootContactId = parseNumber(input.owner_chatwoot_contact_id || input.payload?.owner_chatwoot_contact_id);\nlet ownerChatwootConversationId = parseNumber(input.owner_chatwoot_conversation_id || input.payload?.owner_chatwoot_conversation_id);\nlet ownerChatwootMessageId = null;\nlet ownerChatwootSourceId = compact(input.owner_chatwoot_source_id || input.payload?.owner_chatwoot_source_id) || sourceIdForPhone(recipientPhone);\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nasync function chatwootApi(pathname, method = 'GET', body = null, query = null) {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const normalizedBase = compact(chatwootBaseUrl).replace(/\\/+$/, '');\n  const normalizedPath = String(pathname || '').startsWith('/') ? String(pathname || '') : `/${String(pathname || '')}`;\n  const queryParts = [];\n  if (query && typeof query === 'object') {\n    for (const [key, value] of Object.entries(query)) {\n      if (value === undefined || value === null || value === '') continue;\n      queryParts.push(`${encodeURIComponent(String(key))}=${encodeURIComponent(String(value))}`);\n    }\n  }\n  const url = queryParts.length\n    ? `${normalizedBase}${normalizedPath}?${queryParts.join('&')}`\n    : `${normalizedBase}${normalizedPath}`;\n  const response = await helperRequest({\n    url,\n    method,\n    headers: {\n      api_access_token: chatwootApiToken,\n      Accept: 'application/json',\n      ...(body ? { 'Content-Type': 'application/json' } : {}),\n    },\n    body,\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  const status = Number(response.statusCode || response.status || 0) || 0;\n  const raw = response.body;\n  const parsed =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n  return { status, body: parsed };\n}\n\nfunction exactContactMatches(payload, targetPhone) {\n  const normalizedTarget = normalizePhone(targetPhone);\n  return ((payload || {}).payload || []).filter((item) => normalizePhone(item?.phone_number || '') === normalizedTarget);\n}\n\nasync function findInbox() {\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/inboxes`);\n  if (response.status >= 300) {\n    throw new Error(`owner_inbox_lookup_failed:${response.status}`);\n  }\n  const normalizedPhone = normalizePhone(ownerInboxPhone);\n  const payload = (response.body || {}).payload || [];\n  for (const inbox of payload) {\n    if (String(inbox?.name || '') !== ownerInboxName) continue;\n    const actualPhone = normalizePhone(inbox?.phone_number || '');\n    if (normalizedPhone && actualPhone !== normalizedPhone) {\n      throw new Error(`owner_chatwoot_inbox_phone_mismatch:${actualPhone || 'missing'}`);\n    }\n    return inbox;\n  }\n  throw new Error('owner_chatwoot_inbox_not_found');\n}\n\nasync function findOrCreateContact() {\n  if (ownerChatwootContactId) {\n    return { id: ownerChatwootContactId };\n  }\n  const search = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/search`, 'GET', null, {\n    q: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (search.status >= 300) {\n    throw new Error(`owner_contact_search_failed:${search.status}`);\n  }\n  const matches = exactContactMatches(search.body, recipientPhone);\n  if (matches.length) {\n    ownerChatwootContactId = parseNumber(matches[0]?.id);\n    return matches[0];\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts`, 'POST', {\n    inbox_id: null,\n    name: compact(input.selected_finca_name || input.client_name || 'Propietario'),\n    phone_number: recipientPhone,\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_create_failed:${created.status}`);\n  }\n  const payload = created.body?.payload || created.body || {};\n  ownerChatwootContactId = parseNumber(payload?.id);\n  return payload;\n}\n\nasync function ensureContactInbox(contactId, inboxId) {\n  const existing = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contactable_inboxes`);\n  if (existing.status >= 300) {\n    throw new Error(`owner_contactable_inboxes_failed:${existing.status}`);\n  }\n  for (const entry of (existing.body?.payload || [])) {\n    if (parseNumber(entry?.inbox?.id) === inboxId) {\n      ownerChatwootSourceId = compact(entry?.source_id) || ownerChatwootSourceId || sourceIdForPhone(recipientPhone);\n      return entry;\n    }\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contact_inboxes`, 'POST', {\n    inbox_id: inboxId,\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_inbox_create_failed:${created.status}`);\n  }\n  ownerChatwootSourceId =\n    compact(created.body?.source_id) ||\n    compact(created.body?.payload?.source_id) ||\n    ownerChatwootSourceId ||\n    sourceIdForPhone(recipientPhone);\n  return created.body?.payload || created.body || {};\n}\n\nasync function ensureConversation(contactId, inboxId) {\n  if (ownerChatwootConversationId) {\n    return ownerChatwootConversationId;\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations`, 'POST', {\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n    inbox_id: inboxId,\n    contact_id: contactId,\n    status: 'open',\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_conversation_create_failed:${created.status}`);\n  }\n  ownerChatwootConversationId = parseNumber(created.body?.id);\n  return ownerChatwootConversationId;\n}\n\nasync function fetchProviderMessageId(conversationId, messageId) {\n  if (!conversationId || !messageId) return null;\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}`);\n  if (response.status >= 300) return null;\n  const messages = response.body?.messages || [];\n  const matched = messages.find((item) => parseNumber(item?.id) === parseNumber(messageId));\n  return compact(matched?.source_id) || null;\n}\n\ntry {\n  if (!recipientPhone) throw new Error('owner_recipient_phone_missing');\n  if (!templateName) throw new Error('owner_template_name_missing');\n  if (!chatwootBaseUrl || !chatwootAccountId || !chatwootApiToken || chatwootApiToken.startsWith('__')) {\n    throw new Error('owner_chatwoot_config_missing');\n  }\n\n  const inbox = await findInbox();\n  ownerChatwootInboxId = parseNumber(inbox?.id);\n  const contact = await findOrCreateContact();\n  ownerChatwootContactId = parseNumber(contact?.id) || ownerChatwootContactId;\n  await ensureContactInbox(ownerChatwootContactId, ownerChatwootInboxId);\n  const conversationId = await ensureConversation(ownerChatwootContactId, ownerChatwootInboxId);\n\n  const sent = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`, 'POST', {\n    content: `Hola, te escribimos de De Paseo en Fincas. Tenemos una nueva solicitud de reserva para ${fincaName} del ${fechaInicioText} al ${fechaFinText}. ¿Nos confirmas por favor si está disponible?`,\n    message_type: 'outgoing',\n    private: false,\n    content_type: 'text',\n    content_attributes: {},\n    template_params: {\n      name: templateName,\n      category: 'UTILITY',\n      language: templateLanguage,\n      processed_params: {\n        body: {\n          '1': fincaName || 'la finca',\n          '2': fechaInicioText || 'Sin dato',\n          '3': fechaFinText || 'Sin dato',\n        },\n      },\n    },\n  });\n\n  responseStatus = sent.status;\n  responseBody = sent.body;\n  ownerChatwootMessageId = parseNumber(sent.body?.id);\n  providerMessageId =\n    compact(sent.body?.source_id) ||\n    compact(sent.body?.messages?.[0]?.source_id) ||\n    compact(await fetchProviderMessageId(conversationId, ownerChatwootMessageId)) ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      sent.body?.error?.message ||\n      sent.body?.message ||\n      'owner_chatwoot_template_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message || 'owner_chatwoot_template_send_failed';\n  responseBody = responseBody || { error: errorMessage };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n      owner_chatwoot_inbox_id: ownerChatwootInboxId,\n      owner_chatwoot_contact_id: ownerChatwootContactId,\n      owner_chatwoot_source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone) || null,\n      owner_chatwoot_conversation_id: ownerChatwootConversationId,\n      owner_chatwoot_message_id: ownerChatwootMessageId,\n      owner_chatwoot_inbox_name: ownerInboxName,\n      owner_chatwoot_inbox_phone: ownerInboxPhone,\n    },\n  },\n];"
+        },
+        "id": "4316cd95-32f6-46a4-9fad-1eb34fb1bafb",
+        "name": "Send initial owner reservation template",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "11f15a53-0386-4b44-b5a1-e27807482dd3",
+                "leftValue": "={{ $json.ok === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "9af36ca4-189b-4f7c-96ad-2e91970b013c",
+        "name": "Initial owner delivery ok?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2160,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  status = 'initial_sent',\n  initial_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  initial_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning *;",
+          "options": {}
+        },
+        "id": "138bfd5d-3e75-448c-a7f2-20028e7c20e3",
+        "name": "Mark owner reservation initial sent",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2400,
+          64
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  status = 'failed',\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_initial_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+          "options": {}
+        },
+        "id": "394ddeea-07e3-4ca9-8b64-71a8c91ce6f9",
+        "name": "Mark owner reservation initial failed",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2400,
+          256
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "\n=Devuelve exclusivamente JSON válido con esta forma:\n{\n  \"reminder_delay_minutes\": 120,\n  \"reason\": \"explicacion corta\"\n}\n\nHora actual Bogotá:\n{{ new Date().toLocaleString(\"sv-SE\", { timeZone: \"America/Bogota\" }) }}\n\nReserva:\n- finca: {{ $json.selected_finca_name || $json.payload?.selected_finca_name || 'Sin dato' }}\n- fecha inicio: {{ $json.payload?.fecha_inicio || 'Sin dato' }}\n- fecha fin: {{ $json.payload?.fecha_fin || 'Sin dato' }}\n- personas: {{ $json.payload?.personas || 'Sin dato' }}\n\nReglas:\n- Solo habrá un reminder.\n- Si la reserva está muy cerca, usa un delay corto.\n- Si la reserva está lejos, usa un delay más amplio.\n- No devuelvas texto adicional fuera del JSON.\n",
+          "batching": {}
+        },
+        "id": "889162db-aafb-4027-a187-eecf8422d0ae",
+        "name": "Owner reservation reminder planner",
+        "type": "@n8n/n8n-nodes-langchain.chainLlm",
+        "typeVersion": 1.7,
+        "position": [
+          2640,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "modelName": "models/gemini-flash-latest",
+          "options": {}
+        },
+        "id": "eb8972cf-8c88-40d7-ba5d-1a39a5203f2f",
+        "name": "Google Gemini Reminder Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          2688,
+          384
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "kUJjqNzjA77ADcqT",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst input = $json || {};\nconst BOGOTA_OFFSET_HOURS = -5;\nconst WINDOW_START_HOUR = 8;\nconst WINDOW_END_HOUR = 23;\n\nfunction toBogotaParts(date = new Date()) {\n  const shifted = new Date(date.getTime() + BOGOTA_OFFSET_HOURS * 60 * 60 * 1000);\n  return {\n    year: shifted.getUTCFullYear(),\n    month: shifted.getUTCMonth() + 1,\n    day: shifted.getUTCDate(),\n    hour: shifted.getUTCHours(),\n    minute: shifted.getUTCMinutes(),\n  };\n}\n\nfunction bogotaDateToUtc(year, month, day, hour = 0, minute = 0) {\n  return new Date(Date.UTC(year, month - 1, day, hour - BOGOTA_OFFSET_HOURS, minute, 0));\n}\n\nfunction nextDay(year, month, day) {\n  const date = new Date(Date.UTC(year, month - 1, day) + 24 * 60 * 60 * 1000);\n  return {\n    year: date.getUTCFullYear(),\n    month: date.getUTCMonth() + 1,\n    day: date.getUTCDate(),\n  };\n}\n\nfunction normalizeToAllowedWindow(date) {\n  const parts = toBogotaParts(date);\n  if (parts.hour < WINDOW_START_HOUR) {\n    return bogotaDateToUtc(parts.year, parts.month, parts.day, WINDOW_START_HOUR, 0);\n  }\n  if (parts.hour >= WINDOW_END_HOUR) {\n    const tomorrow = nextDay(parts.year, parts.month, parts.day);\n    return bogotaDateToUtc(tomorrow.year, tomorrow.month, tomorrow.day, WINDOW_START_HOUR, 0);\n  }\n  return date;\n}\n\nfunction stripCodeFences(str) {\n  return String(str || '')\n    .trim()\n    .replace(/^\\s*```json\\s*/i, '')\n    .replace(/^\\s*```\\s*/i, '')\n    .replace(/\\s*```\\s*$/i, '')\n    .trim();\n}\n\nfunction extractFirstJsonObject(text) {\n  const source = String(text || '');\n  const start = source.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0;\n  let inString = false;\n  let escape = false;\n  for (let index = start; index < source.length; index += 1) {\n    const char = source[index];\n    if (inString) {\n      if (escape) escape = false;\n      else if (char === '\\\\') escape = true;\n      else if (char === '\"') inString = false;\n      continue;\n    }\n    if (char === '\"') {\n      inString = true;\n      continue;\n    }\n    if (char === '{') depth += 1;\n    else if (char === '}') {\n      depth -= 1;\n      if (depth === 0) return source.slice(start, index + 1);\n    }\n  }\n  return null;\n}\n\nfunction parseJsonSafe(value) {\n  const cleaned = stripCodeFences(value);\n  try {\n    return JSON.parse(cleaned);\n  } catch {\n    const candidate = extractFirstJsonObject(cleaned);\n    if (!candidate) return null;\n    try {\n      return JSON.parse(candidate);\n    } catch {\n      return null;\n    }\n  }\n}\n\nfunction parseDateOnly(value) {\n  const source = String(value || '').trim();\n  if (!source) return null;\n  const match = source.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);\n  if (match) {\n    return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0));\n  }\n  const parsed = new Date(source);\n  return Number.isNaN(parsed.getTime()) ? null : parsed;\n}\n\nfunction fallbackReminderDelayMinutes(fechaInicio) {\n  const start = parseDateOnly(fechaInicio);\n  if (!start) return 120;\n  const diffMs = start.getTime() - Date.now();\n  const diffHours = diffMs / (1000 * 60 * 60);\n  if (diffHours <= 48) return 30;\n  if (diffHours <= 24 * 7) return 120;\n  return 720;\n}\n\nconst rawText =\n  input.text ||\n  input.output ||\n  input.response ||\n  input.message ||\n  (Array.isArray(input.data) ? input.data[0]?.text : '') ||\n  '';\nconst parsed = parseJsonSafe(rawText);\nconst fallbackDelay = fallbackReminderDelayMinutes(input.payload?.fecha_inicio);\nlet delay = Number(parsed?.reminder_delay_minutes);\nif (!Number.isFinite(delay) || delay <= 0) delay = fallbackDelay;\ndelay = Math.max(15, Math.min(Math.round(delay), 10080));\n\nconst reminderAt = normalizeToAllowedWindow(new Date(Date.now() + delay * 60 * 1000));\n\nreturn [\n  {\n    json: {\n      ...input,\n      reminder_delay_minutes: delay,\n      reminder_reason: String(parsed?.reason || `fallback:${fallbackDelay}`).trim(),\n      reminder_planner_raw: String(rawText || '').slice(0, 4000),\n      reminder_at: reminderAt.toISOString(),\n    },\n  },\n];\n"
+        },
+        "id": "7ed615ba-845a-45f0-bd3c-bcd7725eee8f",
+        "name": "Parse owner reservation reminder plan",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2880,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  reminder_at = {{ \"'\" + String($json.reminder_at).replace(/'/g, \"''\") + \"'\" }}::timestamptz,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'ai_reminder_delay_minutes', {{ Number($json.reminder_delay_minutes || 0) }},\n    'ai_reminder_reason', {{ \"'\" + String($json.reminder_reason || '').replace(/'/g, \"''\") + \"'\" }},\n    'ai_reminder_raw', {{ \"'\" + String($json.reminder_planner_raw || '').replace(/'/g, \"''\") + \"'\" }}\n  ),\n  updated_at = now()\nwhere id = {{ Number($('Initial owner delivery ok?').item.json.id) }}\nreturning *;",
+          "options": {}
+        },
+        "id": "0d522000-ad99-4efb-ad61-e7ba7c4d4716",
+        "name": "Save owner reservation reminder plan",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3120,
+          160
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Owner reservation webhook": {
+        "main": [
+          [
+            {
+              "node": "Normalize owner reservation request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize owner reservation request": {
+        "main": [
+          [
+            {
+              "node": "Resolve owner reservation target",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve owner reservation target": {
+        "main": [
+          [
+            {
+              "node": "Owner reservation request ready?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Owner reservation request ready?": {
+        "main": [
+          [
+            {
+              "node": "Insert pending owner reservation request",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Record failed owner reservation request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert pending owner reservation request": {
+        "main": [
+          [
+            {
+              "node": "Wait before initial owner send?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait before initial owner send?": {
+        "main": [
+          [
+            {
+              "node": "Wait until owner send window",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send initial owner reservation template",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait until owner send window": {
+        "main": [
+          [
+            {
+              "node": "Send initial owner reservation template",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send initial owner reservation template": {
+        "main": [
+          [
+            {
+              "node": "Initial owner delivery ok?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Initial owner delivery ok?": {
+        "main": [
+          [
+            {
+              "node": "Mark owner reservation initial sent",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Mark owner reservation initial failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark owner reservation initial sent": {
+        "main": [
+          [
+            {
+              "node": "Owner reservation reminder planner",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Reminder Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Owner reservation reminder planner",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Owner reservation reminder planner": {
+        "main": [
+          [
+            {
+              "node": "Parse owner reservation reminder plan",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse owner reservation reminder plan": {
+        "main": [
+          [
+            {
+              "node": "Save owner reservation reminder plan",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save owner reservation reminder plan": {
+        "main": [
+          []
+        ]
+      },
+      "Record failed owner reservation request": {
+        "main": [
+          []
+        ]
+      },
+      "Mark owner reservation initial failed": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-27T03:20:49.786Z",
+        "id": 633,
+        "workflowId": "SBEqIgPw7rGQ3Ef8",
+        "versionId": "9a505f02-84d3-4556-bbc7-26baef9855bb",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

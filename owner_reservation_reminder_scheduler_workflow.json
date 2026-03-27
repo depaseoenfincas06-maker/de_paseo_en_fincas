@@ -1,0 +1,664 @@
+{
+  "updatedAt": "2026-03-27T03:20:59.581Z",
+  "createdAt": "2026-03-26T04:13:20.351Z",
+  "id": "2NRSpfKVXG1TBq94",
+  "name": "Owner Reservation Reminder Scheduler - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "a9497804-4d57-4edc-9ff2-ee4e78524038",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status = 'initial_sent'\n  and r.recipient_phone is not null\n  and r.reminder_at is not null\n  and r.reminder_sent_at is null\n  and r.reminder_at <= now()\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '23:00')\norder by r.reminder_at asc\nlimit 100;",
+        "options": {}
+      },
+      "id": "7b65fd1b-e44d-401c-b1c8-c904d193c260",
+      "name": "Load due owner reminders",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $json || {};\n\nlet canSendReminder = true;\nlet cancelReason = null;\n\nif (String(input.request_status || '') !== 'initial_sent') {\n  canSendReminder = false;\n  cancelReason = 'request_not_initial_sent';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  canSendReminder = false;\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  canSendReminder = false;\n  cancelReason = 'selected_finca_changed';\n} else if (input.owner_response !== null && input.owner_response !== undefined) {\n  const hasOwnerResponse =\n    typeof input.owner_response === 'object'\n      ? Object.keys(input.owner_response || {}).length > 0\n      : String(input.owner_response).trim() !== '';\n  if (hasOwnerResponse) {\n    canSendReminder = false;\n    cancelReason = 'owner_response_already_present';\n  }\n} else if (input.agente_activo === false) {\n  canSendReminder = false;\n  cancelReason = 'bot_disabled';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      can_send_reminder: canSendReminder,\n      cancel_reason: cancelReason,\n    },\n  },\n];\n"
+      },
+      "id": "bd0c6749-f09e-4c86-be39-061a2b855262",
+      "name": "Evaluate owner reminder eligibility",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7c65feda-7ccc-4435-a365-dac0c1ce7ef4",
+              "leftValue": "={{ $json.can_send_reminder === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "0b1ed58a-d4df-457e-bc83-1ab470f37f1d",
+      "name": "Should send owner reminder?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        960,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst normalizePhone = (value) => {\n  const digits = String(value || '').replace(/\\D+/g, '').trim();\n  if (!digits) return '';\n  if (digits.startsWith('57') && digits.length === 12) return '+' + digits;\n  if (digits.length === 10) return '+57' + digits;\n  return '+' + digits;\n};\nconst sourceIdForPhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst parseNumber = (value) => {\n  const num = Number(value);\n  return Number.isFinite(num) && num > 0 ? num : null;\n};\nconst templateName = compact(input.template_name || input.reminder_template_name || input.payload?.template_name || input.payload?.reminder_template_name);\nconst templateLanguage = compact(input.payload?.reminder_template_language || input.template_language || 'en') || 'es_CO';\nconst fincaName = compact(input.selected_finca_name || input.payload?.selected_finca_name || input.selected_finca_id || 'la finca');\nconst fechaInicioText = compact(input.fecha_inicio_text || input.payload?.fecha_inicio_text || input.payload?.fecha_inicio || 'Sin dato');\nconst fechaFinText = compact(input.fecha_fin_text || input.payload?.fecha_fin_text || input.payload?.fecha_fin || 'Sin dato');\nconst recipientPhone = normalizePhone(input.recipient_phone);\nconst ownerInboxName = compact(input.owner_chatwoot_inbox_name || input.payload?.owner_chatwoot_inbox_name || \"Agent_propietarios\") || \"Agent_propietarios\";\nconst ownerInboxPhone = normalizePhone(input.owner_chatwoot_inbox_phone || input.payload?.owner_chatwoot_inbox_phone || \"+573105639334\");\nconst chatwootBaseUrl = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst chatwootAccountId = \"1\";\nconst chatwootApiToken =\n  (typeof process !== 'undefined' && process?.env?.CHATWOOT_API_TOKEN)\n    ? String(process.env.CHATWOOT_API_TOKEN).trim()\n    : \"__CHATWOOT_API_TOKEN__\";\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\nlet ownerChatwootInboxId = parseNumber(input.owner_chatwoot_inbox_id || input.payload?.owner_chatwoot_inbox_id);\nlet ownerChatwootContactId = parseNumber(input.owner_chatwoot_contact_id || input.payload?.owner_chatwoot_contact_id);\nlet ownerChatwootConversationId = parseNumber(input.owner_chatwoot_conversation_id || input.payload?.owner_chatwoot_conversation_id);\nlet ownerChatwootMessageId = null;\nlet ownerChatwootSourceId = compact(input.owner_chatwoot_source_id || input.payload?.owner_chatwoot_source_id) || sourceIdForPhone(recipientPhone);\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nasync function chatwootApi(pathname, method = 'GET', body = null, query = null) {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const normalizedBase = compact(chatwootBaseUrl).replace(/\\/+$/, '');\n  const normalizedPath = String(pathname || '').startsWith('/') ? String(pathname || '') : `/${String(pathname || '')}`;\n  const queryParts = [];\n  if (query && typeof query === 'object') {\n    for (const [key, value] of Object.entries(query)) {\n      if (value === undefined || value === null || value === '') continue;\n      queryParts.push(`${encodeURIComponent(String(key))}=${encodeURIComponent(String(value))}`);\n    }\n  }\n  const url = queryParts.length\n    ? `${normalizedBase}${normalizedPath}?${queryParts.join('&')}`\n    : `${normalizedBase}${normalizedPath}`;\n  const response = await helperRequest({\n    url,\n    method,\n    headers: {\n      api_access_token: chatwootApiToken,\n      Accept: 'application/json',\n      ...(body ? { 'Content-Type': 'application/json' } : {}),\n    },\n    body,\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  const status = Number(response.statusCode || response.status || 0) || 0;\n  const raw = response.body;\n  const parsed =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n  return { status, body: parsed };\n}\n\nfunction exactContactMatches(payload, targetPhone) {\n  const normalizedTarget = normalizePhone(targetPhone);\n  return ((payload || {}).payload || []).filter((item) => normalizePhone(item?.phone_number || '') === normalizedTarget);\n}\n\nasync function findInbox() {\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/inboxes`);\n  if (response.status >= 300) {\n    throw new Error(`owner_inbox_lookup_failed:${response.status}`);\n  }\n  const normalizedPhone = normalizePhone(ownerInboxPhone);\n  const payload = (response.body || {}).payload || [];\n  for (const inbox of payload) {\n    if (String(inbox?.name || '') !== ownerInboxName) continue;\n    const actualPhone = normalizePhone(inbox?.phone_number || '');\n    if (normalizedPhone && actualPhone !== normalizedPhone) {\n      throw new Error(`owner_chatwoot_inbox_phone_mismatch:${actualPhone || 'missing'}`);\n    }\n    return inbox;\n  }\n  throw new Error('owner_chatwoot_inbox_not_found');\n}\n\nasync function findOrCreateContact() {\n  if (ownerChatwootContactId) {\n    return { id: ownerChatwootContactId };\n  }\n  const search = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/search`, 'GET', null, {\n    q: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (search.status >= 300) {\n    throw new Error(`owner_contact_search_failed:${search.status}`);\n  }\n  const matches = exactContactMatches(search.body, recipientPhone);\n  if (matches.length) {\n    ownerChatwootContactId = parseNumber(matches[0]?.id);\n    return matches[0];\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts`, 'POST', {\n    inbox_id: null,\n    name: compact(input.selected_finca_name || input.client_name || 'Propietario'),\n    phone_number: recipientPhone,\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_create_failed:${created.status}`);\n  }\n  const payload = created.body?.payload || created.body || {};\n  ownerChatwootContactId = parseNumber(payload?.id);\n  return payload;\n}\n\nasync function ensureContactInbox(contactId, inboxId) {\n  const existing = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contactable_inboxes`);\n  if (existing.status >= 300) {\n    throw new Error(`owner_contactable_inboxes_failed:${existing.status}`);\n  }\n  for (const entry of (existing.body?.payload || [])) {\n    if (parseNumber(entry?.inbox?.id) === inboxId) {\n      ownerChatwootSourceId = compact(entry?.source_id) || ownerChatwootSourceId || sourceIdForPhone(recipientPhone);\n      return entry;\n    }\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contact_inboxes`, 'POST', {\n    inbox_id: inboxId,\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_inbox_create_failed:${created.status}`);\n  }\n  ownerChatwootSourceId =\n    compact(created.body?.source_id) ||\n    compact(created.body?.payload?.source_id) ||\n    ownerChatwootSourceId ||\n    sourceIdForPhone(recipientPhone);\n  return created.body?.payload || created.body || {};\n}\n\nasync function ensureConversation(contactId, inboxId) {\n  if (ownerChatwootConversationId) {\n    return ownerChatwootConversationId;\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations`, 'POST', {\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n    inbox_id: inboxId,\n    contact_id: contactId,\n    status: 'open',\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_conversation_create_failed:${created.status}`);\n  }\n  ownerChatwootConversationId = parseNumber(created.body?.id);\n  return ownerChatwootConversationId;\n}\n\nasync function fetchProviderMessageId(conversationId, messageId) {\n  if (!conversationId || !messageId) return null;\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}`);\n  if (response.status >= 300) return null;\n  const messages = response.body?.messages || [];\n  const matched = messages.find((item) => parseNumber(item?.id) === parseNumber(messageId));\n  return compact(matched?.source_id) || null;\n}\n\ntry {\n  if (!recipientPhone) throw new Error('owner_recipient_phone_missing');\n  if (!templateName) throw new Error('owner_template_name_missing');\n  if (!chatwootBaseUrl || !chatwootAccountId || !chatwootApiToken || chatwootApiToken.startsWith('__')) {\n    throw new Error('owner_chatwoot_config_missing');\n  }\n\n  const inbox = await findInbox();\n  ownerChatwootInboxId = parseNumber(inbox?.id);\n  const contact = await findOrCreateContact();\n  ownerChatwootContactId = parseNumber(contact?.id) || ownerChatwootContactId;\n  await ensureContactInbox(ownerChatwootContactId, ownerChatwootInboxId);\n  const conversationId = await ensureConversation(ownerChatwootContactId, ownerChatwootInboxId);\n\n  const sent = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`, 'POST', {\n    content: `Hola, te escribimos de De Paseo en Fincas. Tenemos una nueva solicitud de reserva para ${fincaName} del ${fechaInicioText} al ${fechaFinText}. ¿Nos confirmas por favor si está disponible?`,\n    message_type: 'outgoing',\n    private: false,\n    content_type: 'text',\n    content_attributes: {},\n    template_params: {\n      name: templateName,\n      category: 'UTILITY',\n      language: templateLanguage,\n      processed_params: {\n        body: {\n          '1': fincaName || 'la finca',\n          '2': fechaInicioText || 'Sin dato',\n          '3': fechaFinText || 'Sin dato',\n        },\n      },\n    },\n  });\n\n  responseStatus = sent.status;\n  responseBody = sent.body;\n  ownerChatwootMessageId = parseNumber(sent.body?.id);\n  providerMessageId =\n    compact(sent.body?.source_id) ||\n    compact(sent.body?.messages?.[0]?.source_id) ||\n    compact(await fetchProviderMessageId(conversationId, ownerChatwootMessageId)) ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      sent.body?.error?.message ||\n      sent.body?.message ||\n      'owner_chatwoot_template_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message || 'owner_chatwoot_template_send_failed';\n  responseBody = responseBody || { error: errorMessage };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n      owner_chatwoot_inbox_id: ownerChatwootInboxId,\n      owner_chatwoot_contact_id: ownerChatwootContactId,\n      owner_chatwoot_source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone) || null,\n      owner_chatwoot_conversation_id: ownerChatwootConversationId,\n      owner_chatwoot_message_id: ownerChatwootMessageId,\n      owner_chatwoot_inbox_name: ownerInboxName,\n      owner_chatwoot_inbox_phone: ownerInboxPhone,\n    },\n  },\n];"
+      },
+      "id": "bfc93fd8-7b86-4500-a56b-b82e233026e0",
+      "name": "Send owner reservation reminder template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7618ee36-f775-4705-a2f6-f51b2b6b70c3",
+              "leftValue": "={{ $json.ok === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "07c6427b-dd78-401f-ac64-0de1e23381c8",
+      "name": "Owner reminder delivery ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1440,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  reminder_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at;",
+        "options": {}
+      },
+      "id": "1401c1cc-2e69-4b21-9638-5091e35abcf1",
+      "name": "Mark owner reminder sent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reminder_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+        "options": {}
+      },
+      "id": "0d1f1547-5665-4e94-b2ea-68986fa6ae2b",
+      "name": "Record owner reminder attempt failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "update public.owner_reservation_requests\nset\n  status = 'cancelled',\n  cancelled_at = now(),\n  cancel_reason = {{ $json.cancel_reason ? \"'\" + String($json.cancel_reason).replace(/'/g, \"''\") + \"'\" : \"'reminder_cancelled'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, cancel_reason;",
+        "options": {}
+      },
+      "id": "43b07c65-ad95-43b6-9d84-a34f654d27db",
+      "name": "Cancel owner reminder",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        432
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load due owner reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load due owner reminders": {
+      "main": [
+        [
+          {
+            "node": "Evaluate owner reminder eligibility",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate owner reminder eligibility": {
+      "main": [
+        [
+          {
+            "node": "Should send owner reminder?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should send owner reminder?": {
+      "main": [
+        [
+          {
+            "node": "Send owner reservation reminder template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel owner reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send owner reservation reminder template": {
+      "main": [
+        [
+          {
+            "node": "Owner reminder delivery ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner reminder delivery ok?": {
+      "main": [
+        [
+          {
+            "node": "Mark owner reminder sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record owner reminder attempt failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark owner reminder sent": {
+      "main": [
+        []
+      ]
+    },
+    "Record owner reminder attempt failed": {
+      "main": [
+        []
+      ]
+    },
+    "Cancel owner reminder": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+  "activeVersionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+  "versionCounter": 21,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-26T04:13:20.351Z",
+      "createdAt": "2026-03-26T04:13:20.351Z",
+      "role": "workflow:owner",
+      "workflowId": "2NRSpfKVXG1TBq94",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-27T03:20:59.583Z",
+    "createdAt": "2026-03-27T03:20:59.583Z",
+    "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+    "workflowId": "2NRSpfKVXG1TBq94",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 15
+              }
+            ]
+          }
+        },
+        "id": "a9497804-4d57-4edc-9ff2-ee4e78524038",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status = 'initial_sent'\n  and r.recipient_phone is not null\n  and r.reminder_at is not null\n  and r.reminder_sent_at is null\n  and r.reminder_at <= now()\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '23:00')\norder by r.reminder_at asc\nlimit 100;",
+          "options": {}
+        },
+        "id": "7b65fd1b-e44d-401c-b1c8-c904d193c260",
+        "name": "Load due owner reminders",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          480,
+          320
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "\nconst input = $json || {};\n\nlet canSendReminder = true;\nlet cancelReason = null;\n\nif (String(input.request_status || '') !== 'initial_sent') {\n  canSendReminder = false;\n  cancelReason = 'request_not_initial_sent';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  canSendReminder = false;\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  canSendReminder = false;\n  cancelReason = 'selected_finca_changed';\n} else if (input.owner_response !== null && input.owner_response !== undefined) {\n  const hasOwnerResponse =\n    typeof input.owner_response === 'object'\n      ? Object.keys(input.owner_response || {}).length > 0\n      : String(input.owner_response).trim() !== '';\n  if (hasOwnerResponse) {\n    canSendReminder = false;\n    cancelReason = 'owner_response_already_present';\n  }\n} else if (input.agente_activo === false) {\n  canSendReminder = false;\n  cancelReason = 'bot_disabled';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      can_send_reminder: canSendReminder,\n      cancel_reason: cancelReason,\n    },\n  },\n];\n"
+        },
+        "id": "bd0c6749-f09e-4c86-be39-061a2b855262",
+        "name": "Evaluate owner reminder eligibility",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "7c65feda-7ccc-4435-a365-dac0c1ce7ef4",
+                "leftValue": "={{ $json.can_send_reminder === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "0b1ed58a-d4df-457e-bc83-1ab470f37f1d",
+        "name": "Should send owner reminder?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          960,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst normalizePhone = (value) => {\n  const digits = String(value || '').replace(/\\D+/g, '').trim();\n  if (!digits) return '';\n  if (digits.startsWith('57') && digits.length === 12) return '+' + digits;\n  if (digits.length === 10) return '+57' + digits;\n  return '+' + digits;\n};\nconst sourceIdForPhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst parseNumber = (value) => {\n  const num = Number(value);\n  return Number.isFinite(num) && num > 0 ? num : null;\n};\nconst templateName = compact(input.template_name || input.reminder_template_name || input.payload?.template_name || input.payload?.reminder_template_name);\nconst templateLanguage = compact(input.payload?.reminder_template_language || input.template_language || 'en') || 'es_CO';\nconst fincaName = compact(input.selected_finca_name || input.payload?.selected_finca_name || input.selected_finca_id || 'la finca');\nconst fechaInicioText = compact(input.fecha_inicio_text || input.payload?.fecha_inicio_text || input.payload?.fecha_inicio || 'Sin dato');\nconst fechaFinText = compact(input.fecha_fin_text || input.payload?.fecha_fin_text || input.payload?.fecha_fin || 'Sin dato');\nconst recipientPhone = normalizePhone(input.recipient_phone);\nconst ownerInboxName = compact(input.owner_chatwoot_inbox_name || input.payload?.owner_chatwoot_inbox_name || \"Agent_propietarios\") || \"Agent_propietarios\";\nconst ownerInboxPhone = normalizePhone(input.owner_chatwoot_inbox_phone || input.payload?.owner_chatwoot_inbox_phone || \"+573105639334\");\nconst chatwootBaseUrl = \"https://chatwoot-9qe1j-u48275.vm.elestio.app\";\nconst chatwootAccountId = \"1\";\nconst chatwootApiToken =\n  (typeof process !== 'undefined' && process?.env?.CHATWOOT_API_TOKEN)\n    ? String(process.env.CHATWOOT_API_TOKEN).trim()\n    : \"__CHATWOOT_API_TOKEN__\";\n\nlet responseStatus = null;\nlet responseBody = null;\nlet providerMessageId = null;\nlet errorMessage = null;\nlet ownerChatwootInboxId = parseNumber(input.owner_chatwoot_inbox_id || input.payload?.owner_chatwoot_inbox_id);\nlet ownerChatwootContactId = parseNumber(input.owner_chatwoot_contact_id || input.payload?.owner_chatwoot_contact_id);\nlet ownerChatwootConversationId = parseNumber(input.owner_chatwoot_conversation_id || input.payload?.owner_chatwoot_conversation_id);\nlet ownerChatwootMessageId = null;\nlet ownerChatwootSourceId = compact(input.owner_chatwoot_source_id || input.payload?.owner_chatwoot_source_id) || sourceIdForPhone(recipientPhone);\n\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nasync function chatwootApi(pathname, method = 'GET', body = null, query = null) {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const normalizedBase = compact(chatwootBaseUrl).replace(/\\/+$/, '');\n  const normalizedPath = String(pathname || '').startsWith('/') ? String(pathname || '') : `/${String(pathname || '')}`;\n  const queryParts = [];\n  if (query && typeof query === 'object') {\n    for (const [key, value] of Object.entries(query)) {\n      if (value === undefined || value === null || value === '') continue;\n      queryParts.push(`${encodeURIComponent(String(key))}=${encodeURIComponent(String(value))}`);\n    }\n  }\n  const url = queryParts.length\n    ? `${normalizedBase}${normalizedPath}?${queryParts.join('&')}`\n    : `${normalizedBase}${normalizedPath}`;\n  const response = await helperRequest({\n    url,\n    method,\n    headers: {\n      api_access_token: chatwootApiToken,\n      Accept: 'application/json',\n      ...(body ? { 'Content-Type': 'application/json' } : {}),\n    },\n    body,\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  const status = Number(response.statusCode || response.status || 0) || 0;\n  const raw = response.body;\n  const parsed =\n    raw && typeof raw === 'object'\n      ? raw\n      : raw == null\n        ? null\n        : { raw: String(raw) };\n  return { status, body: parsed };\n}\n\nfunction exactContactMatches(payload, targetPhone) {\n  const normalizedTarget = normalizePhone(targetPhone);\n  return ((payload || {}).payload || []).filter((item) => normalizePhone(item?.phone_number || '') === normalizedTarget);\n}\n\nasync function findInbox() {\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/inboxes`);\n  if (response.status >= 300) {\n    throw new Error(`owner_inbox_lookup_failed:${response.status}`);\n  }\n  const normalizedPhone = normalizePhone(ownerInboxPhone);\n  const payload = (response.body || {}).payload || [];\n  for (const inbox of payload) {\n    if (String(inbox?.name || '') !== ownerInboxName) continue;\n    const actualPhone = normalizePhone(inbox?.phone_number || '');\n    if (normalizedPhone && actualPhone !== normalizedPhone) {\n      throw new Error(`owner_chatwoot_inbox_phone_mismatch:${actualPhone || 'missing'}`);\n    }\n    return inbox;\n  }\n  throw new Error('owner_chatwoot_inbox_not_found');\n}\n\nasync function findOrCreateContact() {\n  if (ownerChatwootContactId) {\n    return { id: ownerChatwootContactId };\n  }\n  const search = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/search`, 'GET', null, {\n    q: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (search.status >= 300) {\n    throw new Error(`owner_contact_search_failed:${search.status}`);\n  }\n  const matches = exactContactMatches(search.body, recipientPhone);\n  if (matches.length) {\n    ownerChatwootContactId = parseNumber(matches[0]?.id);\n    return matches[0];\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts`, 'POST', {\n    inbox_id: null,\n    name: compact(input.selected_finca_name || input.client_name || 'Propietario'),\n    phone_number: recipientPhone,\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_create_failed:${created.status}`);\n  }\n  const payload = created.body?.payload || created.body || {};\n  ownerChatwootContactId = parseNumber(payload?.id);\n  return payload;\n}\n\nasync function ensureContactInbox(contactId, inboxId) {\n  const existing = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contactable_inboxes`);\n  if (existing.status >= 300) {\n    throw new Error(`owner_contactable_inboxes_failed:${existing.status}`);\n  }\n  for (const entry of (existing.body?.payload || [])) {\n    if (parseNumber(entry?.inbox?.id) === inboxId) {\n      ownerChatwootSourceId = compact(entry?.source_id) || ownerChatwootSourceId || sourceIdForPhone(recipientPhone);\n      return entry;\n    }\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/contacts/${contactId}/contact_inboxes`, 'POST', {\n    inbox_id: inboxId,\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_contact_inbox_create_failed:${created.status}`);\n  }\n  ownerChatwootSourceId =\n    compact(created.body?.source_id) ||\n    compact(created.body?.payload?.source_id) ||\n    ownerChatwootSourceId ||\n    sourceIdForPhone(recipientPhone);\n  return created.body?.payload || created.body || {};\n}\n\nasync function ensureConversation(contactId, inboxId) {\n  if (ownerChatwootConversationId) {\n    return ownerChatwootConversationId;\n  }\n  const created = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations`, 'POST', {\n    source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone),\n    inbox_id: inboxId,\n    contact_id: contactId,\n    status: 'open',\n  });\n  if (created.status >= 300) {\n    throw new Error(`owner_conversation_create_failed:${created.status}`);\n  }\n  ownerChatwootConversationId = parseNumber(created.body?.id);\n  return ownerChatwootConversationId;\n}\n\nasync function fetchProviderMessageId(conversationId, messageId) {\n  if (!conversationId || !messageId) return null;\n  const response = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}`);\n  if (response.status >= 300) return null;\n  const messages = response.body?.messages || [];\n  const matched = messages.find((item) => parseNumber(item?.id) === parseNumber(messageId));\n  return compact(matched?.source_id) || null;\n}\n\ntry {\n  if (!recipientPhone) throw new Error('owner_recipient_phone_missing');\n  if (!templateName) throw new Error('owner_template_name_missing');\n  if (!chatwootBaseUrl || !chatwootAccountId || !chatwootApiToken || chatwootApiToken.startsWith('__')) {\n    throw new Error('owner_chatwoot_config_missing');\n  }\n\n  const inbox = await findInbox();\n  ownerChatwootInboxId = parseNumber(inbox?.id);\n  const contact = await findOrCreateContact();\n  ownerChatwootContactId = parseNumber(contact?.id) || ownerChatwootContactId;\n  await ensureContactInbox(ownerChatwootContactId, ownerChatwootInboxId);\n  const conversationId = await ensureConversation(ownerChatwootContactId, ownerChatwootInboxId);\n\n  const sent = await chatwootApi(`/api/v1/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`, 'POST', {\n    content: `Hola, te escribimos de De Paseo en Fincas. Tenemos una nueva solicitud de reserva para ${fincaName} del ${fechaInicioText} al ${fechaFinText}. ¿Nos confirmas por favor si está disponible?`,\n    message_type: 'outgoing',\n    private: false,\n    content_type: 'text',\n    content_attributes: {},\n    template_params: {\n      name: templateName,\n      category: 'UTILITY',\n      language: templateLanguage,\n      processed_params: {\n        body: {\n          '1': fincaName || 'la finca',\n          '2': fechaInicioText || 'Sin dato',\n          '3': fechaFinText || 'Sin dato',\n        },\n      },\n    },\n  });\n\n  responseStatus = sent.status;\n  responseBody = sent.body;\n  ownerChatwootMessageId = parseNumber(sent.body?.id);\n  providerMessageId =\n    compact(sent.body?.source_id) ||\n    compact(sent.body?.messages?.[0]?.source_id) ||\n    compact(await fetchProviderMessageId(conversationId, ownerChatwootMessageId)) ||\n    null;\n\n  if (!(responseStatus >= 200 && responseStatus < 300)) {\n    errorMessage =\n      sent.body?.error?.message ||\n      sent.body?.message ||\n      'owner_chatwoot_template_send_failed';\n  }\n} catch (error) {\n  errorMessage = error.message || 'owner_chatwoot_template_send_failed';\n  responseBody = responseBody || { error: errorMessage };\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      provider_message_id: providerMessageId,\n      response_status: responseStatus,\n      response_body: responseBody,\n      ok: !errorMessage,\n      error_message: errorMessage,\n      owner_chatwoot_inbox_id: ownerChatwootInboxId,\n      owner_chatwoot_contact_id: ownerChatwootContactId,\n      owner_chatwoot_source_id: ownerChatwootSourceId || sourceIdForPhone(recipientPhone) || null,\n      owner_chatwoot_conversation_id: ownerChatwootConversationId,\n      owner_chatwoot_message_id: ownerChatwootMessageId,\n      owner_chatwoot_inbox_name: ownerInboxName,\n      owner_chatwoot_inbox_phone: ownerInboxPhone,\n    },\n  },\n];"
+        },
+        "id": "bfc93fd8-7b86-4500-a56b-b82e233026e0",
+        "name": "Send owner reservation reminder template",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "7618ee36-f775-4705-a2f6-f51b2b6b70c3",
+                "leftValue": "={{ $json.ok === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "07c6427b-dd78-401f-ac64-0de1e23381c8",
+        "name": "Owner reminder delivery ok?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1440,
+          208
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  reminder_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at;",
+          "options": {}
+        },
+        "id": "1401c1cc-2e69-4b21-9638-5091e35abcf1",
+        "name": "Mark owner reminder sent",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1680,
+          128
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reminder_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+          "options": {}
+        },
+        "id": "0d1f1547-5665-4e94-b2ea-68986fa6ae2b",
+        "name": "Record owner reminder attempt failed",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1680,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "update public.owner_reservation_requests\nset\n  status = 'cancelled',\n  cancelled_at = now(),\n  cancel_reason = {{ $json.cancel_reason ? \"'\" + String($json.cancel_reason).replace(/'/g, \"''\") + \"'\" : \"'reminder_cancelled'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, cancel_reason;",
+          "options": {}
+        },
+        "id": "43b07c65-ad95-43b6-9d84-a34f654d27db",
+        "name": "Cancel owner reminder",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1200,
+          432
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Load due owner reminders",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load due owner reminders": {
+        "main": [
+          [
+            {
+              "node": "Evaluate owner reminder eligibility",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Evaluate owner reminder eligibility": {
+        "main": [
+          [
+            {
+              "node": "Should send owner reminder?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Should send owner reminder?": {
+        "main": [
+          [
+            {
+              "node": "Send owner reservation reminder template",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Cancel owner reminder",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send owner reservation reminder template": {
+        "main": [
+          [
+            {
+              "node": "Owner reminder delivery ok?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Owner reminder delivery ok?": {
+        "main": [
+          [
+            {
+              "node": "Mark owner reminder sent",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Record owner reminder attempt failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark owner reminder sent": {
+        "main": [
+          []
+        ]
+      },
+      "Record owner reminder attempt failed": {
+        "main": [
+          []
+        ]
+      },
+      "Cancel owner reminder": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-27T03:21:00.708Z",
+        "id": 635,
+        "workflowId": "2NRSpfKVXG1TBq94",
+        "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}
