@@ -1,0 +1,696 @@
+{
+  "updatedAt": "2026-03-27T15:33:00.780Z",
+  "createdAt": "2026-03-27T04:19:24.676Z",
+  "id": "W5fO8QiAMlYyIlCb",
+  "name": "Owner Reservation Inbound Handler - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "d4c9dade-9538-44b4-97e6-7a6c16825385",
+      "name": "When owner inbound handler is called",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst normalizeText = (value) =>\n  String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\s]+/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\nlet raw = {};\ntry {\n  raw = input.raw_json ? JSON.parse(String(input.raw_json)) : {};\n} catch {\n  raw = {};\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      raw,\n      eligible: input.eligible === true,\n      event_type: compact(input.event_type || raw.event || 'message_created'),\n      is_sync_event: input.is_sync_event === true,\n      inbox_id: compact(input.inbox_id || raw.inbox?.id || raw.conversation?.inbox_id || null),\n      inbox_name: compact(input.inbox_name || raw.inbox?.name || null),\n      chatwoot_id: compact(input.chatwoot_id || raw.conversation?.id || null),\n      chatwoot_message_id: compact(input.chatwoot_message_id || raw.id || null),\n      wa_id:\n        digitsOnly(\n          input.wa_id ||\n            raw.conversation?.meta?.sender?.phone_number ||\n            raw.contact?.phone_number ||\n            raw.sender?.phone_number ||\n            raw.contact_inbox?.source_id ||\n            raw.conversation?.contact_inbox?.source_id,\n        ) || null,\n      client_name:\n        compact(input.client_name || raw.conversation?.meta?.sender?.name || raw.contact?.name || null) || null,\n      contact_source_id:\n        digitsOnly(input.contact_source_id || raw.conversation?.contact_inbox?.source_id || raw.contact_inbox?.source_id) || null,\n      owner_reply_text: compact(input.chatInput || raw.content || null),\n      owner_reply_text_normalized: normalizeText(input.chatInput || raw.content || null),\n    },\n  },\n];"
+      },
+      "id": "e818dd84-3886-46bb-b4c1-59a182dfbe55",
+      "name": "Normalize owner inbound payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with incoming as (\n  select\n    {{ $('Normalize owner inbound payload').item.json.chatwoot_id ? \"'\" + String($('Normalize owner inbound payload').item.json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_chatwoot_conversation_id,\n    {{ $('Normalize owner inbound payload').item.json.contact_source_id ? \"'\" + String($('Normalize owner inbound payload').item.json.contact_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_chatwoot_source_id,\n    {{ $('Normalize owner inbound payload').item.json.wa_id ? \"'\" + String($('Normalize owner inbound payload').item.json.wa_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as recipient_phone\n),\nmatched as (\n  select\n    r.*,\n    c.waiting_for,\n    c.agente_activo,\n    c.current_state,\n    c.selected_finca_id as conversation_selected_finca_id,\n    c.owner_response,\n    c.client_name\n  from public.owner_reservation_requests r\n  join public.conversations c\n    on c.wa_id = r.conversation_id\n  cross join incoming i\n  where r.status in ('initial_sent', 'reminder_sent')\n    and (\n      (\n        i.owner_chatwoot_conversation_id is not null\n        and coalesce(r.payload->>'owner_chatwoot_conversation_id', '') = i.owner_chatwoot_conversation_id\n      )\n      or (\n        i.owner_chatwoot_source_id is not null\n        and coalesce(r.payload->>'owner_chatwoot_source_id', '') = i.owner_chatwoot_source_id\n      )\n      or (\n        i.recipient_phone is not null\n        and regexp_replace(coalesce(r.recipient_phone, ''), '\\D', '', 'g') = regexp_replace(i.recipient_phone, '\\D', '', 'g')\n      )\n    )\n  order by\n    case\n      when coalesce(r.payload->>'owner_chatwoot_conversation_id', '') = coalesce(i.owner_chatwoot_conversation_id, '') then 0\n      when coalesce(r.payload->>'owner_chatwoot_source_id', '') = coalesce(i.owner_chatwoot_source_id, '') then 1\n      else 2\n    end,\n    r.created_at desc\n  limit 1\n)\nselect\n  m.*\nfrom incoming i\nleft join matched m on true;",
+        "options": {}
+      },
+      "id": "0336164e-22b3-4be4-aec8-384ab2b6981a",
+      "name": "Load active owner request",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        760,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inbound = $('Normalize owner inbound payload').item.json || {};\nconst row = $json || {};\n\nconst normalizeText = (value) =>\n  String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\s]+/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\nfunction collectStrings(value, depth = 0, acc = []) {\n  if (depth > 5 || value === null || value === undefined) return acc;\n  if (typeof value === 'string') {\n    const trimmed = value.trim();\n    if (trimmed) acc.push(trimmed);\n    return acc;\n  }\n  if (Array.isArray(value)) {\n    for (const item of value) collectStrings(item, depth + 1, acc);\n    return acc;\n  }\n  if (typeof value === 'object') {\n    for (const item of Object.values(value)) collectStrings(item, depth + 1, acc);\n  }\n  return acc;\n}\n\nconst prioritySignals = collectStrings(inbound.raw?.content_attributes || {});\nconst additionalSignals = collectStrings(inbound.raw?.additional_attributes || {});\nconst textSignals = [inbound.owner_reply_text];\nconst normalizedSignals = [...prioritySignals, ...additionalSignals, ...textSignals]\n  .map(normalizeText)\n  .filter(Boolean);\n\nconst availablePhrases = new Set([\n  'si',\n  'si esta disponible',\n  'si esta disponible por ahora',\n  'esta disponible',\n  'disponible',\n  'si disponible',\n  'yes',\n]);\nconst unavailablePhrases = new Set([\n  'no',\n  'no esta disponible',\n  'no disponible',\n  'not available',\n]);\n\nlet ownerReplyType = 'other';\nlet matchedSignal = normalizedSignals[0] || inbound.owner_reply_text_normalized || '';\n\nfor (const signal of normalizedSignals) {\n  if (availablePhrases.has(signal)) {\n    ownerReplyType = 'available';\n    matchedSignal = signal;\n    break;\n  }\n  if (unavailablePhrases.has(signal)) {\n    ownerReplyType = 'unavailable';\n    matchedSignal = signal;\n    break;\n  }\n}\n\nlet action = 'noop';\nlet actionReason = 'owner_event_ignored';\n\nif (inbound.eligible !== true || inbound.is_sync_event === true || String(inbound.event_type || '') !== 'message_created') {\n  action = 'noop';\n  actionReason = inbound.eligible !== true ? 'owner_event_not_eligible' : 'owner_sync_or_non_message_event';\n} else if (!(Number(row.id || 0) > 0)) {\n  action = 'noop';\n  actionReason = 'owner_request_not_found';\n} else if (ownerReplyType === 'available') {\n  action = 'resume_available';\n  actionReason = 'owner_available_confirmed';\n} else if (ownerReplyType === 'unavailable') {\n  action = 'resume_unavailable';\n  actionReason = 'owner_unavailable_confirmed';\n} else {\n  action = 'needs_review';\n  actionReason = 'owner_reply_needs_review';\n}\n\nreturn [\n  {\n    json: {\n      ...row,\n      ...inbound,\n      owner_reply_type: ownerReplyType,\n      owner_reply_text: inbound.owner_reply_text || null,\n      owner_reply_signal: matchedSignal || null,\n      owner_reply_received_at: new Date().toISOString(),\n      action,\n      action_reason: actionReason,\n    },\n  },\n];"
+      },
+      "id": "af32b14a-f687-4324-8254-bcfef782bba6",
+      "name": "Plan owner inbound action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "346bc2df-d51d-4bc1-be3a-09da35152bf2",
+              "leftValue": "={{ ['resume_available', 'resume_unavailable'].includes(String($json.action || '')) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "dd13fcee-edc7-43cf-a54f-39fcab17563d",
+      "name": "Actionable owner reply?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1280,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    {{ \"'\" + String($json.owner_reply_type || '').replace(/'/g, \"''\") + \"'\" }}::text as owner_reply_type,\n    {{ $json.owner_reply_type === 'available' ? 'true' : 'false' }}::boolean as disponible,\n    {{ $json.owner_reply_text ? \"'\" + String($json.owner_reply_text).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_text,\n    {{ $json.chatwoot_message_id ? \"'\" + String($json.chatwoot_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_chatwoot_message_id,\n    now() as responded_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = case when p.disponible then 'available_confirmed' else 'unavailable_confirmed' end,\n    error_message = null,\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_reply_type', p.owner_reply_type,\n      'owner_reply_text', p.owner_reply_text,\n      'owner_reply_received_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_reply_chatwoot_message_id', p.owner_reply_chatwoot_message_id\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', p.disponible,\n      'source', 'owner_whatsapp',\n      'responded_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'raw_text', p.owner_reply_text,\n      'request_id', p.request_id\n    ),\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name,\n  p.owner_reply_type\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id\ncross join params p;",
+        "options": {}
+      },
+      "id": "5200aa24-bf0d-4d92-ae0e-138129455cf9",
+      "name": "Persist actionable owner reply",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet resumeOk = false;\nlet resumeStatus = null;\nlet resumeBody = null;\nlet resumeError = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const response = await helperRequest({\n    url: \"https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound\",\n    method: 'POST',\n    headers: {\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      wa_id: input.conversation_id,\n      chatwoot_id: input.chatwoot_id || null,\n      client_name: input.client_name || null,\n      current_message: '',\n      internal_resume: true,\n      insertar_mensjae: false,\n      skip_validator: true,\n      loop_reason: 'owner_response_resume',\n      forced_state: null,\n      owner_unavailable: false,\n      message_type: 'TEXT',\n      original_message_type: 'TEXT',\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  resumeStatus = Number(response.statusCode || response.status || 0) || 0;\n  resumeBody = response.body || null;\n  resumeOk = resumeStatus >= 200 && resumeStatus < 300;\n  if (!resumeOk) {\n    resumeError = response.body?.message || response.body?.error || `resume_failed:${resumeStatus}`;\n  }\n} catch (error) {\n  resumeError = error.message || 'resume_failed';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      ok: resumeError ? false : true,\n      processed: true,\n      resumed_customer_flow: resumeOk,\n      resume_status: resumeStatus,\n      resume_body: resumeBody,\n      resume_error: resumeError,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+      },
+      "id": "6db39d67-0134-4444-92e3-c436788f98d3",
+      "name": "Resume customer flow after owner reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d6979545-0454-4511-a611-3c08e140d4d1",
+              "leftValue": "={{ String($json.action || '') === 'needs_review' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "9d1a1b01-aee4-4a2f-adc2-840171acbf25",
+      "name": "Needs owner review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    {{ $json.owner_reply_text ? \"'\" + String($json.owner_reply_text).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_text,\n    {{ $json.chatwoot_message_id ? \"'\" + String($json.chatwoot_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_chatwoot_message_id,\n    now() as responded_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = 'needs_review',\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_reply_type', 'other',\n      'owner_reply_text', p.owner_reply_text,\n      'owner_reply_received_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_reply_chatwoot_message_id', p.owner_reply_chatwoot_message_id\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', null,\n      'source', 'owner_whatsapp',\n      'responded_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'raw_text', p.owner_reply_text,\n      'request_id', p.request_id,\n      'reply_type', 'other',\n      'needs_review', true\n    ),\n    agente_activo = false,\n    waiting_for = 'CLIENT',\n    hitl_reason = 'owner_reply_needs_review',\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id;",
+        "options": {}
+      },
+      "id": "231a1c49-8ac2-49a5-abf4-b35e8cda0ba3",
+      "name": "Persist owner reply needs review",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1760,
+        368
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nreturn [\n  {\n    json: {\n      ...input,\n      ok: true,\n      processed: true,\n      resumed_customer_flow: false,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+      },
+      "id": "bdb947e2-f392-4309-a929-e82256c9ee7d",
+      "name": "Build owner review result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nreturn [\n  {\n    json: {\n      ...input,\n      ok: true,\n      processed: false,\n      resumed_customer_flow: false,\n      wa_id: input.conversation_id || input.wa_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+      },
+      "id": "adcfead3-5118-449d-bb1f-3a35a499a1aa",
+      "name": "Build owner inbound noop result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        592
+      ]
+    }
+  ],
+  "connections": {
+    "When owner inbound handler is called": {
+      "main": [
+        [
+          {
+            "node": "Normalize owner inbound payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize owner inbound payload": {
+      "main": [
+        [
+          {
+            "node": "Load active owner request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load active owner request": {
+      "main": [
+        [
+          {
+            "node": "Plan owner inbound action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan owner inbound action": {
+      "main": [
+        [
+          {
+            "node": "Actionable owner reply?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actionable owner reply?": {
+      "main": [
+        [
+          {
+            "node": "Persist actionable owner reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Needs owner review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist actionable owner reply": {
+      "main": [
+        [
+          {
+            "node": "Resume customer flow after owner reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs owner review?": {
+      "main": [
+        [
+          {
+            "node": "Persist owner reply needs review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build owner inbound noop result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist owner reply needs review": {
+      "main": [
+        [
+          {
+            "node": "Build owner review result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "c836fc6d-1349-43e5-9bf0-9bd9e5616193",
+  "activeVersionId": "c836fc6d-1349-43e5-9bf0-9bd9e5616193",
+  "versionCounter": 23,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-27T04:19:24.676Z",
+      "createdAt": "2026-03-27T04:19:24.676Z",
+      "role": "workflow:owner",
+      "workflowId": "W5fO8QiAMlYyIlCb",
+      "projectId": "1fHxc7a4mm0cslGu",
+      "project": {
+        "updatedAt": "2025-06-15T06:32:54.281Z",
+        "createdAt": "2025-06-15T06:16:26.028Z",
+        "id": "1fHxc7a4mm0cslGu",
+        "name": "JUANDAVID VIZCAYA <jd@vizcaya.co>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-27T15:33:00.782Z",
+    "createdAt": "2026-03-27T15:33:00.782Z",
+    "versionId": "c836fc6d-1349-43e5-9bf0-9bd9e5616193",
+    "workflowId": "W5fO8QiAMlYyIlCb",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "d4c9dade-9538-44b4-97e6-7a6c16825385",
+        "name": "When owner inbound handler is called",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          240,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst normalizeText = (value) =>\n  String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\s]+/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\nlet raw = {};\ntry {\n  raw = input.raw_json ? JSON.parse(String(input.raw_json)) : {};\n} catch {\n  raw = {};\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      raw,\n      eligible: input.eligible === true,\n      event_type: compact(input.event_type || raw.event || 'message_created'),\n      is_sync_event: input.is_sync_event === true,\n      inbox_id: compact(input.inbox_id || raw.inbox?.id || raw.conversation?.inbox_id || null),\n      inbox_name: compact(input.inbox_name || raw.inbox?.name || null),\n      chatwoot_id: compact(input.chatwoot_id || raw.conversation?.id || null),\n      chatwoot_message_id: compact(input.chatwoot_message_id || raw.id || null),\n      wa_id:\n        digitsOnly(\n          input.wa_id ||\n            raw.conversation?.meta?.sender?.phone_number ||\n            raw.contact?.phone_number ||\n            raw.sender?.phone_number ||\n            raw.contact_inbox?.source_id ||\n            raw.conversation?.contact_inbox?.source_id,\n        ) || null,\n      client_name:\n        compact(input.client_name || raw.conversation?.meta?.sender?.name || raw.contact?.name || null) || null,\n      contact_source_id:\n        digitsOnly(input.contact_source_id || raw.conversation?.contact_inbox?.source_id || raw.contact_inbox?.source_id) || null,\n      owner_reply_text: compact(input.chatInput || raw.content || null),\n      owner_reply_text_normalized: normalizeText(input.chatInput || raw.content || null),\n    },\n  },\n];"
+        },
+        "id": "e818dd84-3886-46bb-b4c1-59a182dfbe55",
+        "name": "Normalize owner inbound payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with incoming as (\n  select\n    {{ $('Normalize owner inbound payload').item.json.chatwoot_id ? \"'\" + String($('Normalize owner inbound payload').item.json.chatwoot_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_chatwoot_conversation_id,\n    {{ $('Normalize owner inbound payload').item.json.contact_source_id ? \"'\" + String($('Normalize owner inbound payload').item.json.contact_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_chatwoot_source_id,\n    {{ $('Normalize owner inbound payload').item.json.wa_id ? \"'\" + String($('Normalize owner inbound payload').item.json.wa_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as recipient_phone\n),\nmatched as (\n  select\n    r.*,\n    c.waiting_for,\n    c.agente_activo,\n    c.current_state,\n    c.selected_finca_id as conversation_selected_finca_id,\n    c.owner_response,\n    c.client_name\n  from public.owner_reservation_requests r\n  join public.conversations c\n    on c.wa_id = r.conversation_id\n  cross join incoming i\n  where r.status in ('initial_sent', 'reminder_sent')\n    and (\n      (\n        i.owner_chatwoot_conversation_id is not null\n        and coalesce(r.payload->>'owner_chatwoot_conversation_id', '') = i.owner_chatwoot_conversation_id\n      )\n      or (\n        i.owner_chatwoot_source_id is not null\n        and coalesce(r.payload->>'owner_chatwoot_source_id', '') = i.owner_chatwoot_source_id\n      )\n      or (\n        i.recipient_phone is not null\n        and regexp_replace(coalesce(r.recipient_phone, ''), '\\D', '', 'g') = regexp_replace(i.recipient_phone, '\\D', '', 'g')\n      )\n    )\n  order by\n    case\n      when coalesce(r.payload->>'owner_chatwoot_conversation_id', '') = coalesce(i.owner_chatwoot_conversation_id, '') then 0\n      when coalesce(r.payload->>'owner_chatwoot_source_id', '') = coalesce(i.owner_chatwoot_source_id, '') then 1\n      else 2\n    end,\n    r.created_at desc\n  limit 1\n)\nselect\n  m.*\nfrom incoming i\nleft join matched m on true;",
+          "options": {}
+        },
+        "id": "0336164e-22b3-4be4-aec8-384ab2b6981a",
+        "name": "Load active owner request",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          760,
+          320
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const inbound = $('Normalize owner inbound payload').item.json || {};\nconst row = $json || {};\n\nconst normalizeText = (value) =>\n  String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\s]+/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n\nfunction collectStrings(value, depth = 0, acc = []) {\n  if (depth > 5 || value === null || value === undefined) return acc;\n  if (typeof value === 'string') {\n    const trimmed = value.trim();\n    if (trimmed) acc.push(trimmed);\n    return acc;\n  }\n  if (Array.isArray(value)) {\n    for (const item of value) collectStrings(item, depth + 1, acc);\n    return acc;\n  }\n  if (typeof value === 'object') {\n    for (const item of Object.values(value)) collectStrings(item, depth + 1, acc);\n  }\n  return acc;\n}\n\nconst prioritySignals = collectStrings(inbound.raw?.content_attributes || {});\nconst additionalSignals = collectStrings(inbound.raw?.additional_attributes || {});\nconst textSignals = [inbound.owner_reply_text];\nconst normalizedSignals = [...prioritySignals, ...additionalSignals, ...textSignals]\n  .map(normalizeText)\n  .filter(Boolean);\n\nconst availablePhrases = new Set([\n  'si',\n  'si esta disponible',\n  'si esta disponible por ahora',\n  'esta disponible',\n  'disponible',\n  'si disponible',\n  'yes',\n]);\nconst unavailablePhrases = new Set([\n  'no',\n  'no esta disponible',\n  'no disponible',\n  'not available',\n]);\n\nlet ownerReplyType = 'other';\nlet matchedSignal = normalizedSignals[0] || inbound.owner_reply_text_normalized || '';\n\nfor (const signal of normalizedSignals) {\n  if (availablePhrases.has(signal)) {\n    ownerReplyType = 'available';\n    matchedSignal = signal;\n    break;\n  }\n  if (unavailablePhrases.has(signal)) {\n    ownerReplyType = 'unavailable';\n    matchedSignal = signal;\n    break;\n  }\n}\n\nlet action = 'noop';\nlet actionReason = 'owner_event_ignored';\n\nif (inbound.eligible !== true || inbound.is_sync_event === true || String(inbound.event_type || '') !== 'message_created') {\n  action = 'noop';\n  actionReason = inbound.eligible !== true ? 'owner_event_not_eligible' : 'owner_sync_or_non_message_event';\n} else if (!(Number(row.id || 0) > 0)) {\n  action = 'noop';\n  actionReason = 'owner_request_not_found';\n} else if (ownerReplyType === 'available') {\n  action = 'resume_available';\n  actionReason = 'owner_available_confirmed';\n} else if (ownerReplyType === 'unavailable') {\n  action = 'resume_unavailable';\n  actionReason = 'owner_unavailable_confirmed';\n} else {\n  action = 'needs_review';\n  actionReason = 'owner_reply_needs_review';\n}\n\nreturn [\n  {\n    json: {\n      ...row,\n      ...inbound,\n      owner_reply_type: ownerReplyType,\n      owner_reply_text: inbound.owner_reply_text || null,\n      owner_reply_signal: matchedSignal || null,\n      owner_reply_received_at: new Date().toISOString(),\n      action,\n      action_reason: actionReason,\n    },\n  },\n];"
+        },
+        "id": "af32b14a-f687-4324-8254-bcfef782bba6",
+        "name": "Plan owner inbound action",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1040,
+          320
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "346bc2df-d51d-4bc1-be3a-09da35152bf2",
+                "leftValue": "={{ ['resume_available', 'resume_unavailable'].includes(String($json.action || '')) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "dd13fcee-edc7-43cf-a54f-39fcab17563d",
+        "name": "Actionable owner reply?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1280,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    {{ \"'\" + String($json.owner_reply_type || '').replace(/'/g, \"''\") + \"'\" }}::text as owner_reply_type,\n    {{ $json.owner_reply_type === 'available' ? 'true' : 'false' }}::boolean as disponible,\n    {{ $json.owner_reply_text ? \"'\" + String($json.owner_reply_text).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_text,\n    {{ $json.chatwoot_message_id ? \"'\" + String($json.chatwoot_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_chatwoot_message_id,\n    now() as responded_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = case when p.disponible then 'available_confirmed' else 'unavailable_confirmed' end,\n    error_message = null,\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_reply_type', p.owner_reply_type,\n      'owner_reply_text', p.owner_reply_text,\n      'owner_reply_received_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_reply_chatwoot_message_id', p.owner_reply_chatwoot_message_id\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', p.disponible,\n      'source', 'owner_whatsapp',\n      'responded_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'raw_text', p.owner_reply_text,\n      'request_id', p.request_id\n    ),\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name,\n  p.owner_reply_type\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id\ncross join params p;",
+          "options": {}
+        },
+        "id": "5200aa24-bf0d-4d92-ae0e-138129455cf9",
+        "name": "Persist actionable owner reply",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1520,
+          160
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet resumeOk = false;\nlet resumeStatus = null;\nlet resumeBody = null;\nlet resumeError = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const response = await helperRequest({\n    url: \"https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound\",\n    method: 'POST',\n    headers: {\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      wa_id: input.conversation_id,\n      chatwoot_id: input.chatwoot_id || null,\n      client_name: input.client_name || null,\n      current_message: '',\n      internal_resume: true,\n      insertar_mensjae: false,\n      skip_validator: true,\n      loop_reason: 'owner_response_resume',\n      forced_state: null,\n      owner_unavailable: false,\n      message_type: 'TEXT',\n      original_message_type: 'TEXT',\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  resumeStatus = Number(response.statusCode || response.status || 0) || 0;\n  resumeBody = response.body || null;\n  resumeOk = resumeStatus >= 200 && resumeStatus < 300;\n  if (!resumeOk) {\n    resumeError = response.body?.message || response.body?.error || `resume_failed:${resumeStatus}`;\n  }\n} catch (error) {\n  resumeError = error.message || 'resume_failed';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      ok: resumeError ? false : true,\n      processed: true,\n      resumed_customer_flow: resumeOk,\n      resume_status: resumeStatus,\n      resume_body: resumeBody,\n      resume_error: resumeError,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+        },
+        "id": "6db39d67-0134-4444-92e3-c436788f98d3",
+        "name": "Resume customer flow after owner reply",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1760,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "d6979545-0454-4511-a611-3c08e140d4d1",
+                "leftValue": "={{ String($json.action || '') === 'needs_review' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "9d1a1b01-aee4-4a2f-adc2-840171acbf25",
+        "name": "Needs owner review?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1520,
+          448
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    {{ $json.owner_reply_text ? \"'\" + String($json.owner_reply_text).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_text,\n    {{ $json.chatwoot_message_id ? \"'\" + String($json.chatwoot_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}::text as owner_reply_chatwoot_message_id,\n    now() as responded_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = 'needs_review',\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_reply_type', 'other',\n      'owner_reply_text', p.owner_reply_text,\n      'owner_reply_received_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_reply_chatwoot_message_id', p.owner_reply_chatwoot_message_id\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', null,\n      'source', 'owner_whatsapp',\n      'responded_at', to_char(p.responded_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'raw_text', p.owner_reply_text,\n      'request_id', p.request_id,\n      'reply_type', 'other',\n      'needs_review', true\n    ),\n    agente_activo = false,\n    waiting_for = 'CLIENT',\n    hitl_reason = 'owner_reply_needs_review',\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id;",
+          "options": {}
+        },
+        "id": "231a1c49-8ac2-49a5-abf4-b35e8cda0ba3",
+        "name": "Persist owner reply needs review",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1760,
+          368
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nreturn [\n  {\n    json: {\n      ...input,\n      ok: true,\n      processed: true,\n      resumed_customer_flow: false,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+        },
+        "id": "bdb947e2-f392-4309-a929-e82256c9ee7d",
+        "name": "Build owner review result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2000,
+          368
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nreturn [\n  {\n    json: {\n      ...input,\n      ok: true,\n      processed: false,\n      resumed_customer_flow: false,\n      wa_id: input.conversation_id || input.wa_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+        },
+        "id": "adcfead3-5118-449d-bb1f-3a35a499a1aa",
+        "name": "Build owner inbound noop result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1760,
+          592
+        ]
+      }
+    ],
+    "connections": {
+      "When owner inbound handler is called": {
+        "main": [
+          [
+            {
+              "node": "Normalize owner inbound payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize owner inbound payload": {
+        "main": [
+          [
+            {
+              "node": "Load active owner request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load active owner request": {
+        "main": [
+          [
+            {
+              "node": "Plan owner inbound action",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Plan owner inbound action": {
+        "main": [
+          [
+            {
+              "node": "Actionable owner reply?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actionable owner reply?": {
+        "main": [
+          [
+            {
+              "node": "Persist actionable owner reply",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Needs owner review?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Persist actionable owner reply": {
+        "main": [
+          [
+            {
+              "node": "Resume customer flow after owner reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Needs owner review?": {
+        "main": [
+          [
+            {
+              "node": "Persist owner reply needs review",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Build owner inbound noop result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Persist owner reply needs review": {
+        "main": [
+          [
+            {
+              "node": "Build owner review result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-27T15:33:01.862Z",
+        "id": 672,
+        "workflowId": "W5fO8QiAMlYyIlCb",
+        "versionId": "c836fc6d-1349-43e5-9bf0-9bd9e5616193",
+        "event": "activated",
+        "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
+      }
+    ]
+  }
+}

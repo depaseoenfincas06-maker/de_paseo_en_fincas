@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-27T03:20:59.581Z",
+  "updatedAt": "2026-03-27T15:33:32.644Z",
   "createdAt": "2026-03-26T04:13:20.351Z",
   "id": "2NRSpfKVXG1TBq94",
   "name": "Owner Reservation Reminder Scheduler - De Paseo en Fincas",
@@ -30,7 +30,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status = 'initial_sent'\n  and r.recipient_phone is not null\n  and r.reminder_at is not null\n  and r.reminder_sent_at is null\n  and r.reminder_at <= now()\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '23:00')\norder by r.reminder_at asc\nlimit 100;",
+        "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.reminder_sent_at,\n  r.second_reminder_at,\n  r.second_reminder_sent_at,\n  r.owner_timeout_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo,\n  c.client_name,\n  c.current_state\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status in ('initial_sent', 'reminder_sent')\n  and r.recipient_phone is not null\n  and (\n    (r.owner_timeout_at is not null and r.owner_timeout_at <= now())\n    or (r.reminder_at is not null and r.reminder_sent_at is null and r.reminder_at <= now())\n    or (r.second_reminder_at is not null and r.second_reminder_sent_at is null and r.second_reminder_at <= now())\n  )\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '22:00')\norder by coalesce(r.owner_timeout_at, r.second_reminder_at, r.reminder_at) asc\nlimit 100;",
         "options": {}
       },
       "id": "7b65fd1b-e44d-401c-b1c8-c904d193c260",
@@ -50,7 +50,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst input = $json || {};\n\nlet canSendReminder = true;\nlet cancelReason = null;\n\nif (String(input.request_status || '') !== 'initial_sent') {\n  canSendReminder = false;\n  cancelReason = 'request_not_initial_sent';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  canSendReminder = false;\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  canSendReminder = false;\n  cancelReason = 'selected_finca_changed';\n} else if (input.owner_response !== null && input.owner_response !== undefined) {\n  const hasOwnerResponse =\n    typeof input.owner_response === 'object'\n      ? Object.keys(input.owner_response || {}).length > 0\n      : String(input.owner_response).trim() !== '';\n  if (hasOwnerResponse) {\n    canSendReminder = false;\n    cancelReason = 'owner_response_already_present';\n  }\n} else if (input.agente_activo === false) {\n  canSendReminder = false;\n  cancelReason = 'bot_disabled';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      can_send_reminder: canSendReminder,\n      cancel_reason: cancelReason,\n    },\n  },\n];\n"
+        "jsCode": "const input = $json || {};\n\nconst hasOwnerResponse = (() => {\n  if (input.owner_response === null || input.owner_response === undefined) return false;\n  if (typeof input.owner_response === 'object') return Object.keys(input.owner_response || {}).length > 0;\n  return String(input.owner_response).trim() !== '';\n})();\n\nlet action = 'cancel';\nlet cancelReason = null;\n\nif (!['initial_sent', 'reminder_sent'].includes(String(input.request_status || ''))) {\n  cancelReason = 'request_not_active_for_reminders';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  cancelReason = 'selected_finca_changed';\n} else if (hasOwnerResponse) {\n  cancelReason = 'owner_response_already_present';\n} else if (input.agente_activo === false) {\n  cancelReason = 'bot_disabled';\n} else if (input.owner_timeout_at && new Date(input.owner_timeout_at).getTime() <= Date.now()) {\n  action = 'expire_unavailable';\n} else if (input.reminder_at && !input.reminder_sent_at && new Date(input.reminder_at).getTime() <= Date.now()) {\n  action = 'send_first_reminder';\n} else if (\n  input.second_reminder_at &&\n  !input.second_reminder_sent_at &&\n  input.reminder_sent_at &&\n  new Date(input.second_reminder_at).getTime() <= Date.now()\n) {\n  action = 'send_second_reminder';\n} else {\n  cancelReason = 'nothing_due';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      action,\n      can_send_reminder: action === 'send_first_reminder' || action === 'send_second_reminder',\n      cancel_reason: cancelReason,\n    },\n  },\n];"
       },
       "id": "bd0c6749-f09e-4c86-be39-061a2b855262",
       "name": "Evaluate owner reminder eligibility",
@@ -73,7 +73,7 @@
           "conditions": [
             {
               "id": "7c65feda-7ccc-4435-a365-dac0c1ce7ef4",
-              "leftValue": "={{ $json.can_send_reminder === true }}",
+              "leftValue": "={{ String($json.action || '').startsWith('send_') }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -147,7 +147,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  reminder_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at;",
+        "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_first_reminder'\n      then {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}\n    else reminder_provider_message_id\n  end,\n  reminder_sent_at = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_first_reminder'\n      then now()\n    else reminder_sent_at\n  end,\n  second_reminder_sent_at = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_second_reminder'\n      then now()\n    else second_reminder_sent_at\n  end,\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot',\n    'second_reminder_provider_message_id', case\n      when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_second_reminder'\n        then {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}\n      else coalesce(payload->>'second_reminder_provider_message_id', null)\n    end\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at, second_reminder_sent_at;",
         "options": {}
       },
       "id": "1401c1cc-2e69-4b21-9638-5091e35abcf1",
@@ -168,7 +168,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reminder_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+        "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : (\"'\" + (String($json.action || '') === 'send_second_reminder' ? 'owner_second_reminder_template_failed' : 'owner_reminder_template_failed') + \"'\") }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
         "options": {}
       },
       "id": "0d1f1547-5665-4e94-b2ea-68986fa6ae2b",
@@ -206,6 +206,75 @@
           "name": "Postgres account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "897c05cf-5b7b-4689-907f-b582ab017c88",
+              "leftValue": "={{ String($json.action || '') === 'expire_unavailable' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fc87c0ac-2575-4b66-bdb6-09b10c7ec2ba",
+      "name": "Should expire owner request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    now() as expired_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = 'expired_unavailable',\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_timeout_triggered_at', to_char(p.expired_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_timeout_source', 'owner_timeout'\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', false,\n      'source', 'owner_timeout',\n      'responded_at', to_char(p.expired_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'request_id', p.request_id\n    ),\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id;",
+        "options": {}
+      },
+      "id": "dd9178ce-cc57-4b22-8a94-9d4bd2e54aa9",
+      "name": "Expire owner request as unavailable",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        976,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet resumeOk = false;\nlet resumeStatus = null;\nlet resumeBody = null;\nlet resumeError = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const response = await helperRequest({\n    url: \"https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound\",\n    method: 'POST',\n    headers: {\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      wa_id: input.conversation_id,\n      chatwoot_id: input.chatwoot_id || null,\n      client_name: input.client_name || null,\n      current_message: '',\n      internal_resume: true,\n      insertar_mensjae: false,\n      skip_validator: true,\n      loop_reason: 'owner_timeout_resume',\n      forced_state: null,\n      owner_unavailable: false,\n      message_type: 'TEXT',\n      original_message_type: 'TEXT',\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  resumeStatus = Number(response.statusCode || response.status || 0) || 0;\n  resumeBody = response.body || null;\n  resumeOk = resumeStatus >= 200 && resumeStatus < 300;\n  if (!resumeOk) {\n    resumeError = response.body?.message || response.body?.error || `resume_failed:${resumeStatus}`;\n  }\n} catch (error) {\n  resumeError = error.message || 'resume_failed';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      ok: resumeError ? false : true,\n      processed: true,\n      resumed_customer_flow: resumeOk,\n      resume_status: resumeStatus,\n      resume_body: resumeBody,\n      resume_error: resumeError,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+      },
+      "id": "4d9e6baf-e09d-4705-b30b-90dfbfb68514",
+      "name": "Resume customer flow after owner timeout",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        160
+      ]
     }
   ],
   "connections": {
@@ -235,7 +304,7 @@
       "main": [
         [
           {
-            "node": "Should send owner reminder?",
+            "node": "Should expire owner request?",
             "type": "main",
             "index": 0
           }
@@ -303,6 +372,35 @@
       "main": [
         []
       ]
+    },
+    "Should expire owner request?": {
+      "main": [
+        [
+          {
+            "node": "Expire owner request as unavailable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Should send owner reminder?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expire owner request as unavailable": {
+      "main": [
+        [
+          {
+            "node": "Resume customer flow after owner timeout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -318,9 +416,9 @@
   },
   "meta": null,
   "pinData": null,
-  "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
-  "activeVersionId": "55648591-1048-4ed0-942a-aafa8df35a28",
-  "versionCounter": 21,
+  "versionId": "fa57c31f-da0f-435d-af65-11a361d4a8e7",
+  "activeVersionId": "fa57c31f-da0f-435d-af65-11a361d4a8e7",
+  "versionCounter": 37,
   "triggerCount": 1,
   "shared": [
     {
@@ -343,9 +441,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-27T03:20:59.583Z",
-    "createdAt": "2026-03-27T03:20:59.583Z",
-    "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+    "updatedAt": "2026-03-27T15:33:32.646Z",
+    "createdAt": "2026-03-27T15:33:32.646Z",
+    "versionId": "fa57c31f-da0f-435d-af65-11a361d4a8e7",
     "workflowId": "2NRSpfKVXG1TBq94",
     "nodes": [
       {
@@ -371,7 +469,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status = 'initial_sent'\n  and r.recipient_phone is not null\n  and r.reminder_at is not null\n  and r.reminder_sent_at is null\n  and r.reminder_at <= now()\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '23:00')\norder by r.reminder_at asc\nlimit 100;",
+          "query": "select\n  r.id,\n  r.conversation_id,\n  r.chatwoot_id,\n  r.selected_finca_id as request_selected_finca_id,\n  r.selected_finca_name,\n  r.recipient_phone,\n  r.template_language,\n  r.reminder_template_name,\n  r.status as request_status,\n  r.send_after_at,\n  r.initial_sent_at,\n  r.reminder_at,\n  r.reminder_sent_at,\n  r.second_reminder_at,\n  r.second_reminder_sent_at,\n  r.owner_timeout_at,\n  r.payload,\n  c.waiting_for,\n  c.selected_finca_id as conversation_selected_finca_id,\n  c.owner_response,\n  c.agente_activo,\n  c.client_name,\n  c.current_state\nfrom public.owner_reservation_requests r\nleft join public.conversations c\n  on c.wa_id = r.conversation_id\nwhere r.status in ('initial_sent', 'reminder_sent')\n  and r.recipient_phone is not null\n  and (\n    (r.owner_timeout_at is not null and r.owner_timeout_at <= now())\n    or (r.reminder_at is not null and r.reminder_sent_at is null and r.reminder_at <= now())\n    or (r.second_reminder_at is not null and r.second_reminder_sent_at is null and r.second_reminder_at <= now())\n  )\n  and ((now() at time zone 'America/Bogota')::time >= time '08:00')\n  and ((now() at time zone 'America/Bogota')::time < time '22:00')\norder by coalesce(r.owner_timeout_at, r.second_reminder_at, r.reminder_at) asc\nlimit 100;",
           "options": {}
         },
         "id": "7b65fd1b-e44d-401c-b1c8-c904d193c260",
@@ -391,7 +489,7 @@
       },
       {
         "parameters": {
-          "jsCode": "\nconst input = $json || {};\n\nlet canSendReminder = true;\nlet cancelReason = null;\n\nif (String(input.request_status || '') !== 'initial_sent') {\n  canSendReminder = false;\n  cancelReason = 'request_not_initial_sent';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  canSendReminder = false;\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  canSendReminder = false;\n  cancelReason = 'selected_finca_changed';\n} else if (input.owner_response !== null && input.owner_response !== undefined) {\n  const hasOwnerResponse =\n    typeof input.owner_response === 'object'\n      ? Object.keys(input.owner_response || {}).length > 0\n      : String(input.owner_response).trim() !== '';\n  if (hasOwnerResponse) {\n    canSendReminder = false;\n    cancelReason = 'owner_response_already_present';\n  }\n} else if (input.agente_activo === false) {\n  canSendReminder = false;\n  cancelReason = 'bot_disabled';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      can_send_reminder: canSendReminder,\n      cancel_reason: cancelReason,\n    },\n  },\n];\n"
+          "jsCode": "const input = $json || {};\n\nconst hasOwnerResponse = (() => {\n  if (input.owner_response === null || input.owner_response === undefined) return false;\n  if (typeof input.owner_response === 'object') return Object.keys(input.owner_response || {}).length > 0;\n  return String(input.owner_response).trim() !== '';\n})();\n\nlet action = 'cancel';\nlet cancelReason = null;\n\nif (!['initial_sent', 'reminder_sent'].includes(String(input.request_status || ''))) {\n  cancelReason = 'request_not_active_for_reminders';\n} else if (String(input.waiting_for || '') !== 'OWNER') {\n  cancelReason = 'conversation_not_waiting_for_owner';\n} else if (String(input.request_selected_finca_id || '') !== String(input.conversation_selected_finca_id || '')) {\n  cancelReason = 'selected_finca_changed';\n} else if (hasOwnerResponse) {\n  cancelReason = 'owner_response_already_present';\n} else if (input.agente_activo === false) {\n  cancelReason = 'bot_disabled';\n} else if (input.owner_timeout_at && new Date(input.owner_timeout_at).getTime() <= Date.now()) {\n  action = 'expire_unavailable';\n} else if (input.reminder_at && !input.reminder_sent_at && new Date(input.reminder_at).getTime() <= Date.now()) {\n  action = 'send_first_reminder';\n} else if (\n  input.second_reminder_at &&\n  !input.second_reminder_sent_at &&\n  input.reminder_sent_at &&\n  new Date(input.second_reminder_at).getTime() <= Date.now()\n) {\n  action = 'send_second_reminder';\n} else {\n  cancelReason = 'nothing_due';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      action,\n      can_send_reminder: action === 'send_first_reminder' || action === 'send_second_reminder',\n      cancel_reason: cancelReason,\n    },\n  },\n];"
         },
         "id": "bd0c6749-f09e-4c86-be39-061a2b855262",
         "name": "Evaluate owner reminder eligibility",
@@ -414,7 +512,7 @@
             "conditions": [
               {
                 "id": "7c65feda-7ccc-4435-a365-dac0c1ce7ef4",
-                "leftValue": "={{ $json.can_send_reminder === true }}",
+                "leftValue": "={{ String($json.action || '').startsWith('send_') }}",
                 "rightValue": "",
                 "operator": {
                   "type": "boolean",
@@ -488,7 +586,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n  reminder_sent_at = now(),\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot'\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at;",
+          "query": "update public.owner_reservation_requests\nset\n  status = 'reminder_sent',\n  reminder_provider_message_id = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_first_reminder'\n      then {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}\n    else reminder_provider_message_id\n  end,\n  reminder_sent_at = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_first_reminder'\n      then now()\n    else reminder_sent_at\n  end,\n  second_reminder_sent_at = case\n    when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_second_reminder'\n      then now()\n    else second_reminder_sent_at\n  end,\n  error_message = null,\n  payload = coalesce(payload, '{}'::jsonb) || jsonb_build_object(\n    'owner_chatwoot_inbox_id', {{ Number($json.owner_chatwoot_inbox_id || 0) || 'null' }},\n    'owner_chatwoot_contact_id', {{ Number($json.owner_chatwoot_contact_id || 0) || 'null' }},\n    'owner_chatwoot_source_id', {{ $json.owner_chatwoot_source_id ? \"'\" + String($json.owner_chatwoot_source_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_conversation_id', {{ Number($json.owner_chatwoot_conversation_id || 0) || 'null' }},\n    'owner_chatwoot_message_id', {{ Number($json.owner_chatwoot_message_id || 0) || 'null' }},\n    'owner_chatwoot_inbox_name', {{ $json.owner_chatwoot_inbox_name ? \"'\" + String($json.owner_chatwoot_inbox_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_chatwoot_inbox_phone', {{ $json.owner_chatwoot_inbox_phone ? \"'\" + String($json.owner_chatwoot_inbox_phone).replace(/'/g, \"''\") + \"'\" : 'null' }},\n    'owner_template_transport', 'chatwoot',\n    'second_reminder_provider_message_id', case\n      when {{ \"'\" + String($json.action || '').replace(/'/g, \"''\") + \"'\" }} = 'send_second_reminder'\n        then {{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }}\n      else coalesce(payload->>'second_reminder_provider_message_id', null)\n    end\n  ),\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, reminder_sent_at, second_reminder_sent_at;",
           "options": {}
         },
         "id": "1401c1cc-2e69-4b21-9638-5091e35abcf1",
@@ -509,7 +607,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : \"'owner_reminder_template_failed'\" }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
+          "query": "update public.owner_reservation_requests\nset\n  error_message = {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : (\"'\" + (String($json.action || '') === 'send_second_reminder' ? 'owner_second_reminder_template_failed' : 'owner_reminder_template_failed') + \"'\") }},\n  updated_at = now()\nwhere id = {{ Number($json.id) }}\nreturning id, status, error_message;",
           "options": {}
         },
         "id": "0d1f1547-5665-4e94-b2ea-68986fa6ae2b",
@@ -547,6 +645,75 @@
             "name": "Postgres account"
           }
         }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "897c05cf-5b7b-4689-907f-b582ab017c88",
+                "leftValue": "={{ String($json.action || '') === 'expire_unavailable' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "fc87c0ac-2575-4b66-bdb6-09b10c7ec2ba",
+        "name": "Should expire owner request?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          736,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with params as (\n  select\n    {{ Number($json.id || 0) }}::bigint as request_id,\n    now() as expired_at\n),\nrequest_update as (\n  update public.owner_reservation_requests r\n  set\n    status = 'expired_unavailable',\n    updated_at = now(),\n    payload = coalesce(r.payload, '{}'::jsonb) || jsonb_build_object(\n      'owner_timeout_triggered_at', to_char(p.expired_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'owner_timeout_source', 'owner_timeout'\n    )\n  from params p\n  where r.id = p.request_id\n  returning r.id, r.conversation_id\n),\nconversation_update as (\n  update public.conversations c\n  set\n    owner_response = jsonb_build_object(\n      'disponible', false,\n      'source', 'owner_timeout',\n      'responded_at', to_char(p.expired_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"'),\n      'request_id', p.request_id\n    ),\n    updated_at = now()\n  from request_update r\n  cross join params p\n  where c.wa_id = r.conversation_id\n  returning c.wa_id, c.chatwoot_id, c.client_name\n)\nselect\n  ru.id,\n  cu.wa_id as conversation_id,\n  cu.chatwoot_id,\n  cu.client_name\nfrom request_update ru\njoin conversation_update cu on cu.wa_id = ru.conversation_id;",
+          "options": {}
+        },
+        "id": "dd9178ce-cc57-4b22-8a94-9d4bd2e54aa9",
+        "name": "Expire owner request as unavailable",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          976,
+          160
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "CKoiBGlPXq82taIc",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $json || {};\nconst compact = (value) => String(value || '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nlet resumeOk = false;\nlet resumeStatus = null;\nlet resumeBody = null;\nlet resumeError = null;\n\ntry {\n  if (!helperRequest) throw new Error('http_request_helper_unavailable');\n  const response = await helperRequest({\n    url: \"https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound\",\n    method: 'POST',\n    headers: {\n      Accept: 'application/json',\n      'Content-Type': 'application/json',\n    },\n    body: {\n      wa_id: input.conversation_id,\n      chatwoot_id: input.chatwoot_id || null,\n      client_name: input.client_name || null,\n      current_message: '',\n      internal_resume: true,\n      insertar_mensjae: false,\n      skip_validator: true,\n      loop_reason: 'owner_timeout_resume',\n      forced_state: null,\n      owner_unavailable: false,\n      message_type: 'TEXT',\n      original_message_type: 'TEXT',\n    },\n    json: true,\n    timeout: 30000,\n    ignoreHttpStatusErrors: true,\n    returnFullResponse: true,\n  });\n  resumeStatus = Number(response.statusCode || response.status || 0) || 0;\n  resumeBody = response.body || null;\n  resumeOk = resumeStatus >= 200 && resumeStatus < 300;\n  if (!resumeOk) {\n    resumeError = response.body?.message || response.body?.error || `resume_failed:${resumeStatus}`;\n  }\n} catch (error) {\n  resumeError = error.message || 'resume_failed';\n}\n\nreturn [\n  {\n    json: {\n      ...input,\n      ok: resumeError ? false : true,\n      processed: true,\n      resumed_customer_flow: resumeOk,\n      resume_status: resumeStatus,\n      resume_body: resumeBody,\n      resume_error: resumeError,\n      wa_id: input.conversation_id || null,\n      chatwoot_id: input.chatwoot_id || null,\n    },\n  },\n];"
+        },
+        "id": "4d9e6baf-e09d-4705-b30b-90dfbfb68514",
+        "name": "Resume customer flow after owner timeout",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1216,
+          160
+        ]
       }
     ],
     "connections": {
@@ -576,7 +743,7 @@
         "main": [
           [
             {
-              "node": "Should send owner reminder?",
+              "node": "Should expire owner request?",
               "type": "main",
               "index": 0
             }
@@ -644,6 +811,35 @@
         "main": [
           []
         ]
+      },
+      "Should expire owner request?": {
+        "main": [
+          [
+            {
+              "node": "Expire owner request as unavailable",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Should send owner reminder?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Expire owner request as unavailable": {
+        "main": [
+          [
+            {
+              "node": "Resume customer flow after owner timeout",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "JUANDAVID VIZCAYA",
@@ -652,10 +848,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-27T03:21:00.708Z",
-        "id": 635,
+        "createdAt": "2026-03-27T15:33:33.866Z",
+        "id": 678,
         "workflowId": "2NRSpfKVXG1TBq94",
-        "versionId": "55648591-1048-4ed0-942a-aafa8df35a28",
+        "versionId": "fa57c31f-da0f-435d-af65-11a361d4a8e7",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }

@@ -137,6 +137,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
   handoffMessage: 'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
   ownerContactOverride: '',
+  ownerTestModeEnabled: false,
   globalBotEnabled: true,
   followupEnabled: true,
   followupWindowStart: '08:00',
@@ -283,6 +284,10 @@ function serializeSettings(row = {}) {
     handoffMessage:
       String(row.handoff_message || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
     ownerContactOverride: compactText(row.owner_contact_override),
+    ownerTestModeEnabled:
+      row.owner_test_mode_enabled === undefined
+        ? DEFAULT_SETTINGS.ownerTestModeEnabled
+        : normalizeBoolean(row.owner_test_mode_enabled, DEFAULT_SETTINGS.ownerTestModeEnabled),
     globalBotEnabled:
       row.global_bot_enabled === undefined
         ? DEFAULT_SETTINGS.globalBotEnabled
@@ -354,6 +359,7 @@ function sanitizeSettingsPayload(payload = {}) {
     handoffMessage:
       String(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
     ownerContactOverride: compactText(payload.ownerContactOverride),
+    ownerTestModeEnabled: normalizeBoolean(payload.ownerTestModeEnabled, DEFAULT_SETTINGS.ownerTestModeEnabled),
     globalBotEnabled: normalizeBoolean(payload.globalBotEnabled, DEFAULT_SETTINGS.globalBotEnabled),
     followupEnabled: normalizeBoolean(payload.followupEnabled, DEFAULT_SETTINGS.followupEnabled),
     followupWindowStart: normalizeTime(payload.followupWindowStart, DEFAULT_SETTINGS.followupWindowStart),
@@ -407,6 +413,7 @@ function settingsStatus(settings) {
     globalBotEnabled: settings.globalBotEnabled,
     followupEnabled: settings.followupEnabled,
     ownerContactOverrideActive: Boolean(settings.ownerContactOverride),
+    ownerTestModeEnabled: settings.ownerTestModeEnabled === true,
     followupWindowStart: settings.followupWindowStart,
     followupWindowEnd: settings.followupWindowEnd,
     selectionNotificationEnabled: settings.selectionNotificationEnabled === true,
@@ -424,6 +431,7 @@ async function getAgentSettings() {
           initial_message_template,
           handoff_message,
           owner_contact_override,
+          owner_test_mode_enabled,
           global_bot_enabled,
           followup_enabled,
           to_char(followup_window_start, 'HH24:MI') as followup_window_start,
@@ -467,6 +475,7 @@ async function saveAgentSettings(payload) {
         initial_message_template,
         handoff_message,
         owner_contact_override,
+        owner_test_mode_enabled,
         global_bot_enabled,
         followup_enabled,
         followup_window_start,
@@ -493,9 +502,9 @@ async function saveAgentSettings(payload) {
         $5,
         $6,
         $7,
-        $8::time,
+        $8,
         $9::time,
-        $10,
+        $10::time,
         $11,
         $12,
         $13,
@@ -506,7 +515,8 @@ async function saveAgentSettings(payload) {
         $18,
         $19,
         $20,
-        $21
+        $21,
+        $22
       )
       on conflict (id)
       do update set
@@ -515,6 +525,7 @@ async function saveAgentSettings(payload) {
         initial_message_template = excluded.initial_message_template,
         handoff_message = excluded.handoff_message,
         owner_contact_override = excluded.owner_contact_override,
+        owner_test_mode_enabled = excluded.owner_test_mode_enabled,
         global_bot_enabled = excluded.global_bot_enabled,
         followup_enabled = excluded.followup_enabled,
         followup_window_start = excluded.followup_window_start,
@@ -539,6 +550,7 @@ async function saveAgentSettings(payload) {
         initial_message_template,
         handoff_message,
         owner_contact_override,
+        owner_test_mode_enabled,
         global_bot_enabled,
         followup_enabled,
         to_char(followup_window_start, 'HH24:MI') as followup_window_start,
@@ -563,6 +575,7 @@ async function saveAgentSettings(payload) {
       next.initialMessageTemplate,
       next.handoffMessage,
       next.ownerContactOverride || null,
+      next.ownerTestModeEnabled,
       next.globalBotEnabled,
       next.followupEnabled,
       next.followupWindowStart,

@@ -323,15 +323,19 @@
                   <span>Asistente automático activo</span>
                   <input id="settings-global-bot" name="globalBotEnabled" type="checkbox" />
                 </label>
+                <label class="settings-field settings-field--inline settings-toggle">
+                  <span>Prueba de propietarios</span>
+                  <input id="settings-owner-test-mode" name="ownerTestModeEnabled" type="checkbox" />
+                </label>
                 <label class="settings-field">
                   <span>Número de prueba para el propietario</span>
                   <input
                     id="settings-owner-override"
                     name="ownerContactOverride"
                     type="text"
-                    placeholder="Si escribes un número aquí, el asistente usará ese número en lugar del real."
+                    placeholder="Campo legado para otras pruebas internas"
                   />
-                  <small class="settings-help">Ideal para pruebas. Si lo dejas vacío, se usará el número real del propietario.</small>
+                  <small class="settings-help">Este campo ya no controla la verificación de disponibilidad con propietarios. Usa el toggle de prueba de propietarios.</small>
                 </label>
                 <label class="settings-field">
                   <span>Zonas que quieres comunicar como cobertura</span>

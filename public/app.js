@@ -100,6 +100,7 @@ const elements = {
     toneExtra: document.getElementById('settings-tone-extra'),
     initialMessage: document.getElementById('settings-initial-message'),
     handoffMessage: document.getElementById('settings-handoff-message'),
+    ownerTestMode: document.getElementById('settings-owner-test-mode'),
     ownerOverride: document.getElementById('settings-owner-override'),
     globalBotEnabled: document.getElementById('settings-global-bot'),
     followupEnabled: document.getElementById('settings-followup-enabled'),
@@ -257,10 +258,10 @@ function updateGlobalHeader() {
     : 'Recordatorios desactivados';
   elements.globalFollowupBadge.classList.toggle('badge-warn', settings.followupEnabled === false);
 
-  elements.globalOwnerOverrideBadge.textContent = settings.ownerContactOverride
-    ? `Número de prueba · ${settings.ownerContactOverride}`
+  elements.globalOwnerOverrideBadge.textContent = settings.ownerTestModeEnabled
+    ? 'Prueba de propietarios activa'
     : 'Número real del propietario';
-  elements.globalOwnerOverrideBadge.classList.toggle('badge-warn', Boolean(settings.ownerContactOverride));
+  elements.globalOwnerOverrideBadge.classList.toggle('badge-warn', settings.ownerTestModeEnabled === true);
 
   elements.globalSelectionNotificationBadge.textContent = settings.selectionNotificationEnabled
     ? 'Avisos internos activos'
@@ -302,10 +303,12 @@ function renderSettingsOverview() {
       helper: settings.inventorySheetTabName || 'Sin hoja seleccionada',
     },
     {
-      label: 'Número de prueba',
-      value: settings.ownerContactOverride ? 'Activo' : 'No se está usando',
-      tone: settings.ownerContactOverride ? 'warn' : 'neutral',
-      helper: settings.ownerContactOverride || 'Se usará el número real del propietario',
+      label: 'Prueba de propietarios',
+      value: settings.ownerTestModeEnabled ? 'Activa' : 'Apagada',
+      tone: settings.ownerTestModeEnabled ? 'warn' : 'neutral',
+      helper: settings.ownerTestModeEnabled
+        ? 'Las solicitudes al propietario se enviarán al mismo número del cliente por la línea de propietarios'
+        : 'Se usará el número real del propietario del inventario',
     },
   ];
 
@@ -370,6 +373,7 @@ function applySettingsToForm(settings) {
   elements.settings.toneExtra.value = settings.toneGuidelinesExtra || '';
   elements.settings.initialMessage.value = settings.initialMessageTemplate || '';
   elements.settings.handoffMessage.value = settings.handoffMessage || '';
+  elements.settings.ownerTestMode.checked = settings.ownerTestModeEnabled === true;
   elements.settings.ownerOverride.value = settings.ownerContactOverride || '';
   elements.settings.globalBotEnabled.checked = settings.globalBotEnabled === true;
   elements.settings.followupEnabled.checked = settings.followupEnabled === true;
@@ -395,6 +399,7 @@ function readSettingsForm() {
     toneGuidelinesExtra: elements.settings.toneExtra.value,
     initialMessageTemplate: elements.settings.initialMessage.value,
     handoffMessage: elements.settings.handoffMessage.value,
+    ownerTestModeEnabled: elements.settings.ownerTestMode.checked,
     ownerContactOverride: elements.settings.ownerOverride.value,
     globalBotEnabled: elements.settings.globalBotEnabled.checked,
     followupEnabled: elements.settings.followupEnabled.checked,
@@ -427,9 +432,9 @@ async function loadSettings({ silent = false } = {}) {
       applySettingsToForm(payload.settings);
       updateGlobalHeader();
       renderSettingsState('Configuración cargada', 'success');
-      if (payload.settings.ownerContactOverride) {
+      if (payload.settings.ownerTestModeEnabled) {
         showSettingsAlert(
-          'Hay un número de prueba activo para propietarios. El asistente mostrará ese número en lugar del real.',
+          'La prueba de propietarios está activa. Las solicitudes al propietario se enviarán al mismo número del cliente por la línea de propietarios.',
           'warn',
         );
       } else if (
@@ -478,12 +483,12 @@ async function saveSettings() {
     updateGlobalHeader();
     renderSettingsState('Cambios guardados', 'success');
     showSettingsAlert(
-      payload.settings.ownerContactOverride
-        ? 'Cambios guardados. El número de prueba para propietarios sigue activo.'
+      payload.settings.ownerTestModeEnabled
+        ? 'Cambios guardados. La prueba de propietarios quedó activa para nuevas verificaciones.'
         : payload.settings.selectionNotificationEnabled && payload.settings.selectionNotificationRecipients
           ? 'Cambios guardados. Los avisos internos quedaron activos para las nuevas selecciones de finca.'
           : 'Cambios guardados. Se aplicarán a nuevas conversaciones y nuevos recordatorios.',
-      payload.settings.ownerContactOverride ? 'warn' : 'success',
+      payload.settings.ownerTestModeEnabled ? 'warn' : 'success',
     );
 
     if (appState.monitoring.loaded) {
@@ -1389,7 +1394,7 @@ function renderMonitoringDetail() {
         <div class="info-row"><dt>Esperando</dt><dd>${escapeHtml(conversation.waiting_for || 'CLIENT')}</dd></div>
         <div class="info-row"><dt>Bot activo</dt><dd>${conversation.agente_activo === false ? 'No' : 'Sí'}</dd></div>
         <div class="info-row"><dt>Finca elegida</dt><dd>${escapeHtml(selectedFincaName)}</dd></div>
-        <div class="info-row"><dt>Override propietario</dt><dd>${settingsStatus.ownerContactOverrideActive ? 'Activo' : 'No'}</dd></div>
+        <div class="info-row"><dt>Prueba propietarios</dt><dd>${settingsStatus.ownerTestModeEnabled ? 'Activa' : 'No'}</dd></div>
       </dl>
       <div class="monitor-detail-actions">
         ${

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-27T03:26:06.013Z",
+  "updatedAt": "2026-03-27T15:33:08.029Z",
   "createdAt": "2026-03-08T02:07:41.406Z",
   "id": "RrIniaNJCUC72nfI",
   "name": "De paseo en fincas customer agent",
@@ -34,7 +34,7 @@
             {
               "id": "40a80576-e451-4568-b5db-091eded57b15",
               "name": "insertar_mensjae",
-              "value": true,
+              "value": "={{ $json.insertar_mensjae ?? true }}",
               "type": "boolean"
             },
             {
@@ -46,7 +46,7 @@
             {
               "id": "94b3643d-6f07-40e6-b644-7414dc3f683b",
               "name": "current_message",
-              "value": "={{ String($json.chatInput || $json.current_message || $json.text || '').trim() }}",
+              "value": "={{ String(($json.current_message ?? $json.chatInput ?? $json.text) || '').trim() }}",
               "type": "string"
             },
             {
@@ -262,25 +262,25 @@
             {
               "id": "159c76d0-460f-4fb9-875a-8bb7e83b948a",
               "name": "skip_validator",
-              "value": false,
+              "value": "={{ $json.skip_validator === true }}",
               "type": "boolean"
             },
             {
               "id": "ea127cc0-6360-4dd0-9669-c9d67617c1e4",
               "name": "forced_state",
-              "value": null,
+              "value": "={{ $json.forced_state || null }}",
               "type": "string"
             },
             {
               "id": "93095407-cc7f-44f5-a6e2-7193e540f82e",
               "name": "loop_reason",
-              "value": null,
+              "value": "={{ $json.loop_reason || null }}",
               "type": "string"
             },
             {
               "id": "8d586dc3-1310-492f-ac2f-b456ca1c2dee",
               "name": "owner_unavailable",
-              "value": false,
+              "value": "={{ $json.owner_unavailable === true }}",
               "type": "boolean"
             }
           ]
@@ -1280,7 +1280,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
+        "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  const internalResume = toNullableBoolean(payload.internal_resume) === true;\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && (chatInput || internalResume)),\n        ignore_reason: waId && (chatInput || internalResume) ? null : 'missing_wa_id_or_text',\n        chatInput,\n        current_message: compact(payload.current_message || ''),\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: payload.chatwoot_message_id || null,\n        inbox_id: payload.inbox_id || null,\n        inbox_name: payload.inbox_name || null,\n        contact_source_id: payload.contact_source_id || null,\n        insertar_mensjae:\n          typeof payload.insertar_mensjae === 'boolean'\n            ? payload.insertar_mensjae\n            : toNullableBoolean(payload.insertar_mensjae),\n        skip_validator: payload.skip_validator === true,\n        forced_state: compact(payload.forced_state || '') || null,\n        loop_reason: compact(payload.loop_reason || '') || null,\n        owner_unavailable: payload.owner_unavailable === true,\n        internal_resume: internalResume,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      inbox_id:\n        payload.inbox?.id !== undefined && payload.inbox?.id !== null\n          ? String(payload.inbox.id)\n          : payload.conversation?.inbox_id !== undefined && payload.conversation?.inbox_id !== null\n            ? String(payload.conversation.inbox_id)\n            : null,\n      inbox_name: payload.inbox?.name ? String(payload.inbox.name) : null,\n      contact_source_id:\n        payload.conversation?.contact_inbox?.source_id ||\n        payload.contact_inbox?.source_id ||\n        null,\n      internal_resume: false,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
       },
       "id": "dc55b447-c09b-4da6-907b-e80a61c6ae7b",
       "name": "Normalize inbound payload",
@@ -1445,13 +1445,13 @@
             {
               "id": "e397223b-2be4-43e2-bd57-b3088e1166a3",
               "name": "ok",
-              "value": true,
+              "value": "={{ $json.ok ?? true }}",
               "type": "boolean"
             },
             {
               "id": "a63d26f2-3cf4-4c1e-abaa-5fa7b1b799fc",
               "name": "processed",
-              "value": true,
+              "value": "={{ $json.processed ?? true }}",
               "type": "boolean"
             },
             {
@@ -1559,7 +1559,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "with defaults as (\n  select\n    'calido_profesional'::text as tone_preset,\n    ''::text as tone_guidelines_extra,\n    'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.'::text as initial_message_template,\n    'Te voy a pasar con un asesor humano para continuar con tu solicitud.'::text as handoff_message,\n    null::text as owner_contact_override,\n    true::boolean as global_bot_enabled,\n    true::boolean as followup_enabled,\n    time '08:00' as followup_window_start,\n    time '22:00' as followup_window_end,\n    'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as followup_message_qualifying,\n    'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as followup_message_offering,\n    'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as followup_message_verifying_availability,\n    true::boolean as inventory_sheet_enabled,\n    '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo'::text as inventory_sheet_document_id,\n    'fincas_inventory_ajustada_real'::text as inventory_sheet_tab_name,\n    'Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio'::text as coverage_zones_text,\n    3::integer as max_properties_to_show,\n    true::boolean as selection_notification_enabled,\n    ''::text as selection_notification_recipients,\n    'staff_finca_selected_v1'::text as selection_notification_template_name,\n    'es_CO'::text as selection_notification_template_language\n),\nsettings as (\n  select *\n  from public.agent_settings\n  where id = 1\n  limit 1\n)\nselect\n  coalesce(s.tone_preset, d.tone_preset) as tone_preset,\n  coalesce(s.tone_guidelines_extra, d.tone_guidelines_extra) as tone_guidelines_extra,\n  coalesce(s.initial_message_template, d.initial_message_template) as initial_message_template,\n  coalesce(s.handoff_message, d.handoff_message) as handoff_message,\n  coalesce(s.owner_contact_override, d.owner_contact_override) as owner_contact_override,\n  coalesce(s.global_bot_enabled, d.global_bot_enabled) as global_bot_enabled,\n  coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n  to_char(coalesce(s.followup_window_start, d.followup_window_start), 'HH24:MI') as followup_window_start,\n  to_char(coalesce(s.followup_window_end, d.followup_window_end), 'HH24:MI') as followup_window_end,\n  coalesce(s.followup_message_qualifying, d.followup_message_qualifying) as followup_message_qualifying,\n  coalesce(s.followup_message_offering, d.followup_message_offering) as followup_message_offering,\n  coalesce(\n    s.followup_message_verifying_availability,\n    d.followup_message_verifying_availability\n  ) as followup_message_verifying_availability,\n  coalesce(s.inventory_sheet_enabled, d.inventory_sheet_enabled) as inventory_sheet_enabled,\n  coalesce(s.inventory_sheet_document_id, d.inventory_sheet_document_id) as inventory_sheet_document_id,\n  coalesce(s.inventory_sheet_tab_name, d.inventory_sheet_tab_name) as inventory_sheet_tab_name,\n  coalesce(s.coverage_zones_text, d.coverage_zones_text) as coverage_zones_text,\n  coalesce(s.max_properties_to_show, d.max_properties_to_show) as max_properties_to_show,\n  coalesce(s.selection_notification_enabled, d.selection_notification_enabled) as selection_notification_enabled,\n  coalesce(s.selection_notification_recipients, d.selection_notification_recipients) as selection_notification_recipients,\n  coalesce(s.selection_notification_template_name, d.selection_notification_template_name) as selection_notification_template_name,\n  coalesce(s.selection_notification_template_language, d.selection_notification_template_language) as selection_notification_template_language\nfrom defaults d\nleft join settings s on true\nlimit 1;",
+        "query": "with defaults as (\n  select\n    'calido_profesional'::text as tone_preset,\n    ''::text as tone_guidelines_extra,\n    'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.'::text as initial_message_template,\n    'Te voy a pasar con un asesor humano para continuar con tu solicitud.'::text as handoff_message,\n    null::text as owner_contact_override,\n    false::boolean as owner_test_mode_enabled,\n    true::boolean as global_bot_enabled,\n    true::boolean as followup_enabled,\n    time '08:00' as followup_window_start,\n    time '22:00' as followup_window_end,\n    'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as followup_message_qualifying,\n    'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as followup_message_offering,\n    'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as followup_message_verifying_availability,\n    true::boolean as inventory_sheet_enabled,\n    '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo'::text as inventory_sheet_document_id,\n    'fincas_inventory_ajustada_real'::text as inventory_sheet_tab_name,\n    'Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio'::text as coverage_zones_text,\n    3::integer as max_properties_to_show,\n    true::boolean as selection_notification_enabled,\n    ''::text as selection_notification_recipients,\n    'staff_finca_selected_v1'::text as selection_notification_template_name,\n    'es_CO'::text as selection_notification_template_language\n),\nsettings as (\n  select *\n  from public.agent_settings\n  where id = 1\n  limit 1\n)\nselect\n  coalesce(s.tone_preset, d.tone_preset) as tone_preset,\n  coalesce(s.tone_guidelines_extra, d.tone_guidelines_extra) as tone_guidelines_extra,\n  coalesce(s.initial_message_template, d.initial_message_template) as initial_message_template,\n  coalesce(s.handoff_message, d.handoff_message) as handoff_message,\n  coalesce(s.owner_contact_override, d.owner_contact_override) as owner_contact_override,\n  coalesce(s.owner_test_mode_enabled, d.owner_test_mode_enabled) as owner_test_mode_enabled,\n  coalesce(s.global_bot_enabled, d.global_bot_enabled) as global_bot_enabled,\n  coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n  to_char(coalesce(s.followup_window_start, d.followup_window_start), 'HH24:MI') as followup_window_start,\n  to_char(coalesce(s.followup_window_end, d.followup_window_end), 'HH24:MI') as followup_window_end,\n  coalesce(s.followup_message_qualifying, d.followup_message_qualifying) as followup_message_qualifying,\n  coalesce(s.followup_message_offering, d.followup_message_offering) as followup_message_offering,\n  coalesce(\n    s.followup_message_verifying_availability,\n    d.followup_message_verifying_availability\n  ) as followup_message_verifying_availability,\n  coalesce(s.inventory_sheet_enabled, d.inventory_sheet_enabled) as inventory_sheet_enabled,\n  coalesce(s.inventory_sheet_document_id, d.inventory_sheet_document_id) as inventory_sheet_document_id,\n  coalesce(s.inventory_sheet_tab_name, d.inventory_sheet_tab_name) as inventory_sheet_tab_name,\n  coalesce(s.coverage_zones_text, d.coverage_zones_text) as coverage_zones_text,\n  coalesce(s.max_properties_to_show, d.max_properties_to_show) as max_properties_to_show,\n  coalesce(s.selection_notification_enabled, d.selection_notification_enabled) as selection_notification_enabled,\n  coalesce(s.selection_notification_recipients, d.selection_notification_recipients) as selection_notification_recipients,\n  coalesce(s.selection_notification_template_name, d.selection_notification_template_name) as selection_notification_template_name,\n  coalesce(s.selection_notification_template_language, d.selection_notification_template_language) as selection_notification_template_language\nfrom defaults d\nleft join settings s on true\nlimit 1;",
         "options": {}
       },
       "id": "3f769a1f-2b5e-49f4-b08e-fb503dc0701b",
@@ -1835,7 +1835,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
+        "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      owner_test_mode_enabled: settings.owner_test_mode_enabled === true,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
       },
       "id": "eb439357-e40c-4dd5-b473-83bff820deba",
       "name": "Prepare selection notifications",
@@ -2228,7 +2228,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
+        "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
       },
       "id": "7887f398-a80e-4faa-a292-eddc51e960b8",
       "name": "Compute deterministic prechecks",
@@ -2988,6 +2988,202 @@
         4560,
         -208
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5c19c4de-ae0d-407c-b05b-962a6a05c242",
+              "leftValue": "={{ $('Normalize inbound payload').item.json.source === 'chatwoot' && (String($('Normalize inbound payload').item.json.inbox_id || '') === '4' || String($('Normalize inbound payload').item.json.inbox_name || '').trim() === 'Agent_propietarios') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "38cef988-5683-4c9c-a207-fdcac17ff059",
+      "name": "Is owner inbox event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1952,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "W5fO8QiAMlYyIlCb",
+          "cachedResultName": "Owner Reservation Inbound Handler - De Paseo en Fincas",
+          "cachedResultUrl": "/workflow/W5fO8QiAMlYyIlCb"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "f55ef757-b3c4-4000-835f-fe941e94932c",
+              "displayName": "event_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.event_type || null }}"
+            },
+            {
+              "id": "122e3b4e-7741-418c-8755-b7e1532c01ca",
+              "displayName": "eligible",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false,
+              "booleanValue": "={{ $json.eligible === true }}"
+            },
+            {
+              "id": "96d34478-2697-44b1-96df-b9aed6a03ae6",
+              "displayName": "is_sync_event",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false,
+              "booleanValue": "={{ $json.is_sync_event === true }}"
+            },
+            {
+              "id": "49a0e436-00d2-4cd7-856f-439da7bd22ae",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatInput || '' }}"
+            },
+            {
+              "id": "e449f25b-cdb8-4303-af76-9ca533920f76",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_id || null }}"
+            },
+            {
+              "id": "931cd9df-37c7-4424-9e58-56de01f12ecf",
+              "displayName": "chatwoot_message_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_message_id || null }}"
+            },
+            {
+              "id": "2bf680a7-f515-4b81-ad90-065cbe7b590b",
+              "displayName": "wa_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.wa_id || null }}"
+            },
+            {
+              "id": "1266f715-269a-4de8-93aa-9d29c885948a",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.client_name || null }}"
+            },
+            {
+              "id": "71e95852-3ea2-43c2-967f-1d5a00a640a0",
+              "displayName": "inbox_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.inbox_id || null }}"
+            },
+            {
+              "id": "dfc6d888-a7c0-4345-a033-21b59e76871c",
+              "displayName": "inbox_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.inbox_name || null }}"
+            },
+            {
+              "id": "86cb0ae5-1938-49ac-9e15-e0470d5b5e08",
+              "displayName": "contact_source_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.contact_source_id || null }}"
+            },
+            {
+              "id": "f8366e9a-2164-4689-b9b4-be0fcf4ff803",
+              "displayName": "raw_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ JSON.stringify($json.raw || {}) }}"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9ad1757c-1424-4fec-850f-92e07725222c",
+      "name": "Handle owner inbound",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1728,
+        128
+      ]
     }
   ],
   "connections": {
@@ -3311,7 +3507,7 @@
       "main": [
         [
           {
-            "node": "Is RESET command?",
+            "node": "Is owner inbox event?",
             "type": "main",
             "index": 0
           }
@@ -4138,6 +4334,35 @@
           }
         ]
       ]
+    },
+    "Is owner inbox event?": {
+      "main": [
+        [
+          {
+            "node": "Handle owner inbound",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is RESET command?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle owner inbound": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -4315,9 +4540,9 @@
       }
     ]
   },
-  "versionId": "b3ea16b3-e795-46c1-a41f-19f8708af374",
-  "activeVersionId": "b3ea16b3-e795-46c1-a41f-19f8708af374",
-  "versionCounter": 568,
+  "versionId": "3865ea23-db12-4c8e-bab9-3df40ba2309f",
+  "activeVersionId": "3865ea23-db12-4c8e-bab9-3df40ba2309f",
+  "versionCounter": 592,
   "triggerCount": 1,
   "shared": [
     {
@@ -4340,9 +4565,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-27T03:26:06.023Z",
-    "createdAt": "2026-03-27T03:26:06.023Z",
-    "versionId": "b3ea16b3-e795-46c1-a41f-19f8708af374",
+    "updatedAt": "2026-03-27T15:33:08.037Z",
+    "createdAt": "2026-03-27T15:33:08.037Z",
+    "versionId": "3865ea23-db12-4c8e-bab9-3df40ba2309f",
     "workflowId": "RrIniaNJCUC72nfI",
     "nodes": [
       {
@@ -4372,7 +4597,7 @@
               {
                 "id": "40a80576-e451-4568-b5db-091eded57b15",
                 "name": "insertar_mensjae",
-                "value": true,
+                "value": "={{ $json.insertar_mensjae ?? true }}",
                 "type": "boolean"
               },
               {
@@ -4384,7 +4609,7 @@
               {
                 "id": "94b3643d-6f07-40e6-b644-7414dc3f683b",
                 "name": "current_message",
-                "value": "={{ String($json.chatInput || $json.current_message || $json.text || '').trim() }}",
+                "value": "={{ String(($json.current_message ?? $json.chatInput ?? $json.text) || '').trim() }}",
                 "type": "string"
               },
               {
@@ -4600,25 +4825,25 @@
               {
                 "id": "159c76d0-460f-4fb9-875a-8bb7e83b948a",
                 "name": "skip_validator",
-                "value": false,
+                "value": "={{ $json.skip_validator === true }}",
                 "type": "boolean"
               },
               {
                 "id": "ea127cc0-6360-4dd0-9669-c9d67617c1e4",
                 "name": "forced_state",
-                "value": null,
+                "value": "={{ $json.forced_state || null }}",
                 "type": "string"
               },
               {
                 "id": "93095407-cc7f-44f5-a6e2-7193e540f82e",
                 "name": "loop_reason",
-                "value": null,
+                "value": "={{ $json.loop_reason || null }}",
                 "type": "string"
               },
               {
                 "id": "8d586dc3-1310-492f-ac2f-b456ca1c2dee",
                 "name": "owner_unavailable",
-                "value": false,
+                "value": "={{ $json.owner_unavailable === true }}",
                 "type": "boolean"
               }
             ]
@@ -5618,7 +5843,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && chatInput),\n        ignore_reason: waId && chatInput ? null : 'missing_wa_id_or_text',\n        chatInput,\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: null,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
+          "jsCode": "const payload = $json.body && typeof $json.body === 'object' ? $json.body : ($json || {});\nconst digitsOnly = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\nconst toNullableBoolean = (value) => {\n  if (value === true || value === false) return value;\n  if (value === null || value === undefined || value === '') return null;\n  const normalized = String(value).trim().toLowerCase();\n  if (['true', '1', 'yes', 'si', 'sí', 'on'].includes(normalized)) return true;\n  if (['false', '0', 'no', 'off'].includes(normalized)) return false;\n  return null;\n};\nconst ensureArray = (value) => {\n  if (Array.isArray(value)) return value;\n  if (value && typeof value === 'object') return [value];\n  return [];\n};\nconst firstNonEmpty = (...values) => values.map(compact).find(Boolean) || null;\nconst audioPattern = /\\.(aac|m4a|mp3|ogg|oga|opus|wav|webm)(\\?|$)/i;\n\nconst attachmentUrl = (attachment) =>\n  firstNonEmpty(\n    attachment?.data_url,\n    attachment?.download_url,\n    attachment?.file_url,\n    attachment?.external_url,\n    attachment?.url,\n    attachment?.proxy_url,\n    attachment?.blob_url,\n    attachment?.content_url,\n    attachment?.file?.url,\n  );\nconst attachmentMimeType = (attachment) =>\n  firstNonEmpty(\n    attachment?.mime_type,\n    attachment?.content_type,\n    attachment?.file_type,\n    attachment?.data_type,\n    attachment?.file?.content_type,\n    attachment?.file?.mime_type,\n  );\nconst attachmentFilename = (attachment) =>\n  firstNonEmpty(\n    attachment?.filename,\n    attachment?.file_name,\n    attachment?.name,\n    attachment?.file?.filename,\n    attachment?.file?.name,\n  );\nconst attachmentLooksAudio = (attachment) => {\n  const mimeType = String(attachmentMimeType(attachment) || '').toLowerCase();\n  const filename = String(attachmentFilename(attachment) || '').toLowerCase();\n  const url = String(attachmentUrl(attachment) || '').toLowerCase();\n  const type = String(\n    attachment?.type ||\n      attachment?.attachment_type ||\n      attachment?.resource_type ||\n      attachment?.file?.resource_type ||\n      '',\n  ).toLowerCase();\n  return (\n    mimeType.startsWith('audio/') ||\n    type === 'audio' ||\n    audioPattern.test(filename) ||\n    audioPattern.test(url)\n  );\n};\n\nconst looksLikeChatwoot =\n  payload.event !== undefined ||\n  payload.conversation !== undefined ||\n  payload.contact !== undefined ||\n  payload.sender !== undefined;\n\nif (!looksLikeChatwoot) {\n  const waId = digitsOnly(payload.wa_id || payload.phone || payload.conversationId || payload.sessionId);\n  const chatInput = compact(payload.chatInput || payload.text || payload.current_message);\n  const internalResume = toNullableBoolean(payload.internal_resume) === true;\n  return [\n    {\n      json: {\n        source: 'simulator',\n        event_type: 'message_created',\n        is_sync_event: false,\n        eligible: Boolean(waId && (chatInput || internalResume)),\n        ignore_reason: waId && (chatInput || internalResume) ? null : 'missing_wa_id_or_text',\n        chatInput,\n        current_message: compact(payload.current_message || ''),\n        chatwoot_id: payload.chatwoot_id || null,\n        chatwoot_status: null,\n        chatwoot_message_id: payload.chatwoot_message_id || null,\n        inbox_id: payload.inbox_id || null,\n        inbox_name: payload.inbox_name || null,\n        contact_source_id: payload.contact_source_id || null,\n        insertar_mensjae:\n          typeof payload.insertar_mensjae === 'boolean'\n            ? payload.insertar_mensjae\n            : toNullableBoolean(payload.insertar_mensjae),\n        skip_validator: payload.skip_validator === true,\n        forced_state: compact(payload.forced_state || '') || null,\n        loop_reason: compact(payload.loop_reason || '') || null,\n        owner_unavailable: payload.owner_unavailable === true,\n        internal_resume: internalResume,\n        wa_id: waId,\n        client_name: compact(payload.client_name || payload.clientName || waId) || null,\n        message_type: 'TEXT',\n        original_message_type: 'TEXT',\n        audio_url: null,\n        audio_mime_type: null,\n        audio_filename: null,\n        audio_transcript: null,\n        audio_metadata: null,\n        audio_transcription_failed: false,\n        audio_error_message: null,\n        ia_activa: null,\n        ia_activa_present: false,\n        local_sequence: Number(payload.local_sequence || 0) || 0,\n        client_message_id: compact(payload.client_message_id || payload.clientMessageId) || null,\n      },\n    },\n  ];\n}\n\nconst eventType = String(payload.event || '').toLowerCase();\nconst conversationId = payload.conversation?.id || payload.conversation_id || null;\nconst conversationStatus =\n  payload.conversation?.status ||\n  payload.conversation_status ||\n  payload.status ||\n  null;\nconst phoneCandidates = [\n  payload.contact?.phone_number,\n  payload.sender?.phone_number,\n  payload.conversation?.meta?.sender?.phone_number,\n  payload.meta?.sender?.phone_number,\n  payload.contact_inbox?.source_id,\n  payload.conversation?.meta?.contact?.phone_number,\n];\nconst waId = phoneCandidates.map(digitsOnly).find(Boolean) || '';\nconst senderType = String(\n  payload.sender?.type ||\n    payload.sender_type ||\n    payload.conversation?.meta?.sender?.type ||\n    '',\n).toLowerCase();\nconst messageDirection = String(payload.message_type || '').toLowerCase();\nconst privateMessage = payload.private === true;\nconst content =\n  compact(payload.content) ||\n  compact(payload.message?.content) ||\n  compact(payload.message_content);\nconst syncEvent = eventType === 'conversation_created' || eventType === 'conversation_updated';\nconst incoming =\n  messageDirection === 'incoming' ||\n  messageDirection === '0' ||\n  senderType === 'contact' ||\n  payload.incoming === true;\nconst customIaRaw =\n  payload.conversation?.custom_attributes?.ia_activa ??\n  payload.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.custom_attributes?.ia_activa ??\n  payload.changed_attributes?.ia_activa ??\n  null;\nconst iaActiva = toNullableBoolean(customIaRaw);\nconst iaActivaPresent = !(customIaRaw === null || customIaRaw === undefined || customIaRaw === '');\n\nconst rawAttachments = [\n  ...ensureArray(payload.attachments),\n  ...ensureArray(payload.message?.attachments),\n  ...ensureArray(payload.content_attributes?.attachments),\n  ...ensureArray(payload.message?.content_attributes?.attachments),\n  ...ensureArray(payload.attachment),\n  ...ensureArray(payload.message?.attachment),\n];\nconst audioAttachment = rawAttachments.find(attachmentLooksAudio) || null;\nconst normalizedMessageType = audioAttachment ? 'AUDIO' : 'TEXT';\nconst chatwootMessageId = payload.id || payload.message?.id || payload.message_id || null;\n\nlet ignoreReason = null;\n\nif (syncEvent) {\n  if (!waId && !conversationId) {\n    ignoreReason = 'missing_conversation_identity';\n  }\n} else if (eventType && eventType !== 'message_created') {\n  ignoreReason = 'unsupported_event';\n} else if (privateMessage) {\n  ignoreReason = 'private_message';\n} else if (!incoming) {\n  ignoreReason = 'not_incoming_customer_message';\n} else if (!content && !audioAttachment) {\n  ignoreReason = 'empty_content';\n} else if (!waId && !conversationId) {\n  ignoreReason = 'missing_phone_number_and_chatwoot_thread';\n}\n\nreturn [\n  {\n    json: {\n      source: 'chatwoot',\n      event_type: eventType || 'message_created',\n      is_sync_event: syncEvent,\n      eligible: ignoreReason === null,\n      ignore_reason: ignoreReason,\n      chatInput: content,\n      chatwoot_id: conversationId ? String(conversationId) : null,\n      chatwoot_status: conversationStatus ? String(conversationStatus) : null,\n      chatwoot_message_id: chatwootMessageId ? String(chatwootMessageId) : null,\n      inbox_id:\n        payload.inbox?.id !== undefined && payload.inbox?.id !== null\n          ? String(payload.inbox.id)\n          : payload.conversation?.inbox_id !== undefined && payload.conversation?.inbox_id !== null\n            ? String(payload.conversation.inbox_id)\n            : null,\n      inbox_name: payload.inbox?.name ? String(payload.inbox.name) : null,\n      contact_source_id:\n        payload.conversation?.contact_inbox?.source_id ||\n        payload.contact_inbox?.source_id ||\n        null,\n      internal_resume: false,\n      wa_id: waId,\n      client_name:\n        payload.conversation?.meta?.sender?.name ||\n        payload.contact?.name ||\n        payload.sender?.name ||\n        payload.meta?.name ||\n        payload.meta?.sender?.name ||\n        null,\n      message_type: normalizedMessageType,\n      original_message_type: normalizedMessageType,\n      audio_url: audioAttachment ? attachmentUrl(audioAttachment) : null,\n      audio_mime_type: audioAttachment ? attachmentMimeType(audioAttachment) : null,\n      audio_filename: audioAttachment ? attachmentFilename(audioAttachment) : null,\n      audio_transcript: null,\n      audio_metadata: audioAttachment\n        ? {\n            audio_url: attachmentUrl(audioAttachment),\n            audio_mime_type: attachmentMimeType(audioAttachment),\n            audio_filename: attachmentFilename(audioAttachment),\n          }\n        : null,\n      audio_transcription_failed: false,\n      audio_error_message: null,\n      ia_activa: iaActiva,\n      ia_activa_present: iaActivaPresent,\n      raw: payload,\n    },\n  },\n];"
         },
         "id": "dc55b447-c09b-4da6-907b-e80a61c6ae7b",
         "name": "Normalize inbound payload",
@@ -5783,13 +6008,13 @@
               {
                 "id": "e397223b-2be4-43e2-bd57-b3088e1166a3",
                 "name": "ok",
-                "value": true,
+                "value": "={{ $json.ok ?? true }}",
                 "type": "boolean"
               },
               {
                 "id": "a63d26f2-3cf4-4c1e-abaa-5fa7b1b799fc",
                 "name": "processed",
-                "value": true,
+                "value": "={{ $json.processed ?? true }}",
                 "type": "boolean"
               },
               {
@@ -5897,7 +6122,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "with defaults as (\n  select\n    'calido_profesional'::text as tone_preset,\n    ''::text as tone_guidelines_extra,\n    'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.'::text as initial_message_template,\n    'Te voy a pasar con un asesor humano para continuar con tu solicitud.'::text as handoff_message,\n    null::text as owner_contact_override,\n    true::boolean as global_bot_enabled,\n    true::boolean as followup_enabled,\n    time '08:00' as followup_window_start,\n    time '22:00' as followup_window_end,\n    'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as followup_message_qualifying,\n    'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as followup_message_offering,\n    'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as followup_message_verifying_availability,\n    true::boolean as inventory_sheet_enabled,\n    '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo'::text as inventory_sheet_document_id,\n    'fincas_inventory_ajustada_real'::text as inventory_sheet_tab_name,\n    'Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio'::text as coverage_zones_text,\n    3::integer as max_properties_to_show,\n    true::boolean as selection_notification_enabled,\n    ''::text as selection_notification_recipients,\n    'staff_finca_selected_v1'::text as selection_notification_template_name,\n    'es_CO'::text as selection_notification_template_language\n),\nsettings as (\n  select *\n  from public.agent_settings\n  where id = 1\n  limit 1\n)\nselect\n  coalesce(s.tone_preset, d.tone_preset) as tone_preset,\n  coalesce(s.tone_guidelines_extra, d.tone_guidelines_extra) as tone_guidelines_extra,\n  coalesce(s.initial_message_template, d.initial_message_template) as initial_message_template,\n  coalesce(s.handoff_message, d.handoff_message) as handoff_message,\n  coalesce(s.owner_contact_override, d.owner_contact_override) as owner_contact_override,\n  coalesce(s.global_bot_enabled, d.global_bot_enabled) as global_bot_enabled,\n  coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n  to_char(coalesce(s.followup_window_start, d.followup_window_start), 'HH24:MI') as followup_window_start,\n  to_char(coalesce(s.followup_window_end, d.followup_window_end), 'HH24:MI') as followup_window_end,\n  coalesce(s.followup_message_qualifying, d.followup_message_qualifying) as followup_message_qualifying,\n  coalesce(s.followup_message_offering, d.followup_message_offering) as followup_message_offering,\n  coalesce(\n    s.followup_message_verifying_availability,\n    d.followup_message_verifying_availability\n  ) as followup_message_verifying_availability,\n  coalesce(s.inventory_sheet_enabled, d.inventory_sheet_enabled) as inventory_sheet_enabled,\n  coalesce(s.inventory_sheet_document_id, d.inventory_sheet_document_id) as inventory_sheet_document_id,\n  coalesce(s.inventory_sheet_tab_name, d.inventory_sheet_tab_name) as inventory_sheet_tab_name,\n  coalesce(s.coverage_zones_text, d.coverage_zones_text) as coverage_zones_text,\n  coalesce(s.max_properties_to_show, d.max_properties_to_show) as max_properties_to_show,\n  coalesce(s.selection_notification_enabled, d.selection_notification_enabled) as selection_notification_enabled,\n  coalesce(s.selection_notification_recipients, d.selection_notification_recipients) as selection_notification_recipients,\n  coalesce(s.selection_notification_template_name, d.selection_notification_template_name) as selection_notification_template_name,\n  coalesce(s.selection_notification_template_language, d.selection_notification_template_language) as selection_notification_template_language\nfrom defaults d\nleft join settings s on true\nlimit 1;",
+          "query": "with defaults as (\n  select\n    'calido_profesional'::text as tone_preset,\n    ''::text as tone_guidelines_extra,\n    'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.'::text as initial_message_template,\n    'Te voy a pasar con un asesor humano para continuar con tu solicitud.'::text as handoff_message,\n    null::text as owner_contact_override,\n    false::boolean as owner_test_mode_enabled,\n    true::boolean as global_bot_enabled,\n    true::boolean as followup_enabled,\n    time '08:00' as followup_window_start,\n    time '22:00' as followup_window_end,\n    'Hola, sigo atento para ayudarte con la búsqueda de tu finca. Si quieres, compárteme fechas, número de personas y zona y retomamos.'::text as followup_message_qualifying,\n    'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.'::text as followup_message_offering,\n    'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.'::text as followup_message_verifying_availability,\n    true::boolean as inventory_sheet_enabled,\n    '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo'::text as inventory_sheet_document_id,\n    'fincas_inventory_ajustada_real'::text as inventory_sheet_tab_name,\n    'Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio'::text as coverage_zones_text,\n    3::integer as max_properties_to_show,\n    true::boolean as selection_notification_enabled,\n    ''::text as selection_notification_recipients,\n    'staff_finca_selected_v1'::text as selection_notification_template_name,\n    'es_CO'::text as selection_notification_template_language\n),\nsettings as (\n  select *\n  from public.agent_settings\n  where id = 1\n  limit 1\n)\nselect\n  coalesce(s.tone_preset, d.tone_preset) as tone_preset,\n  coalesce(s.tone_guidelines_extra, d.tone_guidelines_extra) as tone_guidelines_extra,\n  coalesce(s.initial_message_template, d.initial_message_template) as initial_message_template,\n  coalesce(s.handoff_message, d.handoff_message) as handoff_message,\n  coalesce(s.owner_contact_override, d.owner_contact_override) as owner_contact_override,\n  coalesce(s.owner_test_mode_enabled, d.owner_test_mode_enabled) as owner_test_mode_enabled,\n  coalesce(s.global_bot_enabled, d.global_bot_enabled) as global_bot_enabled,\n  coalesce(s.followup_enabled, d.followup_enabled) as followup_enabled,\n  to_char(coalesce(s.followup_window_start, d.followup_window_start), 'HH24:MI') as followup_window_start,\n  to_char(coalesce(s.followup_window_end, d.followup_window_end), 'HH24:MI') as followup_window_end,\n  coalesce(s.followup_message_qualifying, d.followup_message_qualifying) as followup_message_qualifying,\n  coalesce(s.followup_message_offering, d.followup_message_offering) as followup_message_offering,\n  coalesce(\n    s.followup_message_verifying_availability,\n    d.followup_message_verifying_availability\n  ) as followup_message_verifying_availability,\n  coalesce(s.inventory_sheet_enabled, d.inventory_sheet_enabled) as inventory_sheet_enabled,\n  coalesce(s.inventory_sheet_document_id, d.inventory_sheet_document_id) as inventory_sheet_document_id,\n  coalesce(s.inventory_sheet_tab_name, d.inventory_sheet_tab_name) as inventory_sheet_tab_name,\n  coalesce(s.coverage_zones_text, d.coverage_zones_text) as coverage_zones_text,\n  coalesce(s.max_properties_to_show, d.max_properties_to_show) as max_properties_to_show,\n  coalesce(s.selection_notification_enabled, d.selection_notification_enabled) as selection_notification_enabled,\n  coalesce(s.selection_notification_recipients, d.selection_notification_recipients) as selection_notification_recipients,\n  coalesce(s.selection_notification_template_name, d.selection_notification_template_name) as selection_notification_template_name,\n  coalesce(s.selection_notification_template_language, d.selection_notification_template_language) as selection_notification_template_language\nfrom defaults d\nleft join settings s on true\nlimit 1;",
           "options": {}
         },
         "id": "3f769a1f-2b5e-49f4-b08e-fb503dc0701b",
@@ -6173,7 +6398,7 @@
       },
       {
         "parameters": {
-          "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
+          "jsCode": "\nconst engine = $('Engine Result').item.json || {};\nconst settings = $('Get agent settings').item.json || {};\nconst candidate = engine.selection_notification_candidate || {};\nconst normalizePhone = (value) => String(value || '').replace(/\\D+/g, '').trim();\nconst compact = (value) => String(value || '').trim();\n\nconst recipients = String(settings.selection_notification_recipients || '')\n  .split(',')\n  .map((value) => normalizePhone(value))\n  .filter(Boolean)\n  .filter((value, index, array) => array.indexOf(value) === index);\n\nconst selectedFincaId = candidate.selectedFincaId || null;\nconst selectedFinca = candidate.selectedFinca || {};\nconst currentSearchCriteria =\n  $('Get Context-conversations1').item.json.search_criteria ||\n  $('Get Context-conversations1').item.json.context?.search_criteria ||\n  {};\nconst searchCriteria = {\n  ...currentSearchCriteria,\n  ...(candidate.searchCriteria && typeof candidate.searchCriteria === 'object' ? candidate.searchCriteria : {}),\n};\nconst clientName = compact(engine.client_name || engine.wa_id || 'Sin dato') || 'Sin dato';\nconst waId = compact(engine.wa_id);\nconst chatwootId = engine.chatwoot_id ? String(engine.chatwoot_id) : null;\nconst chatwootLink = chatwootId\n  ? 'https://chatwoot-9qe1j-u48275.vm.elestio.app/app/accounts/1/conversations/' + chatwootId\n  : null;\n\nconst fechas =\n  searchCriteria.fecha_inicio && searchCriteria.fecha_fin\n    ? String(searchCriteria.fecha_inicio) + ' a ' + String(searchCriteria.fecha_fin)\n    : 'Sin dato';\n\nconst batch =\n  settings.selection_notification_enabled === true &&\n  candidate.shouldNotify === true &&\n  selectedFincaId &&\n  recipients.length\n    ? recipients.map((recipientPhone) => ({\n        conversation_id: String(engine.wa_id || ''),\n        selected_finca_id: String(selectedFincaId),\n        recipient_phone: recipientPhone,\n        template_name:\n          String(settings.selection_notification_template_name || 'staff_finca_selected_v1').trim() ||\n          'staff_finca_selected_v1',\n        template_language:\n          String(settings.selection_notification_template_language || 'es_CO').trim() ||\n          'es_CO',\n        payload: {\n          client_name: clientName,\n          wa_id: waId || 'Sin dato',\n          selected_finca_id: String(selectedFincaId),\n          selected_finca_name: String(selectedFinca.nombre || selectedFincaId || 'Sin dato').trim() || 'Sin dato',\n          fechas,\n          personas:\n            searchCriteria.personas !== undefined && searchCriteria.personas !== null\n              ? String(searchCriteria.personas)\n              : 'Sin dato',\n          zona: String(searchCriteria.zona || 'Sin dato').trim() || 'Sin dato',\n          chatwoot_link: chatwootLink || 'Sin dato',\n        },\n      }))\n    : [];\n\nconst ownerReservationRequestShouldSend =\n  candidate.shouldNotify === true &&\n  Boolean(selectedFincaId);\n\nconst ownerReservationRequestPayload = ownerReservationRequestShouldSend\n  ? {\n      conversation_id: String(engine.wa_id || ''),\n      chatwoot_id: chatwootId,\n      wa_id: waId || null,\n      client_name: clientName,\n      selected_finca_id: String(selectedFincaId),\n      selected_finca: selectedFinca,\n      fecha_inicio: searchCriteria.fecha_inicio || null,\n      fecha_fin: searchCriteria.fecha_fin || null,\n      personas:\n        searchCriteria.personas !== undefined && searchCriteria.personas !== null\n          ? String(searchCriteria.personas)\n          : null,\n      zona: compact(searchCriteria.zona) || null,\n      conversation_link: chatwootLink,\n      owner_test_mode_enabled: settings.owner_test_mode_enabled === true,\n      inventory_sheet_document_id:\n        compact(settings.inventory_sheet_document_id) || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',\n      inventory_sheet_tab_name:\n        compact(settings.inventory_sheet_tab_name) || 'fincas_inventory_ajustada_real',\n      template_name: 'solicitud_reserva',\n      reminder_template_name: 'solicitud_reserva_reminder',\n      template_language: 'es_CO',\n      reminder_template_language: 'en',\n    }\n  : null;\n\nreturn [\n  {\n    json: {\n      ...engine,\n      selection_notification_count: batch.length,\n      selection_notification_batch: batch,\n      selection_notification_batch_json: JSON.stringify(batch),\n      owner_reservation_request_should_send: ownerReservationRequestShouldSend,\n      owner_reservation_request_payload: ownerReservationRequestPayload,\n    },\n  },\n];\n"
         },
         "id": "eb439357-e40c-4dd5-b473-83bff820deba",
         "name": "Prepare selection notifications",
@@ -6566,7 +6791,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          owner_response: '__CLEAR__',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
+          "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'HITL',\n        route_mode: 'HITL',\n        reason: 'owner_available_confirmed',\n        final_whatsapp_text:\n          'Ya confirmé que la finca que elegiste está disponible.\\n\\n' + handoffMessage,\n        post_actions: {\n          agente_activo: false,\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
         },
         "id": "7887f398-a80e-4faa-a292-eddc51e960b8",
         "name": "Compute deterministic prechecks",
@@ -7326,6 +7551,202 @@
           4560,
           -208
         ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "5c19c4de-ae0d-407c-b05b-962a6a05c242",
+                "leftValue": "={{ $('Normalize inbound payload').item.json.source === 'chatwoot' && (String($('Normalize inbound payload').item.json.inbox_id || '') === '4' || String($('Normalize inbound payload').item.json.inbox_name || '').trim() === 'Agent_propietarios') }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "id": "38cef988-5683-4c9c-a207-fdcac17ff059",
+        "name": "Is owner inbox event?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -1952,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "W5fO8QiAMlYyIlCb",
+            "cachedResultName": "Owner Reservation Inbound Handler - De Paseo en Fincas",
+            "cachedResultUrl": "/workflow/W5fO8QiAMlYyIlCb"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "f55ef757-b3c4-4000-835f-fe941e94932c",
+                "displayName": "event_type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.event_type || null }}"
+              },
+              {
+                "id": "122e3b4e-7741-418c-8755-b7e1532c01ca",
+                "displayName": "eligible",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "boolean",
+                "removed": false,
+                "booleanValue": "={{ $json.eligible === true }}"
+              },
+              {
+                "id": "96d34478-2697-44b1-96df-b9aed6a03ae6",
+                "displayName": "is_sync_event",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "boolean",
+                "removed": false,
+                "booleanValue": "={{ $json.is_sync_event === true }}"
+              },
+              {
+                "id": "49a0e436-00d2-4cd7-856f-439da7bd22ae",
+                "displayName": "chatInput",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatInput || '' }}"
+              },
+              {
+                "id": "e449f25b-cdb8-4303-af76-9ca533920f76",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_id || null }}"
+              },
+              {
+                "id": "931cd9df-37c7-4424-9e58-56de01f12ecf",
+                "displayName": "chatwoot_message_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_message_id || null }}"
+              },
+              {
+                "id": "2bf680a7-f515-4b81-ad90-065cbe7b590b",
+                "displayName": "wa_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.wa_id || null }}"
+              },
+              {
+                "id": "1266f715-269a-4de8-93aa-9d29c885948a",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.client_name || null }}"
+              },
+              {
+                "id": "71e95852-3ea2-43c2-967f-1d5a00a640a0",
+                "displayName": "inbox_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.inbox_id || null }}"
+              },
+              {
+                "id": "dfc6d888-a7c0-4345-a033-21b59e76871c",
+                "displayName": "inbox_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.inbox_name || null }}"
+              },
+              {
+                "id": "86cb0ae5-1938-49ac-9e15-e0470d5b5e08",
+                "displayName": "contact_source_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.contact_source_id || null }}"
+              },
+              {
+                "id": "f8366e9a-2164-4689-b9b4-be0fcf4ff803",
+                "displayName": "raw_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ JSON.stringify($json.raw || {}) }}"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "9ad1757c-1424-4fec-850f-92e07725222c",
+        "name": "Handle owner inbound",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -1728,
+          128
+        ]
       }
     ],
     "connections": {
@@ -7649,7 +8070,7 @@
         "main": [
           [
             {
-              "node": "Is RESET command?",
+              "node": "Is owner inbox event?",
               "type": "main",
               "index": 0
             }
@@ -8476,6 +8897,35 @@
             }
           ]
         ]
+      },
+      "Is owner inbox event?": {
+        "main": [
+          [
+            {
+              "node": "Handle owner inbound",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Is RESET command?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Handle owner inbound": {
+        "main": [
+          [
+            {
+              "node": "Webhook Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "JUANDAVID VIZCAYA",
@@ -8484,10 +8934,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-27T03:26:08.244Z",
-        "id": 637,
+        "createdAt": "2026-03-27T15:33:09.755Z",
+        "id": 674,
         "workflowId": "RrIniaNJCUC72nfI",
-        "versionId": "b3ea16b3-e795-46c1-a41f-19f8708af374",
+        "versionId": "3865ea23-db12-4c8e-bab9-3df40ba2309f",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }
