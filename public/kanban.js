@@ -30,17 +30,36 @@ const $timeframe = document.getElementById('kb-timeframe');
 const $refresh = document.getElementById('kb-refresh');
 
 // ── API ──
+async function buildHttpError(res) {
+  let payload = null;
+  try {
+    payload = await res.json();
+  } catch {
+    try {
+      const text = await res.text();
+      payload = text ? { message: text } : null;
+    } catch {
+      payload = null;
+    }
+  }
+  const detail =
+    payload && typeof payload === 'object'
+      ? payload.message || payload.error || payload.details?.message || payload.details || null
+      : payload;
+  return new Error(detail ? `${detail} (HTTP ${res.status})` : `HTTP ${res.status}`);
+}
+
 async function fetchConversations() {
   const tf = $timeframe.value;
   const res = await fetch(`/api/monitoring?timeframe=${tf}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw await buildHttpError(res);
   const data = await res.json();
   return data.conversations || [];
 }
 
 async function fetchConversationDetail(waId) {
   const res = await fetch(`/api/monitoring/conversations/${encodeURIComponent(waId)}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw await buildHttpError(res);
   return res.json();
 }
 

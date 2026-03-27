@@ -24,19 +24,31 @@ const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || proces
 const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
 const CHATWOOT_ACCOUNT_ID = process.env.CHATWOOT_ACCOUNT_ID || '1';
 const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
+const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL || '';
+const DATABASE_URL = process.env.DATABASE_URL || '';
+const POSTGRES_URL = process.env.POSTGRES_URL || '';
+const POSTGRES_PRISMA_URL = process.env.POSTGRES_PRISMA_URL || '';
+const POSTGRES_URL_NON_POOLING = process.env.POSTGRES_URL_NON_POOLING || '';
 const BURST_WINDOW_MS = 4000;
 const RAW_SUPABASE_DB_PORT = Number(process.env.SUPABASE_DB_PORT || 0);
 const SUPABASE_DB_PORT =
   /\.pooler\.supabase\.com$/i.test(String(SUPABASE_DB_HOST || '')) && RAW_SUPABASE_DB_PORT === 5432
     ? 6543
     : RAW_SUPABASE_DB_PORT || 5432;
-
-if (!N8N_BASE_URL) {
-  throw new Error('Missing N8N_BASE_URL in .env');
-}
+const DB_CONFIG_ERROR_MESSAGE =
+  'Falta configurar la conexión a la base de datos. Define SUPABASE_DB_URL, DATABASE_URL, POSTGRES_URL o SUPABASE_DB_* en Vercel.';
+const N8N_WEBHOOK_ERROR_MESSAGE =
+  'Falta configurar N8N_BASE_URL. El simulador puede cargar, pero no puede reenviar mensajes al workflow.';
 
 const publicDir = path.join(rootDir, 'public');
 const POOL_SYMBOL = Symbol.for('depaseo.simulator.pg.pool');
+const firstPresent = (...values) => {
+  for (const value of values) {
+    const trimmed = String(value || '').trim();
+    if (trimmed) return trimmed;
+  }
+  return '';
+};
 
 types.setTypeParser(1114, (value) => {
   if (value === null || value === undefined) return null;
@@ -49,20 +61,62 @@ types.setTypeParser(1184, (value) => {
   return new Date(value);
 });
 
-function createPool() {
-  return new Pool({
-    host: SUPABASE_DB_HOST,
-    port: SUPABASE_DB_PORT,
-    database: process.env.SUPABASE_DB_NAME,
-    user: process.env.SUPABASE_DB_USER,
-    password: process.env.SUPABASE_DB_PASSWORD,
-    ssl: {
-      rejectUnauthorized: false,
+function createMissingDbPoolStub() {
+  return {
+    async query() {
+      const error = new Error(DB_CONFIG_ERROR_MESSAGE);
+      error.code = 'DB_CONFIG_MISSING';
+      throw error;
     },
-    max: IS_VERCEL ? 1 : 2,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 5000,
-  });
+    async end() {
+      return undefined;
+    },
+  };
+}
+
+function createPool() {
+  const connectionString = firstPresent(
+    SUPABASE_DB_URL,
+    DATABASE_URL,
+    POSTGRES_URL,
+    POSTGRES_PRISMA_URL,
+    POSTGRES_URL_NON_POOLING,
+  );
+
+  if (connectionString) {
+    return new Pool({
+      connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      max: IS_VERCEL ? 1 : 2,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+    });
+  }
+
+  if (
+    SUPABASE_DB_HOST &&
+    process.env.SUPABASE_DB_NAME &&
+    process.env.SUPABASE_DB_USER &&
+    process.env.SUPABASE_DB_PASSWORD
+  ) {
+    return new Pool({
+      host: SUPABASE_DB_HOST,
+      port: SUPABASE_DB_PORT,
+      database: process.env.SUPABASE_DB_NAME,
+      user: process.env.SUPABASE_DB_USER,
+      password: process.env.SUPABASE_DB_PASSWORD,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      max: IS_VERCEL ? 1 : 2,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+    });
+  }
+
+  return createMissingDbPoolStub();
 }
 
 const pool = globalThis[POOL_SYMBOL] || createPool();
@@ -70,7 +124,9 @@ if (!globalThis[POOL_SYMBOL]) {
   globalThis[POOL_SYMBOL] = pool;
 }
 
-const simulatorWebhookUrl = `${N8N_BASE_URL.replace(/\/$/, '')}/webhook/${SIMULATOR_WEBHOOK_PATH}`;
+const simulatorWebhookUrl = String(N8N_BASE_URL || '').trim()
+  ? `${String(N8N_BASE_URL).replace(/\/$/, '')}/webhook/${SIMULATOR_WEBHOOK_PATH}`
+  : null;
 const recentClientMessageIds = new Map();
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -668,6 +724,11 @@ function hasRecentClientMessage(conversationId, clientMessageId) {
 }
 
 async function sendWebhookMessage({ waId, chatInput, clientName, clientMessageId, localSequence }) {
+  if (!simulatorWebhookUrl) {
+    const error = new Error(N8N_WEBHOOK_ERROR_MESSAGE);
+    error.code = 'N8N_WEBHOOK_MISSING';
+    throw error;
+  }
   const response = await fetch(simulatorWebhookUrl, {
     method: 'POST',
     headers: {
@@ -1121,6 +1182,8 @@ function createApp() {
       workflow: {
         workflowName: 'De paseo en fincas customer agent',
         workflowId: SIMULATOR_WEBHOOK_PATH,
+        webhookReady: Boolean(simulatorWebhookUrl),
+        webhookUrl: simulatorWebhookUrl,
       },
       chatwootBaseUrl: CHATWOOT_BASE_URL,
       chatwootAccountId: CHATWOOT_ACCOUNT_ID,
