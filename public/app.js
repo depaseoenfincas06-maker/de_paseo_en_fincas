@@ -98,8 +98,18 @@ const elements = {
     overview: document.getElementById('settings-overview'),
     tonePreset: document.getElementById('settings-tone-preset'),
     toneExtra: document.getElementById('settings-tone-extra'),
+    globalPromptAddendum: document.getElementById('settings-global-prompt-addendum'),
+    qualifyingPromptAddendum: document.getElementById('settings-qualifying-prompt-addendum'),
+    offeringPromptAddendum: document.getElementById('settings-offering-prompt-addendum'),
+    verifyingPromptAddendum: document.getElementById('settings-verifying-prompt-addendum'),
+    qaPromptAddendum: document.getElementById('settings-qa-prompt-addendum'),
+    hitlPromptAddendum: document.getElementById('settings-hitl-prompt-addendum'),
+    confirmingPromptAddendum: document.getElementById('settings-confirming-prompt-addendum'),
     initialMessage: document.getElementById('settings-initial-message'),
     handoffMessage: document.getElementById('settings-handoff-message'),
+    companyKnowledge: document.getElementById('settings-company-knowledge'),
+    companyDocuments: document.getElementById('settings-company-documents'),
+    paymentMethods: document.getElementById('settings-payment-methods'),
     ownerTestMode: document.getElementById('settings-owner-test-mode'),
     ownerOverride: document.getElementById('settings-owner-override'),
     globalBotEnabled: document.getElementById('settings-global-bot'),
@@ -132,6 +142,25 @@ function escapeHtml(value) {
 
 function compactText(value) {
   return String(value ?? '').trim();
+}
+
+function stringifyStructuredValue(value, fallback = '[]') {
+  if (value === undefined || value === null || value === '') return fallback;
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return fallback;
+  }
+}
+
+function parseStructuredJson(rawValue, fallback, label) {
+  const value = compactText(rawValue);
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    throw new Error(`El campo "${label}" debe ser JSON válido.`);
+  }
 }
 
 function enqueueConversationSend(conversationId, task) {
@@ -310,6 +339,18 @@ function renderSettingsOverview() {
         ? 'Las solicitudes al propietario se enviarán al mismo número del cliente por la línea de propietarios'
         : 'Se usará el número real del propietario del inventario',
     },
+    {
+      label: 'Documentos empresa',
+      value: `${Array.isArray(settings.companyDocuments) ? settings.companyDocuments.length : 0} links`,
+      tone: Array.isArray(settings.companyDocuments) && settings.companyDocuments.length ? 'ok' : 'warn',
+      helper: 'Cada link debe incluir descripción para que el agente sepa cuándo usarlo',
+    },
+    {
+      label: 'Medios de pago',
+      value: `${Array.isArray(settings.paymentMethods) ? settings.paymentMethods.length : 0} métodos`,
+      tone: Array.isArray(settings.paymentMethods) && settings.paymentMethods.length ? 'ok' : 'warn',
+      helper: 'Se usarán en la etapa de confirmación de reserva',
+    },
   ];
 
   elements.settings.overview.innerHTML = items
@@ -371,8 +412,18 @@ function showSettingsAlert(message, mode = 'info') {
 function applySettingsToForm(settings) {
   elements.settings.tonePreset.value = settings.tonePreset;
   elements.settings.toneExtra.value = settings.toneGuidelinesExtra || '';
+  elements.settings.globalPromptAddendum.value = settings.globalPromptAddendum || '';
+  elements.settings.qualifyingPromptAddendum.value = settings.qualifyingPromptAddendum || '';
+  elements.settings.offeringPromptAddendum.value = settings.offeringPromptAddendum || '';
+  elements.settings.verifyingPromptAddendum.value = settings.verifyingAvailabilityPromptAddendum || '';
+  elements.settings.qaPromptAddendum.value = settings.qaPromptAddendum || '';
+  elements.settings.hitlPromptAddendum.value = settings.hitlPromptAddendum || '';
+  elements.settings.confirmingPromptAddendum.value = settings.confirmingReservationPromptAddendum || '';
   elements.settings.initialMessage.value = settings.initialMessageTemplate || '';
   elements.settings.handoffMessage.value = settings.handoffMessage || '';
+  elements.settings.companyKnowledge.value = settings.companyKnowledge || '';
+  elements.settings.companyDocuments.value = stringifyStructuredValue(settings.companyDocuments, '[]');
+  elements.settings.paymentMethods.value = stringifyStructuredValue(settings.paymentMethods, '[]');
   elements.settings.ownerTestMode.checked = settings.ownerTestModeEnabled === true;
   elements.settings.ownerOverride.value = settings.ownerContactOverride || '';
   elements.settings.globalBotEnabled.checked = settings.globalBotEnabled === true;
@@ -397,8 +448,27 @@ function readSettingsForm() {
   return {
     tonePreset: elements.settings.tonePreset.value,
     toneGuidelinesExtra: elements.settings.toneExtra.value,
+    publicAppBaseUrl: window.location.origin,
+    globalPromptAddendum: elements.settings.globalPromptAddendum.value,
+    qualifyingPromptAddendum: elements.settings.qualifyingPromptAddendum.value,
+    offeringPromptAddendum: elements.settings.offeringPromptAddendum.value,
+    verifyingAvailabilityPromptAddendum: elements.settings.verifyingPromptAddendum.value,
+    qaPromptAddendum: elements.settings.qaPromptAddendum.value,
+    hitlPromptAddendum: elements.settings.hitlPromptAddendum.value,
+    confirmingReservationPromptAddendum: elements.settings.confirmingPromptAddendum.value,
     initialMessageTemplate: elements.settings.initialMessage.value,
     handoffMessage: elements.settings.handoffMessage.value,
+    companyKnowledge: elements.settings.companyKnowledge.value,
+    companyDocuments: parseStructuredJson(
+      elements.settings.companyDocuments.value,
+      [],
+      'Documentos institucionales',
+    ),
+    paymentMethods: parseStructuredJson(
+      elements.settings.paymentMethods.value,
+      [],
+      'Medios de pago',
+    ),
     ownerTestModeEnabled: elements.settings.ownerTestMode.checked,
     ownerContactOverride: elements.settings.ownerOverride.value,
     globalBotEnabled: elements.settings.globalBotEnabled.checked,
@@ -472,9 +542,10 @@ async function saveSettings() {
   renderSettingsState('Guardando cambios...', 'neutral');
 
   try {
+    const settingsPayload = readSettingsForm();
     const payload = await api('/api/settings', {
       method: 'PUT',
-      body: JSON.stringify(readSettingsForm()),
+      body: JSON.stringify(settingsPayload),
     });
 
     appState.settings = payload.settings;
