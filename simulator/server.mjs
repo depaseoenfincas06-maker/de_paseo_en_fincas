@@ -7,6 +7,10 @@ import express from 'express';
 import pkg from 'pg';
 
 import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_media_relay.mjs';
+import {
+  buildReservationConfirmationFilename,
+  buildReservationConfirmationPdf,
+} from './lib/reservation_confirmation_pdf.mjs';
 
 const { Pool, types } = pkg;
 
@@ -23,6 +27,10 @@ const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
 const CHATWOOT_ACCOUNT_ID = process.env.CHATWOOT_ACCOUNT_ID || '1';
+const PUBLIC_APP_BASE_URL =
+  process.env.PUBLIC_APP_BASE_URL ||
+  process.env.SIMULATOR_BASE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
 const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
 const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL || '';
 const DATABASE_URL = process.env.DATABASE_URL || '';
@@ -136,6 +144,9 @@ const DEFAULT_SETTINGS = Object.freeze({
   initialMessageTemplate:
     'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
   handoffMessage: 'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
+  publicAppBaseUrl: PUBLIC_APP_BASE_URL,
+  paymentMethodsText:
+    'Bancolombia\nDavivienda\nColpatria\nNequi\nDaviplata\nTarjeta Crédito/Débito/PSE (+5%)\nEfectivo presencial en sedes de Anapoima o Pereira',
   ownerContactOverride: '',
   ownerTestModeEnabled: false,
   globalBotEnabled: true,
@@ -224,6 +235,63 @@ function compactText(value) {
   return String(value || '').trim();
 }
 
+function paymentMethodsTextToStructured(value) {
+  return String(value || '')
+    .split(/\r?\n+/)
+    .map((line) => compactText(line))
+    .filter(Boolean)
+    .map((line) => {
+      const [method, ...descriptionParts] = line.split(/\s+[\-–—]\s+/);
+      return {
+        method: compactText(method),
+        description: compactText(descriptionParts.join(' - ')),
+      };
+    })
+    .filter((entry) => entry.method);
+}
+
+function decodeBase64UrlJson(rawValue) {
+  const source = compactText(rawValue);
+  if (!source) {
+    const error = new Error('reservation_payload_missing');
+    error.code = 'RESERVATION_PAYLOAD_MISSING';
+    throw error;
+  }
+
+  const normalized = source.replace(/-/g, '+').replace(/_/g, '/');
+  const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4));
+
+  try {
+    const decoded = Buffer.from(normalized + padding, 'base64').toString('utf8');
+    return JSON.parse(decoded);
+  } catch (error) {
+    const wrapped = new Error('reservation_payload_invalid');
+    wrapped.code = 'RESERVATION_PAYLOAD_INVALID';
+    wrapped.cause = error;
+    throw wrapped;
+  }
+}
+
+function mergeReservationPayloadWithSettings(payload, settings) {
+  const safePayload = payload && typeof payload === 'object' ? payload : {};
+  const safeSettings = settings && typeof settings === 'object' ? settings : DEFAULT_SETTINGS;
+  const paymentMethodsText = compactText(
+    safePayload.payment_methods_text ||
+      safePayload.paymentMethodsText ||
+      safeSettings.paymentMethodsText ||
+      '',
+  );
+
+  return {
+    ...safePayload,
+    payment_methods_text: paymentMethodsText,
+    payment_methods:
+      safePayload.payment_methods ||
+      safePayload.paymentMethods ||
+      paymentMethodsTextToStructured(paymentMethodsText),
+  };
+}
+
 function toSerializable(value) {
   if (value instanceof Date) return toIsoString(value);
   if (Array.isArray(value)) return value.map((item) => toSerializable(item));
@@ -283,6 +351,11 @@ function serializeSettings(row = {}) {
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(row.handoff_message || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
+    publicAppBaseUrl:
+      compactText(row.public_app_base_url || DEFAULT_SETTINGS.publicAppBaseUrl) || DEFAULT_SETTINGS.publicAppBaseUrl,
+    paymentMethodsText:
+      String(row.payment_methods_text || DEFAULT_SETTINGS.paymentMethodsText).trim() ||
+      DEFAULT_SETTINGS.paymentMethodsText,
     ownerContactOverride: compactText(row.owner_contact_override),
     ownerTestModeEnabled:
       row.owner_test_mode_enabled === undefined
@@ -358,6 +431,11 @@ function sanitizeSettingsPayload(payload = {}) {
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
+    publicAppBaseUrl:
+      compactText(payload.publicAppBaseUrl || DEFAULT_SETTINGS.publicAppBaseUrl) || DEFAULT_SETTINGS.publicAppBaseUrl,
+    paymentMethodsText:
+      String(payload.paymentMethodsText || DEFAULT_SETTINGS.paymentMethodsText).trim() ||
+      DEFAULT_SETTINGS.paymentMethodsText,
     ownerContactOverride: compactText(payload.ownerContactOverride),
     ownerTestModeEnabled: normalizeBoolean(payload.ownerTestModeEnabled, DEFAULT_SETTINGS.ownerTestModeEnabled),
     globalBotEnabled: normalizeBoolean(payload.globalBotEnabled, DEFAULT_SETTINGS.globalBotEnabled),
@@ -420,8 +498,32 @@ function settingsStatus(settings) {
   };
 }
 
+let agentSettingsColumnsEnsured = false;
+
+async function ensureAgentSettingsColumns() {
+  if (agentSettingsColumnsEnsured) return;
+  try {
+    await pool.query(
+      `
+        alter table if exists public.agent_settings
+          add column if not exists public_app_base_url text not null default '',
+          add column if not exists payment_methods_text text not null default $settings$
+${DEFAULT_SETTINGS.paymentMethodsText}
+$settings$
+      `,
+    );
+    agentSettingsColumnsEnsured = true;
+  } catch (error) {
+    if (String(error?.message || '').includes('relation "public.agent_settings" does not exist')) {
+      return;
+    }
+    throw error;
+  }
+}
+
 async function getAgentSettings() {
   try {
+    await ensureAgentSettingsColumns();
     const { rows } = await pool.query(
       `
         select
@@ -430,6 +532,8 @@ async function getAgentSettings() {
           tone_guidelines_extra,
           initial_message_template,
           handoff_message,
+          public_app_base_url,
+          payment_methods_text,
           owner_contact_override,
           owner_test_mode_enabled,
           global_bot_enabled,
@@ -466,6 +570,7 @@ async function getAgentSettings() {
 
 async function saveAgentSettings(payload) {
   const next = sanitizeSettingsPayload(payload);
+  await ensureAgentSettingsColumns();
   const { rows } = await pool.query(
     `
       insert into public.agent_settings (
@@ -474,6 +579,8 @@ async function saveAgentSettings(payload) {
         tone_guidelines_extra,
         initial_message_template,
         handoff_message,
+        public_app_base_url,
+        payment_methods_text,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -503,10 +610,10 @@ async function saveAgentSettings(payload) {
         $6,
         $7,
         $8,
-        $9::time,
-        $10::time,
-        $11,
-        $12,
+        $9,
+        $10,
+        $11::time,
+        $12::time,
         $13,
         $14,
         $15,
@@ -516,7 +623,9 @@ async function saveAgentSettings(payload) {
         $19,
         $20,
         $21,
-        $22
+        $22,
+        $23,
+        $24
       )
       on conflict (id)
       do update set
@@ -524,6 +633,8 @@ async function saveAgentSettings(payload) {
         tone_guidelines_extra = excluded.tone_guidelines_extra,
         initial_message_template = excluded.initial_message_template,
         handoff_message = excluded.handoff_message,
+        public_app_base_url = excluded.public_app_base_url,
+        payment_methods_text = excluded.payment_methods_text,
         owner_contact_override = excluded.owner_contact_override,
         owner_test_mode_enabled = excluded.owner_test_mode_enabled,
         global_bot_enabled = excluded.global_bot_enabled,
@@ -549,6 +660,8 @@ async function saveAgentSettings(payload) {
         tone_guidelines_extra,
         initial_message_template,
         handoff_message,
+        public_app_base_url,
+        payment_methods_text,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -574,6 +687,8 @@ async function saveAgentSettings(payload) {
       next.toneGuidelinesExtra,
       next.initialMessageTemplate,
       next.handoffMessage,
+      next.publicAppBaseUrl,
+      next.paymentMethodsText,
       next.ownerContactOverride || null,
       next.ownerTestModeEnabled,
       next.globalBotEnabled,
@@ -1238,6 +1353,30 @@ function createApp() {
   } catch (error) {
     const apiError = presentApiError(error);
     res.status(500).json({
+      message: apiError.message,
+      details: apiError.details,
+    });
+  }
+  });
+
+  app.get('/api/reservation-confirmation.pdf', async (req, res) => {
+  try {
+    const decodedPayload = decodeBase64UrlJson(req.query.payload);
+    const settings = await getAgentSettings();
+    const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
+    const buffer = buildReservationConfirmationPdf(payload);
+    const filename = buildReservationConfirmationFilename(payload);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(buffer);
+  } catch (error) {
+    const code = error?.code;
+    const status =
+      code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
+    const apiError = presentApiError(error);
+    res.status(status).json({
       message: apiError.message,
       details: apiError.details,
     });

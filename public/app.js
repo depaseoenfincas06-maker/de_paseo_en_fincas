@@ -100,6 +100,8 @@ const elements = {
     toneExtra: document.getElementById('settings-tone-extra'),
     initialMessage: document.getElementById('settings-initial-message'),
     handoffMessage: document.getElementById('settings-handoff-message'),
+    publicAppBaseUrl: document.getElementById('settings-public-app-base-url'),
+    paymentMethodsText: document.getElementById('settings-payment-methods-text'),
     ownerTestMode: document.getElementById('settings-owner-test-mode'),
     ownerOverride: document.getElementById('settings-owner-override'),
     globalBotEnabled: document.getElementById('settings-global-bot'),
@@ -373,6 +375,8 @@ function applySettingsToForm(settings) {
   elements.settings.toneExtra.value = settings.toneGuidelinesExtra || '';
   elements.settings.initialMessage.value = settings.initialMessageTemplate || '';
   elements.settings.handoffMessage.value = settings.handoffMessage || '';
+  elements.settings.publicAppBaseUrl.value = settings.publicAppBaseUrl || '';
+  elements.settings.paymentMethodsText.value = settings.paymentMethodsText || '';
   elements.settings.ownerTestMode.checked = settings.ownerTestModeEnabled === true;
   elements.settings.ownerOverride.value = settings.ownerContactOverride || '';
   elements.settings.globalBotEnabled.checked = settings.globalBotEnabled === true;
@@ -399,6 +403,8 @@ function readSettingsForm() {
     toneGuidelinesExtra: elements.settings.toneExtra.value,
     initialMessageTemplate: elements.settings.initialMessage.value,
     handoffMessage: elements.settings.handoffMessage.value,
+    publicAppBaseUrl: elements.settings.publicAppBaseUrl.value,
+    paymentMethodsText: elements.settings.paymentMethodsText.value,
     ownerTestModeEnabled: elements.settings.ownerTestMode.checked,
     ownerContactOverride: elements.settings.ownerOverride.value,
     globalBotEnabled: elements.settings.globalBotEnabled.checked,

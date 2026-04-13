@@ -282,6 +282,26 @@
                   ></textarea>
                   <small class="settings-help">Se usa cuando la conversación deja de ser atendida por el asistente.</small>
                 </label>
+                <label class="settings-field">
+                  <span>URL pública del dashboard / simulador</span>
+                  <input
+                    id="settings-public-app-base-url"
+                    name="publicAppBaseUrl"
+                    type="text"
+                    placeholder="https://tu-app.vercel.app"
+                  />
+                  <small class="settings-help">Se usa para generar el PDF de confirmación de reserva que se envía al cliente.</small>
+                </label>
+                <label class="settings-field">
+                  <span>Medios de pago para confirmación</span>
+                  <textarea
+                    id="settings-payment-methods-text"
+                    name="paymentMethodsText"
+                    rows="6"
+                    placeholder="Escribe un método por línea. Ejemplo: Bancolombia"
+                  ></textarea>
+                  <small class="settings-help">Escribe los medios de pago tal como quieres que aparezcan en la confirmación de reserva.</small>
+                </label>
               </section>
 
               <section class="settings-card">
