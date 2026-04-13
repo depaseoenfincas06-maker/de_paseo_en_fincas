@@ -419,26 +419,39 @@
                   ></textarea>
                   <small class="settings-help">Se usa como conocimiento operativo en QA y en confirmación.</small>
                 </label>
-                <label class="settings-field">
-                  <span>Documentos institucionales (JSON)</span>
-                  <textarea
-                    id="settings-company-documents"
-                    name="companyDocuments"
-                    rows="10"
-                    placeholder='[\n  {\n    "document_key": "rut",\n    "title": "RUT De Paseo en Fincas",\n    "description": "Registro Único Tributario de la empresa",\n    "url": "https://...",\n    "category": "legal",\n    "send_when_asked": true\n  }\n]'
-                  ></textarea>
-                  <small class="settings-help">Cada link debe incluir una descripción para que el agente sepa si es RUT, RNT, Cámara de Comercio u otro soporte.</small>
-                </label>
-                <label class="settings-field">
-                  <span>Medios de pago (JSON)</span>
-                  <textarea
-                    id="settings-payment-methods"
-                    name="paymentMethods"
-                    rows="8"
-                    placeholder='[\n  {\n    "method": "Bancolombia",\n    "description": "Transferencia o consignación",\n    "surcharge": ""\n  },\n  {\n    "method": "Tarjeta Crédito/Débito/PSE",\n    "description": "Pasarela digital",\n    "surcharge": "+5%"\n  }\n]'
-                  ></textarea>
-                  <small class="settings-help">Se usarán cuando el cliente ya esté en proceso de confirmación de reserva.</small>
-                </label>
+                <div class="settings-field">
+                  <span>Documentos institucionales</span>
+                  <div id="settings-company-documents-list" class="settings-structured-list"></div>
+                  <div class="settings-structured-actions">
+                    <button
+                      id="settings-company-documents-add"
+                      type="button"
+                      class="secondary-btn"
+                    >
+                      Agregar documento
+                    </button>
+                  </div>
+                  <small class="settings-help">
+                    Agrega un link por documento. La descripción es obligatoria para que el agente
+                    entienda si el enlace corresponde a RUT, RNT, Cámara de Comercio u otro soporte.
+                  </small>
+                </div>
+                <div class="settings-field">
+                  <span>Medios de pago</span>
+                  <div id="settings-payment-methods-list" class="settings-structured-list"></div>
+                  <div class="settings-structured-actions">
+                    <button
+                      id="settings-payment-methods-add"
+                      type="button"
+                      class="secondary-btn"
+                    >
+                      Agregar medio de pago
+                    </button>
+                  </div>
+                  <small class="settings-help">
+                    Estos métodos se usarán cuando el cliente ya esté en proceso de confirmación de reserva.
+                  </small>
+                </div>
               </section>
 
               <section class="settings-card">

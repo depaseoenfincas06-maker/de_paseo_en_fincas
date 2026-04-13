@@ -108,8 +108,10 @@ const elements = {
     initialMessage: document.getElementById('settings-initial-message'),
     handoffMessage: document.getElementById('settings-handoff-message'),
     companyKnowledge: document.getElementById('settings-company-knowledge'),
-    companyDocuments: document.getElementById('settings-company-documents'),
-    paymentMethods: document.getElementById('settings-payment-methods'),
+    companyDocumentsList: document.getElementById('settings-company-documents-list'),
+    companyDocumentsAdd: document.getElementById('settings-company-documents-add'),
+    paymentMethodsList: document.getElementById('settings-payment-methods-list'),
+    paymentMethodsAdd: document.getElementById('settings-payment-methods-add'),
     ownerTestMode: document.getElementById('settings-owner-test-mode'),
     ownerOverride: document.getElementById('settings-owner-override'),
     globalBotEnabled: document.getElementById('settings-global-bot'),
@@ -144,6 +146,15 @@ function compactText(value) {
   return String(value ?? '').trim();
 }
 
+function slugifyKey(value) {
+  return compactText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
 function stringifyStructuredValue(value, fallback = '[]') {
   if (value === undefined || value === null || value === '') return fallback;
   try {
@@ -161,6 +172,253 @@ function parseStructuredJson(rawValue, fallback, label) {
   } catch (error) {
     throw new Error(`El campo "${label}" debe ser JSON válido.`);
   }
+}
+
+function normalizeCompanyDocumentItem(entry = {}) {
+  return {
+    title: compactText(entry.title || entry.name),
+    description: compactText(entry.description || entry.summary),
+    url: compactText(entry.url || entry.link),
+    category: compactText(entry.category || 'general') || 'general',
+    send_when_asked: entry.send_when_asked !== false,
+  };
+}
+
+function buildCompanyDocumentItem(document = {}) {
+  const normalized = normalizeCompanyDocumentItem(document);
+
+  return `
+    <article class="settings-structured-item" data-company-document-item>
+      <div class="settings-structured-item__head">
+        <strong>Documento</strong>
+        <button type="button" class="secondary-btn secondary-btn--danger" data-remove-company-document>
+          Eliminar
+        </button>
+      </div>
+      <div class="settings-row settings-row--double">
+        <label class="settings-field">
+          <span>Nombre visible</span>
+          <input
+            type="text"
+            data-company-document-title
+            placeholder="Ejemplo: RUT De Paseo en Fincas"
+            value="${escapeHtml(normalized.title)}"
+          />
+        </label>
+        <label class="settings-field">
+          <span>Categoría</span>
+          <input
+            type="text"
+            data-company-document-category
+            placeholder="legal, tributario, comercial..."
+            value="${escapeHtml(normalized.category)}"
+          />
+        </label>
+      </div>
+      <label class="settings-field">
+        <span>Descripción para el agente</span>
+        <textarea
+          rows="3"
+          data-company-document-description
+          placeholder="Ejemplo: Registro Único Tributario de la empresa para cuando el cliente pida soporte tributario."
+        >${escapeHtml(normalized.description)}</textarea>
+      </label>
+      <label class="settings-field">
+        <span>Link del documento</span>
+        <input
+          type="url"
+          data-company-document-url
+          placeholder="https://..."
+          value="${escapeHtml(normalized.url)}"
+        />
+      </label>
+      <label class="settings-field settings-field--inline settings-toggle">
+        <span>Compartir cuando el cliente lo pida</span>
+        <input
+          type="checkbox"
+          data-company-document-send
+          ${normalized.send_when_asked ? 'checked' : ''}
+        />
+      </label>
+    </article>
+  `;
+}
+
+function renderCompanyDocumentsEditor(documents = []) {
+  const normalized = Array.isArray(documents)
+    ? documents.map((entry) => normalizeCompanyDocumentItem(entry)).filter(Boolean)
+    : [];
+
+  if (!normalized.length) {
+    elements.settings.companyDocumentsList.innerHTML = `
+      <div class="settings-structured-empty">
+        <strong>Aún no hay documentos cargados.</strong>
+        <span>Agrega aquí el RUT, RNT, Cámara de Comercio u otros links oficiales.</span>
+      </div>
+    `;
+    return;
+  }
+
+  elements.settings.companyDocumentsList.innerHTML = normalized
+    .map((entry) => buildCompanyDocumentItem(entry))
+    .join('');
+}
+
+function readCompanyDocumentsEditor({ silent = false } = {}) {
+  const nodes = Array.from(
+    elements.settings.companyDocumentsList.querySelectorAll('[data-company-document-item]'),
+  );
+
+  const items = nodes
+    .map((node, index) => {
+      const title = compactText(node.querySelector('[data-company-document-title]')?.value);
+      const description = compactText(node.querySelector('[data-company-document-description]')?.value);
+      const url = compactText(node.querySelector('[data-company-document-url]')?.value);
+      const category = compactText(node.querySelector('[data-company-document-category]')?.value) || 'general';
+      const sendWhenAsked = node.querySelector('[data-company-document-send]')?.checked !== false;
+
+      if (!title && !description && !url) return null;
+
+      if (!silent && (!description || !url)) {
+        throw new Error(
+          `Cada documento institucional debe tener al menos descripción y URL. Revisa el documento #${index + 1}.`,
+        );
+      }
+
+      return {
+        title,
+        description,
+        url,
+        category,
+        send_when_asked: sendWhenAsked,
+      };
+    })
+    .filter(Boolean);
+
+  const keyCount = new Map();
+  return items.map((item, index) => {
+    const baseKey =
+      slugifyKey(item.title) ||
+      slugifyKey(item.category) ||
+      slugifyKey(item.description.slice(0, 40)) ||
+      `documento_${index + 1}`;
+    const nextCount = (keyCount.get(baseKey) || 0) + 1;
+    keyCount.set(baseKey, nextCount);
+
+    return {
+      document_key: nextCount === 1 ? baseKey : `${baseKey}_${nextCount}`,
+      ...item,
+    };
+  });
+}
+
+function appendCompanyDocumentItem(document = {}) {
+  const current = readCompanyDocumentsEditor({ silent: true });
+  current.push(normalizeCompanyDocumentItem(document));
+  renderCompanyDocumentsEditor(current);
+}
+
+function normalizePaymentMethodItem(entry = {}) {
+  return {
+    method: compactText(entry.method || entry.name || entry.title),
+    description: compactText(entry.description || entry.details || entry.note),
+    surcharge: compactText(entry.surcharge || entry.recargo),
+  };
+}
+
+function buildPaymentMethodItem(method = {}) {
+  const normalized = normalizePaymentMethodItem(method);
+
+  return `
+    <article class="settings-structured-item" data-payment-method-item>
+      <div class="settings-structured-item__head">
+        <strong>Medio de pago</strong>
+        <button type="button" class="secondary-btn secondary-btn--danger" data-remove-payment-method>
+          Eliminar
+        </button>
+      </div>
+      <div class="settings-row settings-row--double">
+        <label class="settings-field">
+          <span>Método</span>
+          <input
+            type="text"
+            data-payment-method-name
+            placeholder="Ejemplo: Bancolombia"
+            value="${escapeHtml(normalized.method)}"
+          />
+        </label>
+        <label class="settings-field">
+          <span>Recargo</span>
+          <input
+            type="text"
+            data-payment-method-surcharge
+            placeholder="Ejemplo: +5%"
+            value="${escapeHtml(normalized.surcharge)}"
+          />
+        </label>
+      </div>
+      <label class="settings-field">
+        <span>Descripción</span>
+        <textarea
+          rows="3"
+          data-payment-method-description
+          placeholder="Ejemplo: Transferencia o consignación."
+        >${escapeHtml(normalized.description)}</textarea>
+      </label>
+    </article>
+  `;
+}
+
+function renderPaymentMethodsEditor(methods = []) {
+  const normalized = Array.isArray(methods)
+    ? methods.map((entry) => normalizePaymentMethodItem(entry)).filter(Boolean)
+    : [];
+
+  if (!normalized.length) {
+    elements.settings.paymentMethodsList.innerHTML = `
+      <div class="settings-structured-empty">
+        <strong>Aún no hay medios de pago cargados.</strong>
+        <span>Agrega aquí transferencias, pasarela, billeteras o pagos presenciales.</span>
+      </div>
+    `;
+    return;
+  }
+
+  elements.settings.paymentMethodsList.innerHTML = normalized
+    .map((entry) => buildPaymentMethodItem(entry))
+    .join('');
+}
+
+function readPaymentMethodsEditor({ silent = false } = {}) {
+  const nodes = Array.from(
+    elements.settings.paymentMethodsList.querySelectorAll('[data-payment-method-item]'),
+  );
+
+  return nodes
+    .map((node, index) => {
+      const method = compactText(node.querySelector('[data-payment-method-name]')?.value);
+      const description = compactText(node.querySelector('[data-payment-method-description]')?.value);
+      const surcharge = compactText(node.querySelector('[data-payment-method-surcharge]')?.value);
+
+      if (!method && !description && !surcharge) return null;
+
+      if (!silent && !method) {
+        throw new Error(`Cada medio de pago debe tener al menos el nombre del método. Revisa el registro #${index + 1}.`);
+      }
+
+      return {
+        method,
+        description,
+        surcharge,
+      };
+    })
+    .filter(Boolean);
+}
+
+function appendPaymentMethodItem(method = {}) {
+  const current = readPaymentMethodsEditor({ silent: true });
+  current.push(normalizePaymentMethodItem(method));
+  renderPaymentMethodsEditor(current);
 }
 
 function enqueueConversationSend(conversationId, task) {
@@ -422,8 +680,8 @@ function applySettingsToForm(settings) {
   elements.settings.initialMessage.value = settings.initialMessageTemplate || '';
   elements.settings.handoffMessage.value = settings.handoffMessage || '';
   elements.settings.companyKnowledge.value = settings.companyKnowledge || '';
-  elements.settings.companyDocuments.value = stringifyStructuredValue(settings.companyDocuments, '[]');
-  elements.settings.paymentMethods.value = stringifyStructuredValue(settings.paymentMethods, '[]');
+  renderCompanyDocumentsEditor(settings.companyDocuments || []);
+  renderPaymentMethodsEditor(settings.paymentMethods || []);
   elements.settings.ownerTestMode.checked = settings.ownerTestModeEnabled === true;
   elements.settings.ownerOverride.value = settings.ownerContactOverride || '';
   elements.settings.globalBotEnabled.checked = settings.globalBotEnabled === true;
@@ -459,16 +717,8 @@ function readSettingsForm() {
     initialMessageTemplate: elements.settings.initialMessage.value,
     handoffMessage: elements.settings.handoffMessage.value,
     companyKnowledge: elements.settings.companyKnowledge.value,
-    companyDocuments: parseStructuredJson(
-      elements.settings.companyDocuments.value,
-      [],
-      'Documentos institucionales',
-    ),
-    paymentMethods: parseStructuredJson(
-      elements.settings.paymentMethods.value,
-      [],
-      'Medios de pago',
-    ),
+    companyDocuments: readCompanyDocumentsEditor(),
+    paymentMethods: readPaymentMethodsEditor(),
     ownerTestModeEnabled: elements.settings.ownerTestMode.checked,
     ownerContactOverride: elements.settings.ownerOverride.value,
     globalBotEnabled: elements.settings.globalBotEnabled.checked,
@@ -1584,6 +1834,41 @@ function bindSettings() {
   elements.settings.save.addEventListener('click', (event) => {
     event.preventDefault();
     void saveSettings();
+  });
+  elements.settings.companyDocumentsAdd.addEventListener('click', () => {
+    appendCompanyDocumentItem({
+      category: 'general',
+      send_when_asked: true,
+    });
+    markSettingsDirty();
+  });
+  elements.settings.companyDocumentsList.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('[data-remove-company-document]');
+    if (!removeButton) return;
+
+    const item = removeButton.closest('[data-company-document-item]');
+    item?.remove();
+    if (!elements.settings.companyDocumentsList.querySelector('[data-company-document-item]')) {
+      renderCompanyDocumentsEditor([]);
+    }
+    markSettingsDirty();
+  });
+  elements.settings.paymentMethodsAdd.addEventListener('click', () => {
+    appendPaymentMethodItem({
+      surcharge: '',
+    });
+    markSettingsDirty();
+  });
+  elements.settings.paymentMethodsList.addEventListener('click', (event) => {
+    const removeButton = event.target.closest('[data-remove-payment-method]');
+    if (!removeButton) return;
+
+    const item = removeButton.closest('[data-payment-method-item]');
+    item?.remove();
+    if (!elements.settings.paymentMethodsList.querySelector('[data-payment-method-item]')) {
+      renderPaymentMethodsEditor([]);
+    }
+    markSettingsDirty();
   });
 }
 

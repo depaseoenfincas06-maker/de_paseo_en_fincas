@@ -1572,6 +1572,89 @@ function createApp() {
     }
   });
 
+  app.post('/api/whatsapp/pre-upload', async (req, res) => {
+    const WA_TOKEN = compactText(process.env.WHATSAPP_ACCESS_TOKEN);
+    const WA_PHONE_ID = compactText(process.env.KAPSO_WHATSAPP_PHONE_NUMBER_ID);
+
+    if (!WA_TOKEN || !WA_PHONE_ID) {
+      res.status(500).json({ ok: false, message: 'Missing WHATSAPP_ACCESS_TOKEN or KAPSO_WHATSAPP_PHONE_NUMBER_ID' });
+      return;
+    }
+
+    const assets = Array.isArray(req.body?.assets) ? req.body.assets : [];
+    if (!assets.length) {
+      res.json({ ok: true, results: [], uploaded: 0, failed: 0 });
+      return;
+    }
+
+    const GRAPH_URL = `https://graph.facebook.com/v21.0/${WA_PHONE_ID}/media`;
+    const CONCURRENCY = 5;
+
+    async function uploadSingleAsset(asset) {
+      const downloadUrl = compactText(asset.download_url);
+      const sourceUrl = compactText(asset.source_url) || downloadUrl;
+      if (!downloadUrl) return { download_url: downloadUrl, ok: false, error: 'missing_download_url' };
+
+      try {
+        const file = await downloadAssetBuffer(downloadUrl, { sourceUrl });
+
+        const boundary = '----wa-preupload-' + Date.now().toString(16) + '-' + Math.random().toString(16).slice(2);
+        const fieldParts = [
+          `--${boundary}\r\nContent-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n`,
+          `--${boundary}\r\nContent-Disposition: form-data; name="type"\r\n\r\n${file.contentType}\r\n`,
+          `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.filename}"\r\nContent-Type: ${file.contentType}\r\n\r\n`,
+        ];
+        const head = Buffer.from(fieldParts.join(''), 'utf8');
+        const tail = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
+        const body = Buffer.concat([head, file.buf, tail]);
+
+        const waResp = await fetch(GRAPH_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${WA_TOKEN}`,
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          },
+          body,
+        });
+        const waData = await waResp.json();
+
+        if (!waData.id) {
+          return { download_url: downloadUrl, source_url: sourceUrl, ok: false, error: waData.error?.message || 'no_media_id' };
+        }
+
+        return {
+          download_url: downloadUrl,
+          source_url: sourceUrl,
+          ok: true,
+          media_id: waData.id,
+          mime_type: file.contentType,
+          filename: file.filename,
+          size: file.buf.length,
+        };
+      } catch (error) {
+        return { download_url: downloadUrl, source_url: sourceUrl, ok: false, error: String(error?.message || 'upload_failed') };
+      }
+    }
+
+    try {
+      const results = [];
+      for (let i = 0; i < assets.length; i += CONCURRENCY) {
+        const batch = assets.slice(i, i + CONCURRENCY);
+        const batchResults = await Promise.all(batch.map(uploadSingleAsset));
+        results.push(...batchResults);
+      }
+
+      const uploaded = results.filter((r) => r.ok).length;
+      const failed = results.filter((r) => !r.ok).length;
+      console.log(`[pre-upload] ${uploaded} uploaded, ${failed} failed out of ${assets.length} assets`);
+
+      res.json({ ok: true, results, uploaded, failed });
+    } catch (error) {
+      const apiError = presentApiError(error);
+      res.status(500).json({ ok: false, message: apiError.message });
+    }
+  });
+
   app.post('/api/conversations', async (_req, res) => {
     try {
       const record = await createSimulatorConversationRecord();
