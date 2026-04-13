@@ -284,57 +284,6 @@
                 </label>
               </section>
 
-              <section class="settings-card settings-card--wide">
-                <div class="settings-card__head">
-                  <div>
-                    <h3>Playbook general del agente</h3>
-                    <p class="settings-card__subtext">
-                      Estos textos complementan el prompt base de los agentes sin reemplazar las reglas del sistema.
-                    </p>
-                  </div>
-                </div>
-                <label class="settings-field">
-                  <span>Complemento global para todos los agentes</span>
-                  <textarea
-                    id="settings-global-prompt-addendum"
-                    name="globalPromptAddendum"
-                    rows="5"
-                    placeholder="Aquí puedes agregar instrucciones globales de tono, marca o política comercial."
-                  ></textarea>
-                  <small class="settings-help">Se inyecta en todas las etapas del agente.</small>
-                </label>
-                <div class="settings-row settings-row--double">
-                  <label class="settings-field">
-                    <span>Complemento de QUALIFYING</span>
-                    <textarea id="settings-qualifying-prompt-addendum" name="qualifyingPromptAddendum" rows="4"></textarea>
-                  </label>
-                  <label class="settings-field">
-                    <span>Complemento de OFFERING</span>
-                    <textarea id="settings-offering-prompt-addendum" name="offeringPromptAddendum" rows="4"></textarea>
-                  </label>
-                </div>
-                <div class="settings-row settings-row--double">
-                  <label class="settings-field">
-                    <span>Complemento de VERIFYING_AVAILABILITY</span>
-                    <textarea id="settings-verifying-prompt-addendum" name="verifyingAvailabilityPromptAddendum" rows="4"></textarea>
-                  </label>
-                  <label class="settings-field">
-                    <span>Complemento de QA</span>
-                    <textarea id="settings-qa-prompt-addendum" name="qaPromptAddendum" rows="4"></textarea>
-                  </label>
-                </div>
-                <div class="settings-row settings-row--double">
-                  <label class="settings-field">
-                    <span>Complemento de HITL</span>
-                    <textarea id="settings-hitl-prompt-addendum" name="hitlPromptAddendum" rows="4"></textarea>
-                  </label>
-                  <label class="settings-field">
-                    <span>Complemento de CONFIRMING_RESERVATION</span>
-                    <textarea id="settings-confirming-prompt-addendum" name="confirmingReservationPromptAddendum" rows="4"></textarea>
-                  </label>
-                </div>
-              </section>
-
               <section class="settings-card">
                 <div class="settings-card__head">
                   <div>
@@ -398,60 +347,6 @@
                   ></textarea>
                   <small class="settings-help">Puedes usar una lista simple de lugares o una explicación breve.</small>
                 </label>
-              </section>
-
-              <section class="settings-card settings-card--wide">
-                <div class="settings-card__head">
-                  <div>
-                    <h3>Información institucional y pagos</h3>
-                    <p class="settings-card__subtext">
-                      Aquí guardas el conocimiento de empresa que el agente debe consultar y los links oficiales que puede compartir.
-                    </p>
-                  </div>
-                </div>
-                <label class="settings-field">
-                  <span>Información general de la empresa</span>
-                  <textarea
-                    id="settings-company-knowledge"
-                    name="companyKnowledge"
-                    rows="8"
-                    placeholder="Sedes, historia, representante legal, redes oficiales, información institucional y cualquier contexto fijo de la empresa."
-                  ></textarea>
-                  <small class="settings-help">Se usa como conocimiento operativo en QA y en confirmación.</small>
-                </label>
-                <div class="settings-field">
-                  <span>Documentos institucionales</span>
-                  <div id="settings-company-documents-list" class="settings-structured-list"></div>
-                  <div class="settings-structured-actions">
-                    <button
-                      id="settings-company-documents-add"
-                      type="button"
-                      class="secondary-btn"
-                    >
-                      Agregar documento
-                    </button>
-                  </div>
-                  <small class="settings-help">
-                    Agrega un link por documento. La descripción es obligatoria para que el agente
-                    entienda si el enlace corresponde a RUT, RNT, Cámara de Comercio u otro soporte.
-                  </small>
-                </div>
-                <div class="settings-field">
-                  <span>Medios de pago</span>
-                  <div id="settings-payment-methods-list" class="settings-structured-list"></div>
-                  <div class="settings-structured-actions">
-                    <button
-                      id="settings-payment-methods-add"
-                      type="button"
-                      class="secondary-btn"
-                    >
-                      Agregar medio de pago
-                    </button>
-                  </div>
-                  <small class="settings-help">
-                    Estos métodos se usarán cuando el cliente ya esté en proceso de confirmación de reserva.
-                  </small>
-                </div>
               </section>
 
               <section class="settings-card">

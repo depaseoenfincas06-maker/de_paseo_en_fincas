@@ -1422,6 +1422,79 @@
       "typeVersion": 2.3,
       "position": [
         1280,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "pLyrdDO3mneaCp7m",
+          "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+          "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "aee41546-aa86-4929-870c-758a10ca6b8d",
+              "displayName": "chatwoot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.chatwoot_id }}"
+            },
+            {
+              "id": "900962f8-7c1e-4819-b75e-95f353dd17d4",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.outbound_message }}"
+            },
+            {
+              "id": "4ed907af-7db7-41a5-a1de-03f025ffcf48",
+              "displayName": "private",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "boolean",
+              "removed": false,
+              "boolValue": false
+            },
+            {
+              "id": "7f125067-d965-43f4-91ad-6f23e7cfbd54",
+              "displayName": "outbound_sequence_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false,
+              "stringValue": "={{ $json.outbound_sequence_json || '[]' }}"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "62761566-3357-409c-b75e-9d346efc6728",
+      "name": "Send outbound via Chatwoot",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
         80
       ]
     },
@@ -1829,8 +1902,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1760,
-        520
+        2128,
+        -48
       ]
     },
     {
@@ -1864,8 +1937,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        2000,
-        520
+        2384,
+        48
       ]
     },
     {
@@ -1935,8 +2008,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2480,
-        520
+        3072,
+        320
       ]
     },
     {
@@ -1975,8 +2048,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        2240,
-        520
+        2624,
+        64
       ],
       "onError": "continueRegularOutput"
     },
@@ -2647,442 +2720,6 @@
         3344,
         832
       ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
-      },
-      "id": "7944350a-8295-4a44-b46f-1739b8222961",
-      "name": "Send texts & extract media",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1520,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "623e97f3-92d0-467e-95e2-75a7825f26ea",
-      "name": "Loop outbound items",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        1760,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "7a0309af-8874-4b70-b50c-cbd92d4cfa37",
-              "leftValue": "={{ $json.outbound_item_type === 'media_asset' }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "5c2e5c1e-1408-425a-94e7-568bdef0fe1a",
-      "name": "Is media outbound item?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        2000,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.download_url }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          },
-          "timeout": 60000
-        }
-      },
-      "id": "83e3adfb-546f-4e57-a82f-901178e82b33",
-      "name": "Download media asset",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2240,
-        -120
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "waitBetweenTries": 1500
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "89e6763e-6562-4a1d-94a2-c472a2d3d751",
-              "leftValue": "={{ Boolean($binary?.data) }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "a5617901-5232-4984-a7ee-719da607e9cc",
-      "name": "Media download ok?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        2480,
-        -120
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($('Loop outbound items').item.json.chatwoot_account_id || \"1\") + '/conversations/' + String($('Loop outbound items').item.json.chatwoot_id) + '/messages' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "api_access_token",
-              "value": "={{ $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-            },
-            {
-              "name": "Accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formData",
-              "name": "content",
-              "value": "={{ $('Loop outbound items').item.json.send_caption === true ? String($('Loop outbound items').item.json.caption || '') : '' }}"
-            },
-            {
-              "parameterType": "formData",
-              "name": "message_type",
-              "value": "outgoing"
-            },
-            {
-              "parameterType": "formData",
-              "name": "private",
-              "value": "={{ $('Loop outbound items').item.json.private === true ? 'true' : 'false' }}"
-            },
-            {
-              "parameterType": "formBinaryData",
-              "name": "attachments[]",
-              "inputDataFieldName": "data"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 120000
-        }
-      },
-      "id": "35cc3225-ff92-4503-8deb-b0169f9f5d66",
-      "name": "Upload media to Chatwoot",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2720,
-        -240
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "waitBetweenTries": 1500
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "54a8d2b6-8904-4b52-a7fb-ed49e0a3a70f",
-              "leftValue": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "ff31686c-414c-4e9d-8456-bbb12f9ddb9d",
-      "name": "Media upload ok?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        2960,
-        -240
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "bb850f91-df0a-4988-a799-7658605cb981",
-              "leftValue": "={{ Boolean(String($('Loop outbound items').item.json.media_relay_base_url || '').trim()) }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "e866b767-b095-4934-86af-e47c983f5156",
-      "name": "Relay configured?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        2720,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ String($('Loop outbound items').item.json.media_relay_base_url || '').replace(/\\/$/, '') + '/api/chatwoot/send-drive-asset' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n          chatwoot_id: $('Loop outbound items').item.json.chatwoot_id,\n          chatwoot_base_url: \"https://chatwoot-9qe1j-u48275.vm.elestio.app\",\n          chatwoot_account_id: $('Loop outbound items').item.json.chatwoot_account_id || \"1\",\n          chatwoot_api_token: $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\",\n          download_url: $('Loop outbound items').item.json.download_url,\n          source_url: $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url,\n          property_title: $('Loop outbound items').item.json.property_title || null,\n          caption: $('Loop outbound items').item.json.send_caption === true ? String($('Loop outbound items').item.json.caption || '') : '',\n          private: $('Loop outbound items').item.json.private === true\n        }) }}",
-        "options": {
-          "timeout": 60000
-        }
-      },
-      "id": "f735e03d-e708-465a-9527-45151067b17e",
-      "name": "Send media via relay",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2960,
-        0
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "waitBetweenTries": 1500
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "d1af2d19-a1ec-4c2b-9e70-c425fed9aef8",
-              "leftValue": "={{ $json.ok === true }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "f14c63f7-b46d-46db-b927-d04c5902ba89",
-      "name": "Media relay ok?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        3200,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($('Loop outbound items').item.json.chatwoot_account_id || \"1\") + '/conversations/' + String($('Loop outbound items').item.json.chatwoot_id) + '/messages' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "api_access_token",
-              "value": "={{ $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: 'No pude adjuntar uno de los assets de ' + String($('Loop outbound items').item.json.property_title || 'la finca') + ' en este momento. Te comparto el enlace:\\n' + String($('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || ''), message_type: 'outgoing', private: $('Loop outbound items').item.json.private === true }) }}",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "9601e6e4-92d2-47bc-a435-f7b52ebb75d0",
-      "name": "Send media fallback text",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3440,
-        0
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "waitBetweenTries": 1500
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "6008b0e9-8f31-43f5-acc8-60e2cd70c706",
-              "leftValue": "={{ $json.outbound_item_type === 'text' }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "461e4ab2-8769-4a76-b8e0-8e43930e0f44",
-      "name": "Is text outbound item?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        2240,
-        280
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($json.chatwoot_account_id || \"1\") + '/conversations/' + String($json.chatwoot_id) + '/messages' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "api_access_token",
-              "value": "={{ $json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: String($json.content || '').trim(), message_type: 'outgoing', private: $json.private === true }) }}",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "40275c65-6dc6-49bc-8338-23e3b2183b6b",
-      "name": "Send Chatwoot text direct",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2720,
-        280
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "waitBetweenTries": 1500
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nawait new Promise((resolve) => setTimeout(resolve, 350));\nreturn items;"
-      },
-      "id": "99a28a2d-29c4-4183-84be-5ed6f5b72315",
-      "name": "Pause outbound item",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        3680,
-        120
-      ]
     }
   ],
   "connections": {
@@ -3463,11 +3100,22 @@
       "main": [
         [
           {
-            "node": "Send texts & extract media",
+            "node": "Send outbound via Chatwoot",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "Prepare selection notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send outbound via Chatwoot": {
+      "main": [
         [
           {
             "node": "Prepare selection notifications",
@@ -4030,209 +3678,6 @@
         [
           {
             "node": "Execution Data1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send texts & extract media": {
-      "main": [
-        [
-          {
-            "node": "Loop outbound items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop outbound items": {
-      "main": [
-        [
-          {
-            "node": "Prepare selection notifications",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Is media outbound item?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is media outbound item?": {
-      "main": [
-        [
-          {
-            "node": "Download media asset",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Is text outbound item?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download media asset": {
-      "main": [
-        [
-          {
-            "node": "Media download ok?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Media download ok?": {
-      "main": [
-        [
-          {
-            "node": "Upload media to Chatwoot",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Relay configured?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload media to Chatwoot": {
-      "main": [
-        [
-          {
-            "node": "Media upload ok?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Media upload ok?": {
-      "main": [
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Relay configured?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Relay configured?": {
-      "main": [
-        [
-          {
-            "node": "Send media via relay",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send media fallback text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send media via relay": {
-      "main": [
-        [
-          {
-            "node": "Media relay ok?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Media relay ok?": {
-      "main": [
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send media fallback text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send media fallback text": {
-      "main": [
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Is text outbound item?": {
-      "main": [
-        [
-          {
-            "node": "Send Chatwoot text direct",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Chatwoot text direct": {
-      "main": [
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Pause outbound item": {
-      "main": [
-        [
-          {
-            "node": "Loop outbound items",
             "type": "main",
             "index": 0
           }
@@ -5853,6 +5298,79 @@
         "typeVersion": 2.3,
         "position": [
           1280,
+          -112
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "pLyrdDO3mneaCp7m",
+            "cachedResultName": "Chatwoot Outbound Sender - De Paseo en Fincas",
+            "cachedResultUrl": "/workflow/pLyrdDO3mneaCp7m"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "aee41546-aa86-4929-870c-758a10ca6b8d",
+                "displayName": "chatwoot_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.chatwoot_id }}"
+              },
+              {
+                "id": "900962f8-7c1e-4819-b75e-95f353dd17d4",
+                "displayName": "message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.outbound_message }}"
+              },
+              {
+                "id": "4ed907af-7db7-41a5-a1de-03f025ffcf48",
+                "displayName": "private",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "boolean",
+                "removed": false,
+                "boolValue": false
+              },
+              {
+                "id": "7f125067-d965-43f4-91ad-6f23e7cfbd54",
+                "displayName": "outbound_sequence_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false,
+                "stringValue": "={{ $json.outbound_sequence_json || '[]' }}"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "62761566-3357-409c-b75e-9d346efc6728",
+        "name": "Send outbound via Chatwoot",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          1424,
           80
         ]
       },
@@ -6260,8 +5778,8 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          1760,
-          520
+          2128,
+          -48
         ]
       },
       {
@@ -6295,8 +5813,8 @@
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
         "position": [
-          2000,
-          520
+          2384,
+          48
         ]
       },
       {
@@ -6366,8 +5884,8 @@
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
         "position": [
-          2480,
-          520
+          3072,
+          320
         ]
       },
       {
@@ -6406,8 +5924,8 @@
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.2,
         "position": [
-          2240,
-          520
+          2624,
+          64
         ],
         "onError": "continueRegularOutput"
       },
@@ -7078,442 +6596,6 @@
           3344,
           832
         ]
-      },
-      {
-        "parameters": {
-          "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
-        },
-        "id": "3d13ce61-94cc-4ff0-b75f-de445c747810",
-        "name": "Send texts & extract media",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          1520,
-          80
-        ]
-      },
-      {
-        "parameters": {
-          "options": {}
-        },
-        "id": "f0be474a-aad4-4274-9417-9bb652b924dc",
-        "name": "Loop outbound items",
-        "type": "n8n-nodes-base.splitInBatches",
-        "typeVersion": 3,
-        "position": [
-          1760,
-          80
-        ]
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "4996cfaa-6079-427e-b902-ce8f585c059a",
-                "leftValue": "={{ $json.outbound_item_type === 'media_asset' }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "4446d6c4-4654-4d2d-bf08-c4eb3fce24c3",
-        "name": "Is media outbound item?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          2000,
-          80
-        ]
-      },
-      {
-        "parameters": {
-          "url": "={{ $json.download_url }}",
-          "options": {
-            "response": {
-              "response": {
-                "responseFormat": "file"
-              }
-            },
-            "timeout": 60000
-          }
-        },
-        "id": "06b4b6be-d470-4851-a724-4c08af41d12d",
-        "name": "Download media asset",
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          2240,
-          -120
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "waitBetweenTries": 1500
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "ba832008-45b4-4de0-ad74-82d0b2afeb7d",
-                "leftValue": "={{ Boolean($binary?.data) }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "72a3ff29-f39f-4f3d-94c7-ddbf9776b2bf",
-        "name": "Media download ok?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          2480,
-          -120
-        ]
-      },
-      {
-        "parameters": {
-          "method": "POST",
-          "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($('Loop outbound items').item.json.chatwoot_account_id || \"1\") + '/conversations/' + String($('Loop outbound items').item.json.chatwoot_id) + '/messages' }}",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "api_access_token",
-                "value": "={{ $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-              },
-              {
-                "name": "Accept",
-                "value": "application/json"
-              }
-            ]
-          },
-          "sendBody": true,
-          "contentType": "multipart-form-data",
-          "bodyParameters": {
-            "parameters": [
-              {
-                "parameterType": "formData",
-                "name": "content",
-                "value": "={{ $('Loop outbound items').item.json.send_caption === true ? String($('Loop outbound items').item.json.caption || '') : '' }}"
-              },
-              {
-                "parameterType": "formData",
-                "name": "message_type",
-                "value": "outgoing"
-              },
-              {
-                "parameterType": "formData",
-                "name": "private",
-                "value": "={{ $('Loop outbound items').item.json.private === true ? 'true' : 'false' }}"
-              },
-              {
-                "parameterType": "formBinaryData",
-                "name": "attachments[]",
-                "inputDataFieldName": "data"
-              }
-            ]
-          },
-          "options": {
-            "timeout": 120000
-          }
-        },
-        "id": "57dbac44-ab90-4623-8c4b-c76dc8dee195",
-        "name": "Upload media to Chatwoot",
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          2720,
-          -240
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "waitBetweenTries": 1500
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "80144102-bf22-4218-849d-89cfbce73d46",
-                "leftValue": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "3dfc7065-a082-418d-85d6-9b9fa2bfe225",
-        "name": "Media upload ok?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          2960,
-          -240
-        ]
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "c0073314-eb9c-4cbd-9e31-8e6215127a89",
-                "leftValue": "={{ Boolean(String($('Loop outbound items').item.json.media_relay_base_url || '').trim()) }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "a6fa3ee2-6008-4355-88b3-b9ec6095d14a",
-        "name": "Relay configured?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          2720,
-          0
-        ]
-      },
-      {
-        "parameters": {
-          "method": "POST",
-          "url": "={{ String($('Loop outbound items').item.json.media_relay_base_url || '').replace(/\\/$/, '') + '/api/chatwoot/send-drive-asset' }}",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "content-type",
-                "value": "application/json"
-              }
-            ]
-          },
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({\n          chatwoot_id: $('Loop outbound items').item.json.chatwoot_id,\n          chatwoot_base_url: \"https://chatwoot-9qe1j-u48275.vm.elestio.app\",\n          chatwoot_account_id: $('Loop outbound items').item.json.chatwoot_account_id || \"1\",\n          chatwoot_api_token: $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\",\n          download_url: $('Loop outbound items').item.json.download_url,\n          source_url: $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url,\n          property_title: $('Loop outbound items').item.json.property_title || null,\n          caption: $('Loop outbound items').item.json.send_caption === true ? String($('Loop outbound items').item.json.caption || '') : '',\n          private: $('Loop outbound items').item.json.private === true\n        }) }}",
-          "options": {
-            "timeout": 60000
-          }
-        },
-        "id": "8748ddc0-2146-401c-a5c6-477045ea4298",
-        "name": "Send media via relay",
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          2960,
-          0
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "waitBetweenTries": 1500
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "1af29123-b33a-45d1-b899-c0691e25e22f",
-                "leftValue": "={{ $json.ok === true }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "7e3ebec2-8519-41e3-b381-0e3e513c8972",
-        "name": "Media relay ok?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          3200,
-          0
-        ]
-      },
-      {
-        "parameters": {
-          "method": "POST",
-          "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($('Loop outbound items').item.json.chatwoot_account_id || \"1\") + '/conversations/' + String($('Loop outbound items').item.json.chatwoot_id) + '/messages' }}",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "api_access_token",
-                "value": "={{ $('Loop outbound items').item.json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-              },
-              {
-                "name": "content-type",
-                "value": "application/json"
-              }
-            ]
-          },
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ content: 'No pude adjuntar uno de los assets de ' + String($('Loop outbound items').item.json.property_title || 'la finca') + ' en este momento. Te comparto el enlace:\\n' + String($('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || ''), message_type: 'outgoing', private: $('Loop outbound items').item.json.private === true }) }}",
-          "options": {
-            "timeout": 30000
-          }
-        },
-        "id": "65f54ae2-8864-4901-82e1-c975ec67cb69",
-        "name": "Send media fallback text",
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          3440,
-          0
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "waitBetweenTries": 1500
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "loose",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "3b16d595-20ce-4a8e-ad05-bf8aa138b264",
-                "leftValue": "={{ $json.outbound_item_type === 'text' }}",
-                "rightValue": "",
-                "operator": {
-                  "type": "boolean",
-                  "operation": "true",
-                  "singleValue": true
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "looseTypeValidation": true,
-          "options": {}
-        },
-        "id": "6ecbe612-bdc2-4e11-a386-836891b99bfb",
-        "name": "Is text outbound item?",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.3,
-        "position": [
-          2240,
-          280
-        ]
-      },
-      {
-        "parameters": {
-          "method": "POST",
-          "url": "={{ (\"https://chatwoot-9qe1j-u48275.vm.elestio.app\").replace(/\\/$/, '') + '/api/v1/accounts/' + String($json.chatwoot_account_id || \"1\") + '/conversations/' + String($json.chatwoot_id) + '/messages' }}",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "api_access_token",
-                "value": "={{ $json.chatwoot_api_token || \"7paF3kLsjSEPvXqgHPEgPTEq\" }}"
-              },
-              {
-                "name": "content-type",
-                "value": "application/json"
-              }
-            ]
-          },
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ content: String($json.content || '').trim(), message_type: 'outgoing', private: $json.private === true }) }}",
-          "options": {
-            "timeout": 30000
-          }
-        },
-        "id": "6b9aa796-ca7c-4670-afc4-cc55ca814fcc",
-        "name": "Send Chatwoot text direct",
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.2,
-        "position": [
-          2720,
-          280
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "waitBetweenTries": 1500
-      },
-      {
-        "parameters": {
-          "jsCode": "const items = $input.all();\nawait new Promise((resolve) => setTimeout(resolve, 350));\nreturn items;"
-        },
-        "id": "73bfa787-68db-429c-98af-02f0bdebc080",
-        "name": "Pause outbound item",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          3680,
-          120
-        ]
       }
     ],
     "connections": {
@@ -7894,11 +6976,22 @@
         "main": [
           [
             {
-              "node": "Send texts & extract media",
+              "node": "Send outbound via Chatwoot",
               "type": "main",
               "index": 0
             }
           ],
+          [
+            {
+              "node": "Prepare selection notifications",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send outbound via Chatwoot": {
+        "main": [
           [
             {
               "node": "Prepare selection notifications",
@@ -8461,209 +7554,6 @@
           [
             {
               "node": "Execution Data1",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send texts & extract media": {
-        "main": [
-          [
-            {
-              "node": "Loop outbound items",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Loop outbound items": {
-        "main": [
-          [
-            {
-              "node": "Prepare selection notifications",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Is media outbound item?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Is media outbound item?": {
-        "main": [
-          [
-            {
-              "node": "Download media asset",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Is text outbound item?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Download media asset": {
-        "main": [
-          [
-            {
-              "node": "Media download ok?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Media download ok?": {
-        "main": [
-          [
-            {
-              "node": "Upload media to Chatwoot",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Relay configured?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Upload media to Chatwoot": {
-        "main": [
-          [
-            {
-              "node": "Media upload ok?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Media upload ok?": {
-        "main": [
-          [
-            {
-              "node": "Pause outbound item",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Relay configured?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Relay configured?": {
-        "main": [
-          [
-            {
-              "node": "Send media via relay",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Send media fallback text",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send media via relay": {
-        "main": [
-          [
-            {
-              "node": "Media relay ok?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Media relay ok?": {
-        "main": [
-          [
-            {
-              "node": "Pause outbound item",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Send media fallback text",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send media fallback text": {
-        "main": [
-          [
-            {
-              "node": "Pause outbound item",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Is text outbound item?": {
-        "main": [
-          [
-            {
-              "node": "Send Chatwoot text direct",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Pause outbound item",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send Chatwoot text direct": {
-        "main": [
-          [
-            {
-              "node": "Pause outbound item",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Pause outbound item": {
-        "main": [
-          [
-            {
-              "node": "Loop outbound items",
               "type": "main",
               "index": 0
             }

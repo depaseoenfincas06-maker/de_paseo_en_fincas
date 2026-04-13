@@ -39,7 +39,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json || {};\nconst input = raw.body || raw;\nconst compact = (value) => String(value ?? '').trim();\n\nfunction normalizeSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nconst normalizedSequence = normalizeSequence(input.outbound_sequence_json || input.outbound_sequence);\n\nreturn [\n  {\n    json: {\n      chatwoot_id: compact(input.chatwoot_id || '') || null,\n      private: input.private === true,\n      chatwoot_account_id: compact(input.chatwoot_account_id || '1') || '1',\n      chatwoot_api_token: compact(input.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq') || '7paF3kLsjSEPvXqgHPEgPTEq',\n      outbound_sequence: normalizedSequence,\n      outbound_sequence_json: JSON.stringify(normalizedSequence),\n      outbound_message: compact(input.outbound_message || input.message || input.final_whatsapp_text || ''),\n      final_whatsapp_text: compact(input.final_whatsapp_text || input.outbound_message || input.message || ''),\n      wa_id: compact(input.wa_id || input.conversation_key || ''),\n      whatsapp_access_token: compact(input.whatsapp_access_token || ''),\n      whatsapp_phone_number_id: compact(input.whatsapp_phone_number_id || ''),\n      media_relay_base_url: compact(input.media_relay_base_url || ''),\n    },\n  },\n];"
+        "jsCode": "const raw = $input.first().json || {};\nconst input = raw.body || raw;\nconst compact = (value) => String(value ?? '').trim();\n\nfunction normalizeSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nconst normalizedSequence = normalizeSequence(input.outbound_sequence_json || input.outbound_sequence);\n\nreturn [\n  {\n    json: {\n      chatwoot_id: compact(input.chatwoot_id || '') || null,\n      private: input.private === true,\n      chatwoot_account_id: compact(input.chatwoot_account_id || '1') || '1',\n      chatwoot_api_token: compact(input.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq') || '7paF3kLsjSEPvXqgHPEgPTEq',\n      outbound_sequence: normalizedSequence,\n      outbound_sequence_json: JSON.stringify(normalizedSequence),\n      outbound_message: compact(input.outbound_message || input.message || input.final_whatsapp_text || ''),\n      final_whatsapp_text: compact(input.final_whatsapp_text || input.outbound_message || input.message || ''),\n    },\n  },\n];"
       },
       "id": "1938bad8-5d51-4061-896b-a9aec6889c74",
       "name": "Normalize input",
@@ -52,7 +52,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction blockWaitMs(photoCount) {\n  const count = Number(photoCount || 0);\n  return Math.max(15000, 15000 + Math.max(0, count) * 6000);\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      property_group_id: extra.property_group_id || null,\n      wait_after_block_ms: extra.wait_after_block_ms || null,\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const propertyGroupId = compact(item.property_group_id || item.property_id || item.property_title || 'media-block-' + sendOrder);\n  const waitAfterBlockMs = blockWaitMs(assets.length);\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n    const isLastAsset = index === assets.length - 1;\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n        property_group_id: propertyGroupId,\n        property_group_photo_count: assets.length,\n        wait_after_block_ms: isLastAsset ? waitAfterBlockMs : null,\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
+        "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
       },
       "id": "1fcbe87e-f850-4af0-8e4b-d64897dc3692",
       "name": "Expand outbound items",
@@ -72,7 +72,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1120,
+        980,
         280
       ]
     },
@@ -107,7 +107,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1340,
+        1220,
         280
       ]
     },
@@ -128,7 +128,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1700,
+        1460,
         80
       ],
       "onError": "continueRegularOutput",
@@ -166,7 +166,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1940,
+        1700,
         80
       ]
     },
@@ -222,7 +222,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2180,
+        1940,
         80
       ],
       "onError": "continueRegularOutput",
@@ -260,7 +260,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        2420,
+        2180,
         80
       ]
     },
@@ -319,7 +319,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2660,
+        2420,
         -20
       ]
     },
@@ -352,7 +352,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2180,
+        1940,
         280
       ],
       "onError": "continueRegularOutput",
@@ -420,7 +420,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2420,
+        2180,
         280
       ]
     },
@@ -455,7 +455,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1580,
+        1460,
         480
       ]
     },
@@ -562,7 +562,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst current = items[0]?.json || {};\nconst hasPreUpload = Boolean(current.whatsapp_media_id);\nconst waitMs = Number(current.wait_after_block_ms || 0);\n\nlet delay;\nif (hasPreUpload) {\n  // Pre-uploaded media: minimal delay, just respect rate limits\n  delay = waitMs > 0 ? Math.min(waitMs, 1500) : 500;\n} else {\n  // Chatwoot path: keep original longer waits\n  delay = Number.isFinite(waitMs) && waitMs > 0 ? waitMs : 350;\n}\n\nawait new Promise((resolve) => setTimeout(resolve, delay));\nreturn items;"
+        "jsCode": "const items = $input.all();\nawait new Promise((resolve) => setTimeout(resolve, 350));\nreturn items;"
       },
       "id": "d2ce1361-d40f-4129-bba4-e8cb3fc761e7",
       "name": "Pause outbound item",
@@ -626,119 +626,6 @@
         1480,
         680
       ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const items = $input.all();\nconst compact = (v) => String(v ?? '').trim();\n\n// Collect unique download_urls from media items\nconst mediaItems = items.filter(item => item.json.outbound_item_type === 'media_asset' && compact(item.json.download_url));\nconst uniqueUrls = [...new Set(mediaItems.map(item => compact(item.json.download_url)))];\n\nif (!uniqueUrls.length) {\n  // No media to pre-upload, pass through all items unchanged\n  return items;\n}\n\n// Build assets array for pre-upload\nconst assets = uniqueUrls.map(url => ({ download_url: url }));\n\n// Call pre-upload endpoint\nconst mediaRelayBase = compact(items[0]?.json?.media_relay_base_url || '');\nconst preUploadUrl = (mediaRelayBase || 'http://localhost:3101') + '/api/whatsapp/pre-upload';\n\nlet mediaIdMap = new Map();\ntry {\n  const response = await this.helpers.httpRequest({\n    url: preUploadUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ assets }),\n    timeout: 120000,\n    json: true,\n  });\n\n  if (response?.ok && Array.isArray(response.results)) {\n    for (const result of response.results) {\n      if (result.ok && result.media_id) {\n        mediaIdMap.set(compact(result.download_url), {\n          media_id: result.media_id,\n          mime_type: result.mime_type || 'image/jpeg',\n        });\n      }\n    }\n  }\n} catch (err) {\n  // Pre-upload failed, items will fall back to Chatwoot path\n  console.log('[pre-upload] Failed:', err.message || err);\n}\n\nconst uploaded = mediaIdMap.size;\nconst total = uniqueUrls.length;\nconsole.log('[pre-upload] ' + uploaded + '/' + total + ' media assets pre-uploaded to WhatsApp');\n\n// Attach media_ids to items\nreturn items.map(item => {\n  const url = compact(item.json.download_url);\n  const preUploaded = url ? mediaIdMap.get(url) : null;\n  return {\n    json: {\n      ...item.json,\n      whatsapp_media_id: preUploaded?.media_id || null,\n      whatsapp_media_mime: preUploaded?.mime_type || null,\n    },\n  };\n});"
-      },
-      "id": "41aae652-06a4-4442-9da4-4256f5b982a9",
-      "name": "Pre-upload media to WhatsApp",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        840,
-        280
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/{{ $('Loop outbound items').item.json.whatsapp_phone_number_id || '1032537143273895' }}/messages",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $('Loop outbound items').item.json.whatsapp_access_token || '' }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  messaging_product: \"whatsapp\",\n  recipient_type: \"individual\",\n  to: String($('Loop outbound items').item.json.wa_id || ''),\n  type: \"image\",\n  image: {\n    id: String($json.whatsapp_media_id || ''),\n    caption: $('Loop outbound items').item.json.send_caption === true ? String($('Loop outbound items').item.json.caption || '') : undefined\n  }\n}) }}",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "10ce9b8c-c6a3-4853-942e-00b55d2042d9",
-      "name": "Send WhatsApp media direct",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1460,
-        -120
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "a630cbda-179b-47e2-b4e2-abeac06492c3",
-              "leftValue": "={{ Boolean($json.whatsapp_media_id) }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true
-      },
-      "id": "ae48fe8a-295c-4d0e-8606-eb9e86cfd369",
-      "name": "Has pre-uploaded media?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1700,
-        -20
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "manual",
-        "duplicateItem": false,
-        "assignments": {
-          "assignments": [
-            {
-              "id": "2973d830-5a95-4474-b230-c7833543a88d",
-              "name": "send_result",
-              "value": "wa_media_direct",
-              "type": "string"
-            },
-            {
-              "id": "1bdfb754-48d6-4069-ac48-835dcf25d84a",
-              "name": "send_ok",
-              "value": "={{ $json.messages ? true : false }}",
-              "type": "boolean"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "include": "all"
-      },
-      "id": "1f806487-cf5b-4065-8679-5d2f476a20fa",
-      "name": "Record WA media result",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1940,
-        -120
-      ]
     }
   ],
   "connections": {
@@ -779,7 +666,7 @@
       "main": [
         [
           {
-            "node": "Pre-upload media to WhatsApp",
+            "node": "Loop outbound items",
             "type": "main",
             "index": 0
           }
@@ -808,7 +695,7 @@
       "main": [
         [
           {
-            "node": "Has pre-uploaded media?",
+            "node": "Download media asset",
             "type": "main",
             "index": 0
           }
@@ -978,57 +865,6 @@
     "Outbound send result": {
       "main": [
         []
-      ]
-    },
-    "Pre-upload media to WhatsApp": {
-      "main": [
-        [
-          {
-            "node": "Loop outbound items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Has pre-uploaded media?": {
-      "main": [
-        [
-          {
-            "node": "Send WhatsApp media direct",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Download media asset",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send WhatsApp media direct": {
-      "main": [
-        [
-          {
-            "node": "Record WA media result",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Record WA media result": {
-      "main": [
-        [
-          {
-            "node": "Pause outbound item",
-            "type": "main",
-            "index": 0
-          }
-        ]
       ]
     }
   },

@@ -7,10 +7,6 @@ import express from 'express';
 import pkg from 'pg';
 
 import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_media_relay.mjs';
-import {
-  buildReservationConfirmationFilename,
-  buildReservationConfirmationPdf,
-} from './lib/reservation_confirmation_pdf.mjs';
 
 const { Pool, types } = pkg;
 
@@ -22,7 +18,6 @@ dotenv.config({ path: path.join(rootDir, '.env') });
 
 const PORT = Number(process.env.SIMULATOR_PORT || 3101);
 const N8N_BASE_URL = process.env.N8N_BASE_URL;
-const PUBLIC_APP_BASE_URL = process.env.PUBLIC_APP_BASE_URL || '';
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
 const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
@@ -138,28 +133,9 @@ const DEFAULT_SETTINGS = Object.freeze({
   id: 1,
   tonePreset: 'calido_profesional',
   toneGuidelinesExtra: '',
-  publicAppBaseUrl: compactText(PUBLIC_APP_BASE_URL),
-  globalPromptAddendum: '',
-  qualifyingPromptAddendum: '',
-  offeringPromptAddendum: '',
-  verifyingAvailabilityPromptAddendum: '',
-  qaPromptAddendum: '',
-  hitlPromptAddendum: '',
-  confirmingReservationPromptAddendum: '',
   initialMessageTemplate:
     'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
   handoffMessage: 'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
-  companyKnowledge: '',
-  companyDocuments: [],
-  paymentMethods: [
-    { method: 'Bancolombia', description: 'Transferencia o consignación', surcharge: '' },
-    { method: 'Davivienda', description: 'Transferencia o consignación', surcharge: '' },
-    { method: 'Colpatria', description: 'Transferencia o consignación', surcharge: '' },
-    { method: 'Nequi', description: 'Transferencia inmediata', surcharge: '' },
-    { method: 'Daviplata', description: 'Transferencia inmediata', surcharge: '' },
-    { method: 'Tarjeta Crédito/Débito/PSE', description: 'Pasarela digital', surcharge: '+5%' },
-    { method: 'Efectivo', description: 'Pago presencial en sedes de Anapoima o Pereira', surcharge: '' },
-  ],
   ownerContactOverride: '',
   ownerTestModeEnabled: false,
   globalBotEnabled: true,
@@ -248,43 +224,6 @@ function compactText(value) {
   return String(value || '').trim();
 }
 
-function decodeBase64UrlJson(rawValue) {
-  const source = compactText(rawValue);
-  if (!source) {
-    const error = new Error('reservation_payload_missing');
-    error.code = 'RESERVATION_PAYLOAD_MISSING';
-    throw error;
-  }
-
-  const normalized = source.replace(/-/g, '+').replace(/_/g, '/');
-  const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4));
-
-  try {
-    const decoded = Buffer.from(normalized + padding, 'base64').toString('utf8');
-    return JSON.parse(decoded);
-  } catch (error) {
-    const wrapped = new Error('reservation_payload_invalid');
-    wrapped.code = 'RESERVATION_PAYLOAD_INVALID';
-    wrapped.cause = error;
-    throw wrapped;
-  }
-}
-
-function mergeReservationPayloadWithSettings(payload, settings) {
-  const safePayload = payload && typeof payload === 'object' ? payload : {};
-  const safeSettings = settings && typeof settings === 'object' ? settings : DEFAULT_SETTINGS;
-
-  return {
-    ...safePayload,
-    company_knowledge:
-      safePayload.company_knowledge ?? safePayload.companyKnowledge ?? safeSettings.companyKnowledge,
-    company_documents:
-      safePayload.company_documents ?? safePayload.companyDocuments ?? safeSettings.companyDocuments,
-    payment_methods:
-      safePayload.payment_methods ?? safePayload.paymentMethods ?? safeSettings.paymentMethods,
-  };
-}
-
 function toSerializable(value) {
   if (value instanceof Date) return toIsoString(value);
   if (Array.isArray(value)) return value.map((item) => toSerializable(item));
@@ -334,103 +273,16 @@ function normalizeInteger(value, fallback, min = 1, max = 10) {
   return Math.min(max, Math.max(min, Math.round(numeric)));
 }
 
-function normalizeJsonValue(value, fallback) {
-  if (value === undefined || value === null || value === '') return fallback;
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return fallback;
-    try {
-      return JSON.parse(trimmed);
-    } catch {
-      return fallback;
-    }
-  }
-  if (typeof value === 'object') return value;
-  return fallback;
-}
-
-function normalizeCompanyDocuments(value, fallback = DEFAULT_SETTINGS.companyDocuments) {
-  const parsed = normalizeJsonValue(value, fallback);
-  if (!Array.isArray(parsed)) return fallback;
-
-  return parsed
-    .map((entry) => {
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
-      const document = {
-        document_key: compactText(entry.document_key || entry.key || entry.id),
-        title: compactText(entry.title || entry.name),
-        description: compactText(entry.description || entry.summary),
-        url: compactText(entry.url || entry.link),
-        category: compactText(entry.category || 'general') || 'general',
-        send_when_asked: normalizeBoolean(entry.send_when_asked, true),
-      };
-
-      return document.description && document.url ? document : null;
-    })
-    .filter(Boolean);
-}
-
-function normalizePaymentMethods(value, fallback = DEFAULT_SETTINGS.paymentMethods) {
-  const parsed = normalizeJsonValue(value, fallback);
-  if (!Array.isArray(parsed)) return fallback;
-
-  return parsed
-    .map((entry) => {
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
-      const method = {
-        method: compactText(entry.method || entry.name || entry.title),
-        description: compactText(entry.description || entry.details || entry.note),
-        surcharge: compactText(entry.surcharge || entry.recargo),
-      };
-
-      return method.method ? method : null;
-    })
-    .filter(Boolean);
-}
-
 function serializeSettings(row = {}) {
   return {
     id: 1,
     tonePreset: compactText(row.tone_preset || DEFAULT_SETTINGS.tonePreset) || DEFAULT_SETTINGS.tonePreset,
     toneGuidelinesExtra: compactText(row.tone_guidelines_extra || DEFAULT_SETTINGS.toneGuidelinesExtra),
-    publicAppBaseUrl:
-      compactText(row.public_app_base_url || DEFAULT_SETTINGS.publicAppBaseUrl) ||
-      DEFAULT_SETTINGS.publicAppBaseUrl,
-    globalPromptAddendum:
-      compactText(row.global_prompt_addendum || DEFAULT_SETTINGS.globalPromptAddendum),
-    qualifyingPromptAddendum:
-      compactText(row.qualifying_prompt_addendum || DEFAULT_SETTINGS.qualifyingPromptAddendum),
-    offeringPromptAddendum:
-      compactText(row.offering_prompt_addendum || DEFAULT_SETTINGS.offeringPromptAddendum),
-    verifyingAvailabilityPromptAddendum:
-      compactText(
-        row.verifying_availability_prompt_addendum ||
-          DEFAULT_SETTINGS.verifyingAvailabilityPromptAddendum,
-      ),
-    qaPromptAddendum: compactText(row.qa_prompt_addendum || DEFAULT_SETTINGS.qaPromptAddendum),
-    hitlPromptAddendum:
-      compactText(row.hitl_prompt_addendum || DEFAULT_SETTINGS.hitlPromptAddendum),
-    confirmingReservationPromptAddendum:
-      compactText(
-        row.confirming_reservation_prompt_addendum ||
-          DEFAULT_SETTINGS.confirmingReservationPromptAddendum,
-      ),
     initialMessageTemplate:
       String(row.initial_message_template || DEFAULT_SETTINGS.initialMessageTemplate).trim() ||
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(row.handoff_message || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
-    companyKnowledge:
-      String(row.company_knowledge || DEFAULT_SETTINGS.companyKnowledge).trim() ||
-      DEFAULT_SETTINGS.companyKnowledge,
-    companyDocuments: normalizeCompanyDocuments(
-      row.company_documents,
-      DEFAULT_SETTINGS.companyDocuments,
-    ),
-    paymentMethods: normalizePaymentMethods(
-      row.payment_methods,
-      DEFAULT_SETTINGS.paymentMethods,
-    ),
     ownerContactOverride: compactText(row.owner_contact_override),
     ownerTestModeEnabled:
       row.owner_test_mode_enabled === undefined
@@ -501,29 +353,11 @@ function sanitizeSettingsPayload(payload = {}) {
   return {
     tonePreset: compactText(payload.tonePreset || DEFAULT_SETTINGS.tonePreset) || DEFAULT_SETTINGS.tonePreset,
     toneGuidelinesExtra: compactText(payload.toneGuidelinesExtra),
-    publicAppBaseUrl:
-      compactText(payload.publicAppBaseUrl || DEFAULT_SETTINGS.publicAppBaseUrl) ||
-      DEFAULT_SETTINGS.publicAppBaseUrl,
-    globalPromptAddendum: compactText(payload.globalPromptAddendum),
-    qualifyingPromptAddendum: compactText(payload.qualifyingPromptAddendum),
-    offeringPromptAddendum: compactText(payload.offeringPromptAddendum),
-    verifyingAvailabilityPromptAddendum: compactText(payload.verifyingAvailabilityPromptAddendum),
-    qaPromptAddendum: compactText(payload.qaPromptAddendum),
-    hitlPromptAddendum: compactText(payload.hitlPromptAddendum),
-    confirmingReservationPromptAddendum: compactText(payload.confirmingReservationPromptAddendum),
     initialMessageTemplate:
       String(payload.initialMessageTemplate || DEFAULT_SETTINGS.initialMessageTemplate).trim() ||
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
-    companyKnowledge:
-      String(payload.companyKnowledge || DEFAULT_SETTINGS.companyKnowledge).trim() ||
-      DEFAULT_SETTINGS.companyKnowledge,
-    companyDocuments: normalizeCompanyDocuments(
-      payload.companyDocuments,
-      DEFAULT_SETTINGS.companyDocuments,
-    ),
-    paymentMethods: normalizePaymentMethods(payload.paymentMethods, DEFAULT_SETTINGS.paymentMethods),
     ownerContactOverride: compactText(payload.ownerContactOverride),
     ownerTestModeEnabled: normalizeBoolean(payload.ownerTestModeEnabled, DEFAULT_SETTINGS.ownerTestModeEnabled),
     globalBotEnabled: normalizeBoolean(payload.globalBotEnabled, DEFAULT_SETTINGS.globalBotEnabled),
@@ -580,8 +414,6 @@ function settingsStatus(settings) {
     followupEnabled: settings.followupEnabled,
     ownerContactOverrideActive: Boolean(settings.ownerContactOverride),
     ownerTestModeEnabled: settings.ownerTestModeEnabled === true,
-    companyDocumentsCount: Array.isArray(settings.companyDocuments) ? settings.companyDocuments.length : 0,
-    paymentMethodsCount: Array.isArray(settings.paymentMethods) ? settings.paymentMethods.length : 0,
     followupWindowStart: settings.followupWindowStart,
     followupWindowEnd: settings.followupWindowEnd,
     selectionNotificationEnabled: settings.selectionNotificationEnabled === true,
@@ -596,19 +428,8 @@ async function getAgentSettings() {
           id,
           tone_preset,
           tone_guidelines_extra,
-          public_app_base_url,
-          global_prompt_addendum,
-          qualifying_prompt_addendum,
-          offering_prompt_addendum,
-          verifying_availability_prompt_addendum,
-          qa_prompt_addendum,
-          hitl_prompt_addendum,
-          confirming_reservation_prompt_addendum,
           initial_message_template,
           handoff_message,
-          company_knowledge,
-          company_documents,
-          payment_methods,
           owner_contact_override,
           owner_test_mode_enabled,
           global_bot_enabled,
@@ -651,19 +472,8 @@ async function saveAgentSettings(payload) {
         id,
         tone_preset,
         tone_guidelines_extra,
-        public_app_base_url,
-        global_prompt_addendum,
-        qualifying_prompt_addendum,
-        offering_prompt_addendum,
-        verifying_availability_prompt_addendum,
-        qa_prompt_addendum,
-        hitl_prompt_addendum,
-        confirming_reservation_prompt_addendum,
         initial_message_template,
         handoff_message,
-        company_knowledge,
-        company_documents,
-        payment_methods,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -693,49 +503,27 @@ async function saveAgentSettings(payload) {
         $6,
         $7,
         $8,
-        $9,
-        $10,
+        $9::time,
+        $10::time,
         $11,
         $12,
         $13,
-        $14::jsonb,
-        $15::jsonb,
+        $14,
+        $15,
         $16,
         $17,
         $18,
         $19,
-        $20::time,
-        $21::time,
-        $22,
-        $23,
-        $24,
-        $25,
-        $26,
-        $27,
-        $28,
-        $29,
-        $30,
-        $31,
-        $32,
-        $33
+        $20,
+        $21,
+        $22
       )
       on conflict (id)
       do update set
         tone_preset = excluded.tone_preset,
         tone_guidelines_extra = excluded.tone_guidelines_extra,
-        public_app_base_url = excluded.public_app_base_url,
-        global_prompt_addendum = excluded.global_prompt_addendum,
-        qualifying_prompt_addendum = excluded.qualifying_prompt_addendum,
-        offering_prompt_addendum = excluded.offering_prompt_addendum,
-        verifying_availability_prompt_addendum = excluded.verifying_availability_prompt_addendum,
-        qa_prompt_addendum = excluded.qa_prompt_addendum,
-        hitl_prompt_addendum = excluded.hitl_prompt_addendum,
-        confirming_reservation_prompt_addendum = excluded.confirming_reservation_prompt_addendum,
         initial_message_template = excluded.initial_message_template,
         handoff_message = excluded.handoff_message,
-        company_knowledge = excluded.company_knowledge,
-        company_documents = excluded.company_documents,
-        payment_methods = excluded.payment_methods,
         owner_contact_override = excluded.owner_contact_override,
         owner_test_mode_enabled = excluded.owner_test_mode_enabled,
         global_bot_enabled = excluded.global_bot_enabled,
@@ -759,19 +547,8 @@ async function saveAgentSettings(payload) {
         id,
         tone_preset,
         tone_guidelines_extra,
-        public_app_base_url,
-        global_prompt_addendum,
-        qualifying_prompt_addendum,
-        offering_prompt_addendum,
-        verifying_availability_prompt_addendum,
-        qa_prompt_addendum,
-        hitl_prompt_addendum,
-        confirming_reservation_prompt_addendum,
         initial_message_template,
         handoff_message,
-        company_knowledge,
-        company_documents,
-        payment_methods,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -795,19 +572,8 @@ async function saveAgentSettings(payload) {
     [
       next.tonePreset,
       next.toneGuidelinesExtra,
-      next.publicAppBaseUrl,
-      next.globalPromptAddendum,
-      next.qualifyingPromptAddendum,
-      next.offeringPromptAddendum,
-      next.verifyingAvailabilityPromptAddendum,
-      next.qaPromptAddendum,
-      next.hitlPromptAddendum,
-      next.confirmingReservationPromptAddendum,
       next.initialMessageTemplate,
       next.handoffMessage,
-      next.companyKnowledge,
-      JSON.stringify(next.companyDocuments),
-      JSON.stringify(next.paymentMethods),
       next.ownerContactOverride || null,
       next.ownerTestModeEnabled,
       next.globalBotEnabled,
@@ -1478,30 +1244,6 @@ function createApp() {
   }
   });
 
-  app.get('/api/reservation-confirmation.pdf', async (req, res) => {
-    try {
-      const decodedPayload = decodeBase64UrlJson(req.query.payload);
-      const settings = await getAgentSettings();
-      const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
-      const buffer = buildReservationConfirmationPdf(payload);
-      const filename = buildReservationConfirmationFilename(payload);
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-      res.setHeader('Cache-Control', 'no-store');
-      res.send(buffer);
-    } catch (error) {
-      const code = error?.code;
-      const status =
-        code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
-      const apiError = presentApiError(error);
-      res.status(status).json({
-        message: apiError.message,
-        details: apiError.details,
-      });
-    }
-  });
-
   app.post('/api/chatwoot/send-drive-asset', async (req, res) => {
     const payload = req.body || {};
     const chatwootId = compactText(payload.chatwoot_id);
@@ -1569,89 +1311,6 @@ function createApp() {
         source_url: sourceUrl,
         property_title: propertyTitle,
       });
-    }
-  });
-
-  app.post('/api/whatsapp/pre-upload', async (req, res) => {
-    const WA_TOKEN = compactText(process.env.WHATSAPP_ACCESS_TOKEN);
-    const WA_PHONE_ID = compactText(process.env.KAPSO_WHATSAPP_PHONE_NUMBER_ID);
-
-    if (!WA_TOKEN || !WA_PHONE_ID) {
-      res.status(500).json({ ok: false, message: 'Missing WHATSAPP_ACCESS_TOKEN or KAPSO_WHATSAPP_PHONE_NUMBER_ID' });
-      return;
-    }
-
-    const assets = Array.isArray(req.body?.assets) ? req.body.assets : [];
-    if (!assets.length) {
-      res.json({ ok: true, results: [], uploaded: 0, failed: 0 });
-      return;
-    }
-
-    const GRAPH_URL = `https://graph.facebook.com/v21.0/${WA_PHONE_ID}/media`;
-    const CONCURRENCY = 5;
-
-    async function uploadSingleAsset(asset) {
-      const downloadUrl = compactText(asset.download_url);
-      const sourceUrl = compactText(asset.source_url) || downloadUrl;
-      if (!downloadUrl) return { download_url: downloadUrl, ok: false, error: 'missing_download_url' };
-
-      try {
-        const file = await downloadAssetBuffer(downloadUrl, { sourceUrl });
-
-        const boundary = '----wa-preupload-' + Date.now().toString(16) + '-' + Math.random().toString(16).slice(2);
-        const fieldParts = [
-          `--${boundary}\r\nContent-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n`,
-          `--${boundary}\r\nContent-Disposition: form-data; name="type"\r\n\r\n${file.contentType}\r\n`,
-          `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.filename}"\r\nContent-Type: ${file.contentType}\r\n\r\n`,
-        ];
-        const head = Buffer.from(fieldParts.join(''), 'utf8');
-        const tail = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
-        const body = Buffer.concat([head, file.buf, tail]);
-
-        const waResp = await fetch(GRAPH_URL, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${WA_TOKEN}`,
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          },
-          body,
-        });
-        const waData = await waResp.json();
-
-        if (!waData.id) {
-          return { download_url: downloadUrl, source_url: sourceUrl, ok: false, error: waData.error?.message || 'no_media_id' };
-        }
-
-        return {
-          download_url: downloadUrl,
-          source_url: sourceUrl,
-          ok: true,
-          media_id: waData.id,
-          mime_type: file.contentType,
-          filename: file.filename,
-          size: file.buf.length,
-        };
-      } catch (error) {
-        return { download_url: downloadUrl, source_url: sourceUrl, ok: false, error: String(error?.message || 'upload_failed') };
-      }
-    }
-
-    try {
-      const results = [];
-      for (let i = 0; i < assets.length; i += CONCURRENCY) {
-        const batch = assets.slice(i, i + CONCURRENCY);
-        const batchResults = await Promise.all(batch.map(uploadSingleAsset));
-        results.push(...batchResults);
-      }
-
-      const uploaded = results.filter((r) => r.ok).length;
-      const failed = results.filter((r) => !r.ok).length;
-      console.log(`[pre-upload] ${uploaded} uploaded, ${failed} failed out of ${assets.length} assets`);
-
-      res.json({ ok: true, results, uploaded, failed });
-    } catch (error) {
-      const apiError = presentApiError(error);
-      res.status(500).json({ ok: false, message: apiError.message });
     }
   });
 
