@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-03-18T21:39:03.496Z",
+  "updatedAt": "2026-03-25T05:18:51.822Z",
   "createdAt": "2026-03-10T04:54:50.601Z",
   "id": "pLyrdDO3mneaCp7m",
   "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
-  "description": "Outbound sender itemized for media delivery. Expands Drive folders to assets and sends each asset with native HTTP Request nodes.",
+  "description": null,
   "active": true,
   "isArchived": false,
   "nodes": [
@@ -24,7 +24,6 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chatwoot/outbound-sender/async",
-        "responseMode": "onReceived",
         "options": {}
       },
       "id": "a1b2c3d4-async-webhook-trigger",
@@ -41,7 +40,7 @@
       "parameters": {
         "jsCode": "const raw = $input.first().json || {};\nconst input = raw.body || raw;\nconst compact = (value) => String(value ?? '').trim();\n\nfunction normalizeSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nconst normalizedSequence = normalizeSequence(input.outbound_sequence_json || input.outbound_sequence);\n\nreturn [\n  {\n    json: {\n      chatwoot_id: compact(input.chatwoot_id || '') || null,\n      private: input.private === true,\n      chatwoot_account_id: compact(input.chatwoot_account_id || '1') || '1',\n      chatwoot_api_token: compact(input.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq') || '7paF3kLsjSEPvXqgHPEgPTEq',\n      outbound_sequence: normalizedSequence,\n      outbound_sequence_json: JSON.stringify(normalizedSequence),\n      outbound_message: compact(input.outbound_message || input.message || input.final_whatsapp_text || ''),\n      final_whatsapp_text: compact(input.final_whatsapp_text || input.outbound_message || input.message || ''),\n    },\n  },\n];"
       },
-      "id": "1938bad8-5d51-4061-896b-a9aec6889c74",
+      "id": "96c3f625-843c-4e0a-a341-af6a27c8ccbb",
       "name": "Normalize input",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -54,7 +53,7 @@
       "parameters": {
         "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
       },
-      "id": "1fcbe87e-f850-4af0-8e4b-d64897dc3692",
+      "id": "1b73c07a-c8f9-4d26-aa13-df040deffb7d",
       "name": "Expand outbound items",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -67,7 +66,7 @@
       "parameters": {
         "options": {}
       },
-      "id": "9808dde9-8173-453d-9c23-1a0d979e49a3",
+      "id": "618351f2-6a8a-4a2a-8051-5bbe5c264f0f",
       "name": "Loop outbound items",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -102,7 +101,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "073a2731-26b0-473d-ab3e-bb03f4630143",
+      "id": "9b52d399-591e-481d-9f02-1bcee8325550",
       "name": "Is media outbound item?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
@@ -123,7 +122,7 @@
           "timeout": 30000
         }
       },
-      "id": "691f3033-00af-4b07-a700-1855e2ac36cc",
+      "id": "78d01bae-10c8-4aeb-9c93-abce1858cd35",
       "name": "Download media asset",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -161,7 +160,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "e2a1a115-1493-4378-bcfc-e31d285b8270",
+      "id": "ce8f1fc7-bba9-42cf-9e11-8a2c6574fbbd",
       "name": "Media download ok?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
@@ -217,7 +216,7 @@
           "timeout": 45000
         }
       },
-      "id": "d4324bee-1e37-433e-bae1-56c030c3d3d1",
+      "id": "7ebadecc-cd17-491f-a244-14212fe4aac0",
       "name": "Upload media to Chatwoot",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -255,7 +254,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "d06624f4-41be-4713-b0d7-952e744e502f",
+      "id": "1c19a3e2-6ddb-45c2-9059-821419cc5994",
       "name": "Media upload ok?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
@@ -269,43 +268,43 @@
         "assignments": {
           "assignments": [
             {
-              "id": "a9ed0647-5078-4bc7-8213-d6ea1e1ecf42",
+              "id": "5c0a603d-b399-47a9-b015-e4b7bd3047ff",
               "name": "chatwoot_id",
               "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
               "type": "string"
             },
             {
-              "id": "d5b0b331-828e-4d91-abb4-84edb9ed496d",
+              "id": "e67322b0-6087-4c51-8442-cb550078aa91",
               "name": "result_ok",
               "value": true,
               "type": "boolean"
             },
             {
-              "id": "03a0a9db-50b2-41ff-a695-cdf706225c66",
+              "id": "1e6c78b8-0fa7-48d9-9725-a85c3fa3375e",
               "name": "result_type",
               "value": "media",
               "type": "string"
             },
             {
-              "id": "4fb3b76b-152c-4ddf-bf23-74bc3a649fe6",
+              "id": "7785b1c7-e148-49ab-b859-00f997641084",
               "name": "result_filename",
               "value": "={{ $binary?.data?.fileName || '' }}",
               "type": "string"
             },
             {
-              "id": "02001e48-30af-417a-b1f9-a4861ddf9e31",
+              "id": "1eea427e-8df9-4690-8ad7-99bd4f30e338",
               "name": "result_property_title",
               "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
               "type": "string"
             },
             {
-              "id": "4dec5ced-e29f-40ba-9b46-4f073cc81933",
+              "id": "3ec89434-662d-4ab3-9090-fbfa422994c1",
               "name": "result_source_url",
               "value": "={{ $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || '' }}",
               "type": "string"
             },
             {
-              "id": "50d6a818-6f92-4794-b3e1-a8f98de8037e",
+              "id": "3b2a691f-9e38-4dfb-b35f-5f4d5e4d8b24",
               "name": "result_error",
               "value": "",
               "type": "string"
@@ -314,7 +313,7 @@
         },
         "options": {}
       },
-      "id": "824da43e-3a76-4753-974c-80e5a1ede7fc",
+      "id": "5ff25f8c-a0b0-48c4-b0b4-584affae1b7c",
       "name": "Record media success",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -347,7 +346,7 @@
           "timeout": 30000
         }
       },
-      "id": "7eff56e9-743c-47e4-b29c-f2c098144f6a",
+      "id": "3c9fdcdc-c135-4dff-9dec-106bcb53c402",
       "name": "Send media fallback text",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -364,49 +363,49 @@
         "assignments": {
           "assignments": [
             {
-              "id": "29fa8f25-37b3-4db6-ae39-4fd5f2119e10",
+              "id": "bcf15312-d46a-4828-83a8-34caf3e49f92",
               "name": "chatwoot_id",
               "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
               "type": "string"
             },
             {
-              "id": "665a2d92-6f8d-4dfa-a593-b04289b72a98",
+              "id": "a40cdb78-2feb-4765-a0e9-648d75a205f7",
               "name": "result_ok",
               "value": false,
               "type": "boolean"
             },
             {
-              "id": "6c5c1f4e-1880-40b5-b635-63f70f239b92",
+              "id": "a4843473-16ba-418f-b424-2a603ab55190",
               "name": "result_type",
               "value": "media_fallback",
               "type": "string"
             },
             {
-              "id": "c564691a-3c0e-4d51-9d34-4742970a41a6",
+              "id": "39a61402-737d-4be4-af95-fadc97e1868f",
               "name": "result_filename",
               "value": "",
               "type": "string"
             },
             {
-              "id": "eb8810aa-bfeb-461b-9e92-42513ab39b4a",
+              "id": "a7ab991b-f2c5-4d3b-a4ec-cb4e5b3c6427",
               "name": "result_property_title",
               "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
               "type": "string"
             },
             {
-              "id": "de20a93a-661a-468c-a1cb-ef30ff87269a",
+              "id": "de2daf59-5f27-49bb-809e-eb76e7262795",
               "name": "result_source_url",
               "value": "={{ $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || '' }}",
               "type": "string"
             },
             {
-              "id": "b826e4c1-d2c9-4b8b-87d2-06165d8a73bc",
+              "id": "fd3aefa6-77e4-4ddc-b0f1-9f84fdd39e58",
               "name": "result_error",
               "value": "media_delivery_failed",
               "type": "string"
             },
             {
-              "id": "97d33532-d0a3-4b4e-af22-f2c4e6404747",
+              "id": "f006a06c-73b5-4121-8462-92d64b59bca7",
               "name": "result_fallback_sent",
               "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
               "type": "boolean"
@@ -415,7 +414,7 @@
         },
         "options": {}
       },
-      "id": "6074ceda-b752-4da4-b337-6f48bfe2d4af",
+      "id": "49632a7c-bd39-47c0-8321-0903e1a88e49",
       "name": "Record media fallback result",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -450,7 +449,7 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "96ddcff0-3f0b-400a-9b97-68b6b533ab10",
+      "id": "c606a7ce-19c3-4724-a2c4-7c27f33b9507",
       "name": "Is text outbound item?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
@@ -483,7 +482,7 @@
           "timeout": 30000
         }
       },
-      "id": "1535269d-f10e-419b-903b-a98d615580e1",
+      "id": "f4ba65a4-2ee6-4e9a-8fda-915929423eed",
       "name": "Send Chatwoot text direct",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -500,49 +499,49 @@
         "assignments": {
           "assignments": [
             {
-              "id": "9078eda9-1a6c-4da1-96b2-3ffc719449fa",
+              "id": "bf51ae08-f3e6-4923-94f6-8e6126f1ff7f",
               "name": "chatwoot_id",
               "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
               "type": "string"
             },
             {
-              "id": "7dc1cf21-a1e7-42a3-8c4b-256c2920d482",
+              "id": "a2af67ac-fe22-4523-9db4-28ccd48418f7",
               "name": "result_ok",
               "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
               "type": "boolean"
             },
             {
-              "id": "5cfc9975-f852-40e6-a11c-5c8908203995",
+              "id": "beade8c8-97cb-4fcf-87cb-0458264e2f43",
               "name": "result_type",
               "value": "text",
               "type": "string"
             },
             {
-              "id": "062e8ed1-d43a-470f-a63e-378e95f24933",
+              "id": "d66eaca0-c9a9-463c-9266-dfc9b201ad01",
               "name": "result_filename",
               "value": "",
               "type": "string"
             },
             {
-              "id": "ba86d86d-4dd2-40f5-96fd-7507f39bd400",
+              "id": "3f30a0fb-2528-4d14-94d8-8de08d521688",
               "name": "result_property_title",
               "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
               "type": "string"
             },
             {
-              "id": "e8e9d5cc-efdc-495b-8c98-0c0a00f287b9",
+              "id": "2c63a762-9440-4ccd-a4d7-e220ff0750ca",
               "name": "result_source_url",
               "value": "={{ $('Loop outbound items').item.json.source_url || '' }}",
               "type": "string"
             },
             {
-              "id": "e3449aed-2162-4d0a-bc59-0f9248244793",
+              "id": "e58aaecd-fa18-4319-abf4-f15a87245a3c",
               "name": "result_error",
               "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) ? '' : 'text_delivery_failed' }}",
               "type": "string"
             },
             {
-              "id": "0df7dcf6-b987-495e-92c8-9a4a6a3fa269",
+              "id": "f02e6624-2f75-4275-9710-101658006811",
               "name": "result_content",
               "value": "={{ $('Loop outbound items').item.json.content || '' }}",
               "type": "string"
@@ -551,7 +550,7 @@
         },
         "options": {}
       },
-      "id": "352bb179-885e-47f9-8ff0-0a3a2b3530d1",
+      "id": "8b76c604-2894-483a-b5f9-18fd5abc7888",
       "name": "Record text result",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -564,7 +563,7 @@
       "parameters": {
         "jsCode": "const items = $input.all();\nawait new Promise((resolve) => setTimeout(resolve, 350));\nreturn items;"
       },
-      "id": "d2ce1361-d40f-4129-bba4-e8cb3fc761e7",
+      "id": "a8f242d6-bca9-4529-b8d3-ce06aa03199d",
       "name": "Pause outbound item",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -577,7 +576,7 @@
       "parameters": {
         "jsCode": "const compact = (value) => String(value ?? '').trim();\nconst items = $input.all();\nconst first = items[0]?.json || {};\n\nconst results = items\n  .map((item) => item.json || {})\n  .filter((json) => compact(json.result_type) && compact(json.result_type) !== 'noop')\n  .map((json) => ({\n    ok: json.result_ok !== false,\n    type: compact(json.result_type),\n    filename: compact(json.result_filename) || null,\n    property_title: compact(json.result_property_title) || null,\n    source_url: compact(json.result_source_url) || null,\n    error: compact(json.result_error) || null,\n    fallback_sent: json.result_fallback_sent === true,\n    content: compact(json.result_content) || null,\n  }));\n\nreturn [\n  {\n    json: {\n      ok: results.every((entry) => entry.ok !== false),\n      chatwoot_id: compact(first.chatwoot_id) || null,\n      sent_count: results.length,\n      results,\n    },\n  },\n];"
       },
-      "id": "196e3da5-6df2-469a-860e-d5cafa0e9ee3",
+      "id": "91c0654e-72a7-4c9c-adfb-cf4282566f94",
       "name": "Summarize outbound results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -872,15 +871,16 @@
     "executionOrder": "v1",
     "timezone": "America/Bogota",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "binaryMode": "separate"
   },
   "staticData": null,
   "meta": null,
-  "pinData": null,
-  "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
-  "activeVersionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
-  "versionCounter": 119,
-  "triggerCount": 0,
+  "pinData": {},
+  "versionId": "bfe8b529-1c36-476d-a210-96b8e99cfd63",
+  "activeVersionId": "bfe8b529-1c36-476d-a210-96b8e99cfd63",
+  "versionCounter": 158,
+  "triggerCount": 1,
   "shared": [
     {
       "updatedAt": "2026-03-10T04:54:50.601Z",
@@ -902,9 +902,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-03-18T21:39:03.498Z",
-    "createdAt": "2026-03-18T21:39:03.498Z",
-    "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
+    "updatedAt": "2026-03-25T05:18:51.825Z",
+    "createdAt": "2026-03-25T05:18:51.825Z",
+    "versionId": "bfe8b529-1c36-476d-a210-96b8e99cfd63",
     "workflowId": "pLyrdDO3mneaCp7m",
     "nodes": [
       {
@@ -924,7 +924,6 @@
         "parameters": {
           "httpMethod": "POST",
           "path": "chatwoot/outbound-sender/async",
-          "responseMode": "onReceived",
           "options": {}
         },
         "id": "a1b2c3d4-async-webhook-trigger",
@@ -941,7 +940,7 @@
         "parameters": {
           "jsCode": "const raw = $input.first().json || {};\nconst input = raw.body || raw;\nconst compact = (value) => String(value ?? '').trim();\n\nfunction normalizeSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nconst normalizedSequence = normalizeSequence(input.outbound_sequence_json || input.outbound_sequence);\n\nreturn [\n  {\n    json: {\n      chatwoot_id: compact(input.chatwoot_id || '') || null,\n      private: input.private === true,\n      chatwoot_account_id: compact(input.chatwoot_account_id || '1') || '1',\n      chatwoot_api_token: compact(input.chatwoot_api_token || '7paF3kLsjSEPvXqgHPEgPTEq') || '7paF3kLsjSEPvXqgHPEgPTEq',\n      outbound_sequence: normalizedSequence,\n      outbound_sequence_json: JSON.stringify(normalizedSequence),\n      outbound_message: compact(input.outbound_message || input.message || input.final_whatsapp_text || ''),\n      final_whatsapp_text: compact(input.final_whatsapp_text || input.outbound_message || input.message || ''),\n    },\n  },\n];"
         },
-        "id": "1938bad8-5d51-4061-896b-a9aec6889c74",
+        "id": "96c3f625-843c-4e0a-a341-af6a27c8ccbb",
         "name": "Normalize input",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -954,7 +953,7 @@
         "parameters": {
           "jsCode": "const prevData = $input.first().json || {};\nconst compact = (value) => String(value ?? '').trim();\nconst helperRequest =\n  typeof $httpRequest === 'function'\n    ? $httpRequest\n    : typeof this !== 'undefined' && this?.helpers?.httpRequest\n      ? this.helpers.httpRequest.bind(this.helpers)\n      : null;\n\nfunction parseSequence(value) {\n  if (Array.isArray(value)) return value;\n  if (!value) return [];\n  try {\n    const parsed = JSON.parse(String(value));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction uniqueStrings(values = []) {\n  const seen = new Set();\n  const out = [];\n  for (const value of values) {\n    const key = compact(value);\n    if (!key || seen.has(key)) continue;\n    seen.add(key);\n    out.push(key);\n  }\n  return out;\n}\n\nfunction extractDriveFolderId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/drive\\/folders\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveFileId(url) {\n  const source = compact(url);\n  const match =\n    source.match(/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)/i) ||\n    source.match(/[?&]id=([a-zA-Z0-9_-]+)/i);\n  return match ? match[1] : null;\n}\n\nfunction isDriveFolderUrl(url) {\n  return /drive\\.google\\.com\\/drive\\/folders\\//i.test(compact(url));\n}\n\nfunction isDriveFileUrl(url) {\n  const source = compact(url);\n  return /drive\\.google\\.com\\/file\\/d\\//i.test(source) || (/drive\\.google\\.com/i.test(source) && /[?&]id=/.test(source));\n}\n\nfunction directDriveDownloadUrl(fileId) {\n  return 'https://drive.google.com/uc?export=download&id=' + String(fileId);\n}\n\nasync function fetchText(url) {\n  if (helperRequest) {\n    let response;\n    try {\n      response = await helperRequest({\n        url,\n        method: 'GET',\n        headers: {\n          Accept: 'text/html,application/xhtml+xml',\n          'User-Agent': 'Mozilla/5.0',\n        },\n        json: false,\n        timeout: 30000,\n        ignoreHttpStatusErrors: true,\n        returnFullResponse: true,\n      });\n    } catch (error) {\n      const fallbackResponse = error?.response || error?.context?.response || null;\n      if (!fallbackResponse) throw error;\n      response = fallbackResponse;\n    }\n\n    const statusCode = Number(response.statusCode || response.status || 0);\n    const body = response.body ?? response.data ?? '';\n    const text =\n      typeof body === 'string'\n        ? body\n        : Buffer.isBuffer(body)\n          ? body.toString('utf8')\n          : body instanceof Uint8Array\n            ? Buffer.from(body).toString('utf8')\n            : body instanceof ArrayBuffer\n              ? Buffer.from(new Uint8Array(body)).toString('utf8')\n              : JSON.stringify(body);\n\n    if (statusCode < 200 || statusCode >= 300) {\n      throw new Error('drive_folder_listing_http_' + statusCode);\n    }\n\n    return text;\n  }\n\n  if (typeof fetch === 'function') {\n    const response = await fetch(url, {\n      headers: {\n        Accept: 'text/html,application/xhtml+xml',\n        'User-Agent': 'Mozilla/5.0',\n      },\n      redirect: 'follow',\n    });\n\n    if (!response.ok) {\n      throw new Error('drive_folder_listing_http_' + response.status);\n    }\n\n    return response.text();\n  }\n\n  throw new Error('drive_folder_listing_unavailable');\n}\n\nasync function resolveFolderAssets(folderUrl) {\n  const folderId = extractDriveFolderId(folderUrl);\n  if (!folderId) {\n    throw new Error('drive_folder_id_not_found');\n  }\n\n  const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + folderId + '#list';\n  const html = await fetchText(embedUrl);\n  const matches = Array.from(html.matchAll(/https:\\/\\/drive\\.google\\.com\\/file\\/d\\/([a-zA-Z0-9_-]+)\\/view/gi));\n\n  return uniqueStrings(matches.map((match) => directDriveDownloadUrl(match[1]))).map((downloadUrl) => ({\n    source_url: folderUrl,\n    download_url: downloadUrl,\n  }));\n}\n\nasync function resolveSequenceAssets(item) {\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  const assets = [];\n\n  for (const url of rawUrls) {\n    if (isDriveFolderUrl(url)) {\n      const resolved = await resolveFolderAssets(url);\n      assets.push(...resolved);\n      continue;\n    }\n\n    if (isDriveFileUrl(url)) {\n      const fileId = extractDriveFileId(url);\n      if (fileId) {\n        assets.push({\n          source_url: url,\n          download_url: directDriveDownloadUrl(fileId),\n        });\n        continue;\n      }\n    }\n\n    assets.push({\n      source_url: url,\n      download_url: url,\n    });\n  }\n\n  return uniqueStrings(assets.map((asset) => asset.download_url)).map((downloadUrl) => ({\n    download_url: downloadUrl,\n    source_url: assets.find((asset) => asset.download_url === downloadUrl)?.source_url || downloadUrl,\n  }));\n}\n\nfunction createTextItem(content, extra = {}) {\n  const message = compact(content);\n  if (!message) return null;\n\n  return {\n    json: {\n      ...prevData,\n      outbound_item_type: 'text',\n      content: message,\n      private: extra.private === true,\n      property_title: extra.property_title || null,\n      source_url: extra.source_url || null,\n      download_url: extra.download_url || null,\n      send_order: extra.send_order || 0,\n      media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n    },\n  };\n}\n\nconst rawSequence = parseSequence(prevData.outbound_sequence_json || prevData.outbound_sequence);\nconst fallbackMessage = compact(prevData.outbound_message || prevData.final_whatsapp_text);\nconst queue = rawSequence.length\n  ? rawSequence\n  : fallbackMessage\n    ? [{ type: 'text', content: fallbackMessage, private: prevData.private === true }]\n    : [];\n\nconst outboundItems = [];\nlet sendOrder = 1;\n\nfor (const rawItem of queue) {\n  const item = rawItem && typeof rawItem === 'object' ? rawItem : null;\n  if (!item) continue;\n\n  const itemType = compact(item.type || '');\n  const isMediaItem = itemType === 'media_group' || (compact(item.media_url) && itemType !== 'text');\n\n  if (!isMediaItem) {\n    const textItem = createTextItem(item.content, {\n      private: item.private === true || prevData.private === true,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  const rawUrls = uniqueStrings([\n    ...(Array.isArray(item.media_urls) ? item.media_urls : []),\n    item.media_url,\n  ]);\n\n  let assets = [];\n  try {\n    assets = await resolveSequenceAssets(item);\n  } catch {\n    assets = [];\n  }\n\n  if (!assets.length) {\n    const fallbackText = [compact(item.content), ...rawUrls].filter(Boolean).join('\\n');\n    const textItem = createTextItem(fallbackText, {\n      private: item.private === true || prevData.private === true,\n      property_title: item.property_title || null,\n      source_url: rawUrls[0] || null,\n      send_order: sendOrder,\n    });\n    if (textItem) {\n      outboundItems.push(textItem);\n      sendOrder += 1;\n    }\n    continue;\n  }\n\n  for (let index = 0; index < assets.length; index += 1) {\n    const asset = assets[index];\n    const caption = index === 0 ? compact(item.content) : '';\n\n    outboundItems.push({\n      json: {\n        ...prevData,\n        outbound_item_type: 'media_asset',\n        property_title: item.property_title || null,\n        private: item.private === true || prevData.private === true,\n        caption,\n        send_caption: Boolean(caption),\n        asset_index: index,\n        source_url: asset.source_url || rawUrls[0] || null,\n        download_url: asset.download_url,\n        send_order: sendOrder,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    });\n    sendOrder += 1;\n  }\n}\n\nif (!outboundItems.length) {\n  return [\n    {\n      json: {\n        ...prevData,\n        outbound_item_type: 'noop',\n        send_order: 0,\n        media_relay_base_url: compact(prevData.media_relay_base_url || \"\"),\n      },\n    },\n  ];\n}\n\nreturn outboundItems;"
         },
-        "id": "1fcbe87e-f850-4af0-8e4b-d64897dc3692",
+        "id": "1b73c07a-c8f9-4d26-aa13-df040deffb7d",
         "name": "Expand outbound items",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -967,7 +966,7 @@
         "parameters": {
           "options": {}
         },
-        "id": "9808dde9-8173-453d-9c23-1a0d979e49a3",
+        "id": "618351f2-6a8a-4a2a-8051-5bbe5c264f0f",
         "name": "Loop outbound items",
         "type": "n8n-nodes-base.splitInBatches",
         "typeVersion": 3,
@@ -1002,7 +1001,7 @@
           "looseTypeValidation": true,
           "options": {}
         },
-        "id": "073a2731-26b0-473d-ab3e-bb03f4630143",
+        "id": "9b52d399-591e-481d-9f02-1bcee8325550",
         "name": "Is media outbound item?",
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
@@ -1023,7 +1022,7 @@
             "timeout": 30000
           }
         },
-        "id": "691f3033-00af-4b07-a700-1855e2ac36cc",
+        "id": "78d01bae-10c8-4aeb-9c93-abce1858cd35",
         "name": "Download media asset",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
@@ -1061,7 +1060,7 @@
           "looseTypeValidation": true,
           "options": {}
         },
-        "id": "e2a1a115-1493-4378-bcfc-e31d285b8270",
+        "id": "ce8f1fc7-bba9-42cf-9e11-8a2c6574fbbd",
         "name": "Media download ok?",
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
@@ -1117,7 +1116,7 @@
             "timeout": 45000
           }
         },
-        "id": "d4324bee-1e37-433e-bae1-56c030c3d3d1",
+        "id": "7ebadecc-cd17-491f-a244-14212fe4aac0",
         "name": "Upload media to Chatwoot",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
@@ -1155,7 +1154,7 @@
           "looseTypeValidation": true,
           "options": {}
         },
-        "id": "d06624f4-41be-4713-b0d7-952e744e502f",
+        "id": "1c19a3e2-6ddb-45c2-9059-821419cc5994",
         "name": "Media upload ok?",
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
@@ -1169,43 +1168,43 @@
           "assignments": {
             "assignments": [
               {
-                "id": "a9ed0647-5078-4bc7-8213-d6ea1e1ecf42",
+                "id": "5c0a603d-b399-47a9-b015-e4b7bd3047ff",
                 "name": "chatwoot_id",
                 "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
                 "type": "string"
               },
               {
-                "id": "d5b0b331-828e-4d91-abb4-84edb9ed496d",
+                "id": "e67322b0-6087-4c51-8442-cb550078aa91",
                 "name": "result_ok",
                 "value": true,
                 "type": "boolean"
               },
               {
-                "id": "03a0a9db-50b2-41ff-a695-cdf706225c66",
+                "id": "1e6c78b8-0fa7-48d9-9725-a85c3fa3375e",
                 "name": "result_type",
                 "value": "media",
                 "type": "string"
               },
               {
-                "id": "4fb3b76b-152c-4ddf-bf23-74bc3a649fe6",
+                "id": "7785b1c7-e148-49ab-b859-00f997641084",
                 "name": "result_filename",
                 "value": "={{ $binary?.data?.fileName || '' }}",
                 "type": "string"
               },
               {
-                "id": "02001e48-30af-417a-b1f9-a4861ddf9e31",
+                "id": "1eea427e-8df9-4690-8ad7-99bd4f30e338",
                 "name": "result_property_title",
                 "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
                 "type": "string"
               },
               {
-                "id": "4dec5ced-e29f-40ba-9b46-4f073cc81933",
+                "id": "3ec89434-662d-4ab3-9090-fbfa422994c1",
                 "name": "result_source_url",
                 "value": "={{ $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || '' }}",
                 "type": "string"
               },
               {
-                "id": "50d6a818-6f92-4794-b3e1-a8f98de8037e",
+                "id": "3b2a691f-9e38-4dfb-b35f-5f4d5e4d8b24",
                 "name": "result_error",
                 "value": "",
                 "type": "string"
@@ -1214,7 +1213,7 @@
           },
           "options": {}
         },
-        "id": "824da43e-3a76-4753-974c-80e5a1ede7fc",
+        "id": "5ff25f8c-a0b0-48c4-b0b4-584affae1b7c",
         "name": "Record media success",
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
@@ -1247,7 +1246,7 @@
             "timeout": 30000
           }
         },
-        "id": "7eff56e9-743c-47e4-b29c-f2c098144f6a",
+        "id": "3c9fdcdc-c135-4dff-9dec-106bcb53c402",
         "name": "Send media fallback text",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
@@ -1264,49 +1263,49 @@
           "assignments": {
             "assignments": [
               {
-                "id": "29fa8f25-37b3-4db6-ae39-4fd5f2119e10",
+                "id": "bcf15312-d46a-4828-83a8-34caf3e49f92",
                 "name": "chatwoot_id",
                 "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
                 "type": "string"
               },
               {
-                "id": "665a2d92-6f8d-4dfa-a593-b04289b72a98",
+                "id": "a40cdb78-2feb-4765-a0e9-648d75a205f7",
                 "name": "result_ok",
                 "value": false,
                 "type": "boolean"
               },
               {
-                "id": "6c5c1f4e-1880-40b5-b635-63f70f239b92",
+                "id": "a4843473-16ba-418f-b424-2a603ab55190",
                 "name": "result_type",
                 "value": "media_fallback",
                 "type": "string"
               },
               {
-                "id": "c564691a-3c0e-4d51-9d34-4742970a41a6",
+                "id": "39a61402-737d-4be4-af95-fadc97e1868f",
                 "name": "result_filename",
                 "value": "",
                 "type": "string"
               },
               {
-                "id": "eb8810aa-bfeb-461b-9e92-42513ab39b4a",
+                "id": "a7ab991b-f2c5-4d3b-a4ec-cb4e5b3c6427",
                 "name": "result_property_title",
                 "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
                 "type": "string"
               },
               {
-                "id": "de20a93a-661a-468c-a1cb-ef30ff87269a",
+                "id": "de2daf59-5f27-49bb-809e-eb76e7262795",
                 "name": "result_source_url",
                 "value": "={{ $('Loop outbound items').item.json.source_url || $('Loop outbound items').item.json.download_url || '' }}",
                 "type": "string"
               },
               {
-                "id": "b826e4c1-d2c9-4b8b-87d2-06165d8a73bc",
+                "id": "fd3aefa6-77e4-4ddc-b0f1-9f84fdd39e58",
                 "name": "result_error",
                 "value": "media_delivery_failed",
                 "type": "string"
               },
               {
-                "id": "97d33532-d0a3-4b4e-af22-f2c4e6404747",
+                "id": "f006a06c-73b5-4121-8462-92d64b59bca7",
                 "name": "result_fallback_sent",
                 "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
                 "type": "boolean"
@@ -1315,7 +1314,7 @@
           },
           "options": {}
         },
-        "id": "6074ceda-b752-4da4-b337-6f48bfe2d4af",
+        "id": "49632a7c-bd39-47c0-8321-0903e1a88e49",
         "name": "Record media fallback result",
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
@@ -1350,7 +1349,7 @@
           "looseTypeValidation": true,
           "options": {}
         },
-        "id": "96ddcff0-3f0b-400a-9b97-68b6b533ab10",
+        "id": "c606a7ce-19c3-4724-a2c4-7c27f33b9507",
         "name": "Is text outbound item?",
         "type": "n8n-nodes-base.if",
         "typeVersion": 2.3,
@@ -1383,7 +1382,7 @@
             "timeout": 30000
           }
         },
-        "id": "1535269d-f10e-419b-903b-a98d615580e1",
+        "id": "f4ba65a4-2ee6-4e9a-8fda-915929423eed",
         "name": "Send Chatwoot text direct",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
@@ -1400,49 +1399,49 @@
           "assignments": {
             "assignments": [
               {
-                "id": "9078eda9-1a6c-4da1-96b2-3ffc719449fa",
+                "id": "bf51ae08-f3e6-4923-94f6-8e6126f1ff7f",
                 "name": "chatwoot_id",
                 "value": "={{ $('Loop outbound items').item.json.chatwoot_id || '' }}",
                 "type": "string"
               },
               {
-                "id": "7dc1cf21-a1e7-42a3-8c4b-256c2920d482",
+                "id": "a2af67ac-fe22-4523-9db4-28ccd48418f7",
                 "name": "result_ok",
                 "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) }}",
                 "type": "boolean"
               },
               {
-                "id": "5cfc9975-f852-40e6-a11c-5c8908203995",
+                "id": "beade8c8-97cb-4fcf-87cb-0458264e2f43",
                 "name": "result_type",
                 "value": "text",
                 "type": "string"
               },
               {
-                "id": "062e8ed1-d43a-470f-a63e-378e95f24933",
+                "id": "d66eaca0-c9a9-463c-9266-dfc9b201ad01",
                 "name": "result_filename",
                 "value": "",
                 "type": "string"
               },
               {
-                "id": "ba86d86d-4dd2-40f5-96fd-7507f39bd400",
+                "id": "3f30a0fb-2528-4d14-94d8-8de08d521688",
                 "name": "result_property_title",
                 "value": "={{ $('Loop outbound items').item.json.property_title || '' }}",
                 "type": "string"
               },
               {
-                "id": "e8e9d5cc-efdc-495b-8c98-0c0a00f287b9",
+                "id": "2c63a762-9440-4ccd-a4d7-e220ff0750ca",
                 "name": "result_source_url",
                 "value": "={{ $('Loop outbound items').item.json.source_url || '' }}",
                 "type": "string"
               },
               {
-                "id": "e3449aed-2162-4d0a-bc59-0f9248244793",
+                "id": "e58aaecd-fa18-4319-abf4-f15a87245a3c",
                 "name": "result_error",
                 "value": "={{ Boolean($json.id || $json.message?.id || $json.message_id) ? '' : 'text_delivery_failed' }}",
                 "type": "string"
               },
               {
-                "id": "0df7dcf6-b987-495e-92c8-9a4a6a3fa269",
+                "id": "f02e6624-2f75-4275-9710-101658006811",
                 "name": "result_content",
                 "value": "={{ $('Loop outbound items').item.json.content || '' }}",
                 "type": "string"
@@ -1451,7 +1450,7 @@
           },
           "options": {}
         },
-        "id": "352bb179-885e-47f9-8ff0-0a3a2b3530d1",
+        "id": "8b76c604-2894-483a-b5f9-18fd5abc7888",
         "name": "Record text result",
         "type": "n8n-nodes-base.set",
         "typeVersion": 3.4,
@@ -1464,7 +1463,7 @@
         "parameters": {
           "jsCode": "const items = $input.all();\nawait new Promise((resolve) => setTimeout(resolve, 350));\nreturn items;"
         },
-        "id": "d2ce1361-d40f-4129-bba4-e8cb3fc761e7",
+        "id": "a8f242d6-bca9-4529-b8d3-ce06aa03199d",
         "name": "Pause outbound item",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -1477,7 +1476,7 @@
         "parameters": {
           "jsCode": "const compact = (value) => String(value ?? '').trim();\nconst items = $input.all();\nconst first = items[0]?.json || {};\n\nconst results = items\n  .map((item) => item.json || {})\n  .filter((json) => compact(json.result_type) && compact(json.result_type) !== 'noop')\n  .map((json) => ({\n    ok: json.result_ok !== false,\n    type: compact(json.result_type),\n    filename: compact(json.result_filename) || null,\n    property_title: compact(json.result_property_title) || null,\n    source_url: compact(json.result_source_url) || null,\n    error: compact(json.result_error) || null,\n    fallback_sent: json.result_fallback_sent === true,\n    content: compact(json.result_content) || null,\n  }));\n\nreturn [\n  {\n    json: {\n      ok: results.every((entry) => entry.ok !== false),\n      chatwoot_id: compact(first.chatwoot_id) || null,\n      sent_count: results.length,\n      results,\n    },\n  },\n];"
         },
-        "id": "196e3da5-6df2-469a-860e-d5cafa0e9ee3",
+        "id": "91c0654e-72a7-4c9c-adfb-cf4282566f94",
         "name": "Summarize outbound results",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -1770,14 +1769,14 @@
     },
     "authors": "JUANDAVID VIZCAYA",
     "name": null,
-    "description": "Legacy outbound sender retained for text-only or follow-up flows. Media delivery now runs itemized in the main workflow.",
+    "description": null,
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-03-18T21:39:03.819Z",
-        "id": 493,
+        "createdAt": "2026-03-25T05:18:52.159Z",
+        "id": 569,
         "workflowId": "pLyrdDO3mneaCp7m",
-        "versionId": "e1a1317d-d1b1-4c75-9326-c5971edccf0e",
+        "versionId": "bfe8b529-1c36-476d-a210-96b8e99cfd63",
         "event": "activated",
         "userId": "63eb5646-3a36-4b34-9981-c398d6f72574"
       }

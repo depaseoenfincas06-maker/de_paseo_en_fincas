@@ -22,15 +22,12 @@ dotenv.config({ path: path.join(rootDir, '.env') });
 
 const PORT = Number(process.env.SIMULATOR_PORT || 3101);
 const N8N_BASE_URL = process.env.N8N_BASE_URL;
+const PUBLIC_APP_BASE_URL = process.env.PUBLIC_APP_BASE_URL || '';
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
 const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
 const CHATWOOT_ACCOUNT_ID = process.env.CHATWOOT_ACCOUNT_ID || '1';
-const PUBLIC_APP_BASE_URL =
-  process.env.PUBLIC_APP_BASE_URL ||
-  process.env.SIMULATOR_BASE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
 const SUPABASE_DB_HOST = process.env.SUPABASE_DB_HOST;
 const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL || '';
 const DATABASE_URL = process.env.DATABASE_URL || '';
@@ -141,12 +138,28 @@ const DEFAULT_SETTINGS = Object.freeze({
   id: 1,
   tonePreset: 'calido_profesional',
   toneGuidelinesExtra: '',
+  publicAppBaseUrl: compactText(PUBLIC_APP_BASE_URL),
+  globalPromptAddendum: '',
+  qualifyingPromptAddendum: '',
+  offeringPromptAddendum: '',
+  verifyingAvailabilityPromptAddendum: '',
+  qaPromptAddendum: '',
+  hitlPromptAddendum: '',
+  confirmingReservationPromptAddendum: '',
   initialMessageTemplate:
     'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
   handoffMessage: 'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
-  publicAppBaseUrl: PUBLIC_APP_BASE_URL,
-  paymentMethodsText:
-    'Bancolombia\nDavivienda\nColpatria\nNequi\nDaviplata\nTarjeta Crédito/Débito/PSE (+5%)\nEfectivo presencial en sedes de Anapoima o Pereira',
+  companyKnowledge: '',
+  companyDocuments: [],
+  paymentMethods: [
+    { method: 'Bancolombia', description: 'Transferencia o consignación', surcharge: '' },
+    { method: 'Davivienda', description: 'Transferencia o consignación', surcharge: '' },
+    { method: 'Colpatria', description: 'Transferencia o consignación', surcharge: '' },
+    { method: 'Nequi', description: 'Transferencia inmediata', surcharge: '' },
+    { method: 'Daviplata', description: 'Transferencia inmediata', surcharge: '' },
+    { method: 'Tarjeta Crédito/Débito/PSE', description: 'Pasarela digital', surcharge: '+5%' },
+    { method: 'Efectivo', description: 'Pago presencial en sedes de Anapoima o Pereira', surcharge: '' },
+  ],
   ownerContactOverride: '',
   ownerTestModeEnabled: false,
   globalBotEnabled: true,
@@ -235,21 +248,6 @@ function compactText(value) {
   return String(value || '').trim();
 }
 
-function paymentMethodsTextToStructured(value) {
-  return String(value || '')
-    .split(/\r?\n+/)
-    .map((line) => compactText(line))
-    .filter(Boolean)
-    .map((line) => {
-      const [method, ...descriptionParts] = line.split(/\s+[\-–—]\s+/);
-      return {
-        method: compactText(method),
-        description: compactText(descriptionParts.join(' - ')),
-      };
-    })
-    .filter((entry) => entry.method);
-}
-
 function decodeBase64UrlJson(rawValue) {
   const source = compactText(rawValue);
   if (!source) {
@@ -275,20 +273,15 @@ function decodeBase64UrlJson(rawValue) {
 function mergeReservationPayloadWithSettings(payload, settings) {
   const safePayload = payload && typeof payload === 'object' ? payload : {};
   const safeSettings = settings && typeof settings === 'object' ? settings : DEFAULT_SETTINGS;
-  const paymentMethodsText = compactText(
-    safePayload.payment_methods_text ||
-      safePayload.paymentMethodsText ||
-      safeSettings.paymentMethodsText ||
-      '',
-  );
 
   return {
     ...safePayload,
-    payment_methods_text: paymentMethodsText,
+    company_knowledge:
+      safePayload.company_knowledge ?? safePayload.companyKnowledge ?? safeSettings.companyKnowledge,
+    company_documents:
+      safePayload.company_documents ?? safePayload.companyDocuments ?? safeSettings.companyDocuments,
     payment_methods:
-      safePayload.payment_methods ||
-      safePayload.paymentMethods ||
-      paymentMethodsTextToStructured(paymentMethodsText),
+      safePayload.payment_methods ?? safePayload.paymentMethods ?? safeSettings.paymentMethods,
   };
 }
 
@@ -341,21 +334,103 @@ function normalizeInteger(value, fallback, min = 1, max = 10) {
   return Math.min(max, Math.max(min, Math.round(numeric)));
 }
 
+function normalizeJsonValue(value, fallback) {
+  if (value === undefined || value === null || value === '') return fallback;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return fallback;
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return fallback;
+    }
+  }
+  if (typeof value === 'object') return value;
+  return fallback;
+}
+
+function normalizeCompanyDocuments(value, fallback = DEFAULT_SETTINGS.companyDocuments) {
+  const parsed = normalizeJsonValue(value, fallback);
+  if (!Array.isArray(parsed)) return fallback;
+
+  return parsed
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+      const document = {
+        document_key: compactText(entry.document_key || entry.key || entry.id),
+        title: compactText(entry.title || entry.name),
+        description: compactText(entry.description || entry.summary),
+        url: compactText(entry.url || entry.link),
+        category: compactText(entry.category || 'general') || 'general',
+        send_when_asked: normalizeBoolean(entry.send_when_asked, true),
+      };
+
+      return document.description && document.url ? document : null;
+    })
+    .filter(Boolean);
+}
+
+function normalizePaymentMethods(value, fallback = DEFAULT_SETTINGS.paymentMethods) {
+  const parsed = normalizeJsonValue(value, fallback);
+  if (!Array.isArray(parsed)) return fallback;
+
+  return parsed
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+      const method = {
+        method: compactText(entry.method || entry.name || entry.title),
+        description: compactText(entry.description || entry.details || entry.note),
+        surcharge: compactText(entry.surcharge || entry.recargo),
+      };
+
+      return method.method ? method : null;
+    })
+    .filter(Boolean);
+}
+
 function serializeSettings(row = {}) {
   return {
     id: 1,
     tonePreset: compactText(row.tone_preset || DEFAULT_SETTINGS.tonePreset) || DEFAULT_SETTINGS.tonePreset,
     toneGuidelinesExtra: compactText(row.tone_guidelines_extra || DEFAULT_SETTINGS.toneGuidelinesExtra),
+    publicAppBaseUrl:
+      compactText(row.public_app_base_url || DEFAULT_SETTINGS.publicAppBaseUrl) ||
+      DEFAULT_SETTINGS.publicAppBaseUrl,
+    globalPromptAddendum:
+      compactText(row.global_prompt_addendum || DEFAULT_SETTINGS.globalPromptAddendum),
+    qualifyingPromptAddendum:
+      compactText(row.qualifying_prompt_addendum || DEFAULT_SETTINGS.qualifyingPromptAddendum),
+    offeringPromptAddendum:
+      compactText(row.offering_prompt_addendum || DEFAULT_SETTINGS.offeringPromptAddendum),
+    verifyingAvailabilityPromptAddendum:
+      compactText(
+        row.verifying_availability_prompt_addendum ||
+          DEFAULT_SETTINGS.verifyingAvailabilityPromptAddendum,
+      ),
+    qaPromptAddendum: compactText(row.qa_prompt_addendum || DEFAULT_SETTINGS.qaPromptAddendum),
+    hitlPromptAddendum:
+      compactText(row.hitl_prompt_addendum || DEFAULT_SETTINGS.hitlPromptAddendum),
+    confirmingReservationPromptAddendum:
+      compactText(
+        row.confirming_reservation_prompt_addendum ||
+          DEFAULT_SETTINGS.confirmingReservationPromptAddendum,
+      ),
     initialMessageTemplate:
       String(row.initial_message_template || DEFAULT_SETTINGS.initialMessageTemplate).trim() ||
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(row.handoff_message || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
-    publicAppBaseUrl:
-      compactText(row.public_app_base_url || DEFAULT_SETTINGS.publicAppBaseUrl) || DEFAULT_SETTINGS.publicAppBaseUrl,
-    paymentMethodsText:
-      String(row.payment_methods_text || DEFAULT_SETTINGS.paymentMethodsText).trim() ||
-      DEFAULT_SETTINGS.paymentMethodsText,
+    companyKnowledge:
+      String(row.company_knowledge || DEFAULT_SETTINGS.companyKnowledge).trim() ||
+      DEFAULT_SETTINGS.companyKnowledge,
+    companyDocuments: normalizeCompanyDocuments(
+      row.company_documents,
+      DEFAULT_SETTINGS.companyDocuments,
+    ),
+    paymentMethods: normalizePaymentMethods(
+      row.payment_methods,
+      DEFAULT_SETTINGS.paymentMethods,
+    ),
     ownerContactOverride: compactText(row.owner_contact_override),
     ownerTestModeEnabled:
       row.owner_test_mode_enabled === undefined
@@ -426,16 +501,29 @@ function sanitizeSettingsPayload(payload = {}) {
   return {
     tonePreset: compactText(payload.tonePreset || DEFAULT_SETTINGS.tonePreset) || DEFAULT_SETTINGS.tonePreset,
     toneGuidelinesExtra: compactText(payload.toneGuidelinesExtra),
+    publicAppBaseUrl:
+      compactText(payload.publicAppBaseUrl || DEFAULT_SETTINGS.publicAppBaseUrl) ||
+      DEFAULT_SETTINGS.publicAppBaseUrl,
+    globalPromptAddendum: compactText(payload.globalPromptAddendum),
+    qualifyingPromptAddendum: compactText(payload.qualifyingPromptAddendum),
+    offeringPromptAddendum: compactText(payload.offeringPromptAddendum),
+    verifyingAvailabilityPromptAddendum: compactText(payload.verifyingAvailabilityPromptAddendum),
+    qaPromptAddendum: compactText(payload.qaPromptAddendum),
+    hitlPromptAddendum: compactText(payload.hitlPromptAddendum),
+    confirmingReservationPromptAddendum: compactText(payload.confirmingReservationPromptAddendum),
     initialMessageTemplate:
       String(payload.initialMessageTemplate || DEFAULT_SETTINGS.initialMessageTemplate).trim() ||
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
       String(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
-    publicAppBaseUrl:
-      compactText(payload.publicAppBaseUrl || DEFAULT_SETTINGS.publicAppBaseUrl) || DEFAULT_SETTINGS.publicAppBaseUrl,
-    paymentMethodsText:
-      String(payload.paymentMethodsText || DEFAULT_SETTINGS.paymentMethodsText).trim() ||
-      DEFAULT_SETTINGS.paymentMethodsText,
+    companyKnowledge:
+      String(payload.companyKnowledge || DEFAULT_SETTINGS.companyKnowledge).trim() ||
+      DEFAULT_SETTINGS.companyKnowledge,
+    companyDocuments: normalizeCompanyDocuments(
+      payload.companyDocuments,
+      DEFAULT_SETTINGS.companyDocuments,
+    ),
+    paymentMethods: normalizePaymentMethods(payload.paymentMethods, DEFAULT_SETTINGS.paymentMethods),
     ownerContactOverride: compactText(payload.ownerContactOverride),
     ownerTestModeEnabled: normalizeBoolean(payload.ownerTestModeEnabled, DEFAULT_SETTINGS.ownerTestModeEnabled),
     globalBotEnabled: normalizeBoolean(payload.globalBotEnabled, DEFAULT_SETTINGS.globalBotEnabled),
@@ -492,48 +580,35 @@ function settingsStatus(settings) {
     followupEnabled: settings.followupEnabled,
     ownerContactOverrideActive: Boolean(settings.ownerContactOverride),
     ownerTestModeEnabled: settings.ownerTestModeEnabled === true,
+    companyDocumentsCount: Array.isArray(settings.companyDocuments) ? settings.companyDocuments.length : 0,
+    paymentMethodsCount: Array.isArray(settings.paymentMethods) ? settings.paymentMethods.length : 0,
     followupWindowStart: settings.followupWindowStart,
     followupWindowEnd: settings.followupWindowEnd,
     selectionNotificationEnabled: settings.selectionNotificationEnabled === true,
   };
 }
 
-let agentSettingsColumnsEnsured = false;
-
-async function ensureAgentSettingsColumns() {
-  if (agentSettingsColumnsEnsured) return;
-  try {
-    await pool.query(
-      `
-        alter table if exists public.agent_settings
-          add column if not exists public_app_base_url text not null default '',
-          add column if not exists payment_methods_text text not null default $settings$
-${DEFAULT_SETTINGS.paymentMethodsText}
-$settings$
-      `,
-    );
-    agentSettingsColumnsEnsured = true;
-  } catch (error) {
-    if (String(error?.message || '').includes('relation "public.agent_settings" does not exist')) {
-      return;
-    }
-    throw error;
-  }
-}
-
 async function getAgentSettings() {
   try {
-    await ensureAgentSettingsColumns();
     const { rows } = await pool.query(
       `
         select
           id,
           tone_preset,
           tone_guidelines_extra,
+          public_app_base_url,
+          global_prompt_addendum,
+          qualifying_prompt_addendum,
+          offering_prompt_addendum,
+          verifying_availability_prompt_addendum,
+          qa_prompt_addendum,
+          hitl_prompt_addendum,
+          confirming_reservation_prompt_addendum,
           initial_message_template,
           handoff_message,
-          public_app_base_url,
-          payment_methods_text,
+          company_knowledge,
+          company_documents,
+          payment_methods,
           owner_contact_override,
           owner_test_mode_enabled,
           global_bot_enabled,
@@ -570,17 +645,25 @@ async function getAgentSettings() {
 
 async function saveAgentSettings(payload) {
   const next = sanitizeSettingsPayload(payload);
-  await ensureAgentSettingsColumns();
   const { rows } = await pool.query(
     `
       insert into public.agent_settings (
         id,
         tone_preset,
         tone_guidelines_extra,
+        public_app_base_url,
+        global_prompt_addendum,
+        qualifying_prompt_addendum,
+        offering_prompt_addendum,
+        verifying_availability_prompt_addendum,
+        qa_prompt_addendum,
+        hitl_prompt_addendum,
+        confirming_reservation_prompt_addendum,
         initial_message_template,
         handoff_message,
-        public_app_base_url,
-        payment_methods_text,
+        company_knowledge,
+        company_documents,
+        payment_methods,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -612,29 +695,47 @@ async function saveAgentSettings(payload) {
         $8,
         $9,
         $10,
-        $11::time,
-        $12::time,
+        $11,
+        $12,
         $13,
-        $14,
-        $15,
+        $14::jsonb,
+        $15::jsonb,
         $16,
         $17,
         $18,
         $19,
-        $20,
-        $21,
+        $20::time,
+        $21::time,
         $22,
         $23,
-        $24
+        $24,
+        $25,
+        $26,
+        $27,
+        $28,
+        $29,
+        $30,
+        $31,
+        $32,
+        $33
       )
       on conflict (id)
       do update set
         tone_preset = excluded.tone_preset,
         tone_guidelines_extra = excluded.tone_guidelines_extra,
+        public_app_base_url = excluded.public_app_base_url,
+        global_prompt_addendum = excluded.global_prompt_addendum,
+        qualifying_prompt_addendum = excluded.qualifying_prompt_addendum,
+        offering_prompt_addendum = excluded.offering_prompt_addendum,
+        verifying_availability_prompt_addendum = excluded.verifying_availability_prompt_addendum,
+        qa_prompt_addendum = excluded.qa_prompt_addendum,
+        hitl_prompt_addendum = excluded.hitl_prompt_addendum,
+        confirming_reservation_prompt_addendum = excluded.confirming_reservation_prompt_addendum,
         initial_message_template = excluded.initial_message_template,
         handoff_message = excluded.handoff_message,
-        public_app_base_url = excluded.public_app_base_url,
-        payment_methods_text = excluded.payment_methods_text,
+        company_knowledge = excluded.company_knowledge,
+        company_documents = excluded.company_documents,
+        payment_methods = excluded.payment_methods,
         owner_contact_override = excluded.owner_contact_override,
         owner_test_mode_enabled = excluded.owner_test_mode_enabled,
         global_bot_enabled = excluded.global_bot_enabled,
@@ -658,10 +759,19 @@ async function saveAgentSettings(payload) {
         id,
         tone_preset,
         tone_guidelines_extra,
+        public_app_base_url,
+        global_prompt_addendum,
+        qualifying_prompt_addendum,
+        offering_prompt_addendum,
+        verifying_availability_prompt_addendum,
+        qa_prompt_addendum,
+        hitl_prompt_addendum,
+        confirming_reservation_prompt_addendum,
         initial_message_template,
         handoff_message,
-        public_app_base_url,
-        payment_methods_text,
+        company_knowledge,
+        company_documents,
+        payment_methods,
         owner_contact_override,
         owner_test_mode_enabled,
         global_bot_enabled,
@@ -685,10 +795,19 @@ async function saveAgentSettings(payload) {
     [
       next.tonePreset,
       next.toneGuidelinesExtra,
+      next.publicAppBaseUrl,
+      next.globalPromptAddendum,
+      next.qualifyingPromptAddendum,
+      next.offeringPromptAddendum,
+      next.verifyingAvailabilityPromptAddendum,
+      next.qaPromptAddendum,
+      next.hitlPromptAddendum,
+      next.confirmingReservationPromptAddendum,
       next.initialMessageTemplate,
       next.handoffMessage,
-      next.publicAppBaseUrl,
-      next.paymentMethodsText,
+      next.companyKnowledge,
+      JSON.stringify(next.companyDocuments),
+      JSON.stringify(next.paymentMethods),
       next.ownerContactOverride || null,
       next.ownerTestModeEnabled,
       next.globalBotEnabled,
@@ -1360,27 +1479,27 @@ function createApp() {
   });
 
   app.get('/api/reservation-confirmation.pdf', async (req, res) => {
-  try {
-    const decodedPayload = decodeBase64UrlJson(req.query.payload);
-    const settings = await getAgentSettings();
-    const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
-    const buffer = buildReservationConfirmationPdf(payload);
-    const filename = buildReservationConfirmationFilename(payload);
+    try {
+      const decodedPayload = decodeBase64UrlJson(req.query.payload);
+      const settings = await getAgentSettings();
+      const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
+      const buffer = buildReservationConfirmationPdf(payload);
+      const filename = buildReservationConfirmationFilename(payload);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.setHeader('Cache-Control', 'no-store');
-    res.send(buffer);
-  } catch (error) {
-    const code = error?.code;
-    const status =
-      code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
-    const apiError = presentApiError(error);
-    res.status(status).json({
-      message: apiError.message,
-      details: apiError.details,
-    });
-  }
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(buffer);
+    } catch (error) {
+      const code = error?.code;
+      const status =
+        code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
+      const apiError = presentApiError(error);
+      res.status(status).json({
+        message: apiError.message,
+        details: apiError.details,
+      });
+    }
   });
 
   app.post('/api/chatwoot/send-drive-asset', async (req, res) => {
