@@ -99,7 +99,6 @@ const elements = {
     tonePreset: document.getElementById('settings-tone-preset'),
     toneExtra: document.getElementById('settings-tone-extra'),
     initialMessage: document.getElementById('settings-initial-message'),
-    handoffMessage: document.getElementById('settings-handoff-message'),
     publicAppBaseUrl: document.getElementById('settings-public-app-base-url'),
     paymentMethodsText: document.getElementById('settings-payment-methods-text'),
     ownerTestMode: document.getElementById('settings-owner-test-mode'),
@@ -120,6 +119,16 @@ const elements = {
     selectionRecipients: document.getElementById('settings-selection-recipients'),
     selectionTemplateName: document.getElementById('settings-selection-template-name'),
     selectionTemplateLanguage: document.getElementById('settings-selection-template-language'),
+    globalPromptAddendum: document.getElementById('settings-globalPromptAddendum'),
+    qualifyingPromptAddendum: document.getElementById('settings-qualifyingPromptAddendum'),
+    offeringPromptAddendum: document.getElementById('settings-offeringPromptAddendum'),
+    verifyingPromptAddendum: document.getElementById('settings-verifyingPromptAddendum'),
+    qaPromptAddendum: document.getElementById('settings-qaPromptAddendum'),
+    hitlPromptAddendum: document.getElementById('settings-hitlPromptAddendum'),
+    confirmingPromptAddendum: document.getElementById('settings-confirmingPromptAddendum'),
+    companyKnowledge: document.getElementById('settings-companyKnowledge'),
+    companyDocumentsList: document.getElementById('settings-companyDocuments-list'),
+    addDocumentBtn: document.getElementById('settings-addDocument'),
   },
 };
 
@@ -374,7 +383,6 @@ function applySettingsToForm(settings) {
   elements.settings.tonePreset.value = settings.tonePreset;
   elements.settings.toneExtra.value = settings.toneGuidelinesExtra || '';
   elements.settings.initialMessage.value = settings.initialMessageTemplate || '';
-  elements.settings.handoffMessage.value = settings.handoffMessage || '';
   elements.settings.publicAppBaseUrl.value = settings.publicAppBaseUrl || '';
   elements.settings.paymentMethodsText.value = settings.paymentMethodsText || '';
   elements.settings.ownerTestMode.checked = settings.ownerTestModeEnabled === true;
@@ -389,6 +397,15 @@ function applySettingsToForm(settings) {
   elements.settings.inventoryEnabled.checked = settings.inventorySheetEnabled === true;
   elements.settings.inventoryDoc.value = settings.inventorySheetDocumentId || '';
   elements.settings.inventoryTab.value = settings.inventorySheetTabName || '';
+  elements.settings.globalPromptAddendum.value = settings.globalPromptAddendum || '';
+  elements.settings.qualifyingPromptAddendum.value = settings.qualifyingPromptAddendum || '';
+  elements.settings.offeringPromptAddendum.value = settings.offeringPromptAddendum || '';
+  elements.settings.verifyingPromptAddendum.value = settings.verifyingAvailabilityPromptAddendum || '';
+  elements.settings.qaPromptAddendum.value = settings.qaPromptAddendum || '';
+  elements.settings.hitlPromptAddendum.value = settings.hitlPromptAddendum || '';
+  elements.settings.confirmingPromptAddendum.value = settings.confirmingReservationPromptAddendum || '';
+  elements.settings.companyKnowledge.value = settings.companyKnowledge || '';
+  renderDocumentsList(settings.companyDocuments || []);
   elements.settings.coverageZones.value = settings.coverageZonesText || '';
   elements.settings.maxProperties.value = String(settings.maxPropertiesToShow || 3);
   elements.settings.selectionEnabled.checked = settings.selectionNotificationEnabled === true;
@@ -397,12 +414,82 @@ function applySettingsToForm(settings) {
   elements.settings.selectionTemplateLanguage.value = settings.selectionNotificationTemplateLanguage || '';
 }
 
+function renderDocumentItem(doc, index) {
+  const item = document.createElement('div');
+  item.className = 'settings-dynamic-item';
+  item.dataset.index = index;
+  item.innerHTML = `
+    <button type="button" class="settings-dynamic-item__remove" data-action="remove-doc" title="Eliminar">&times;</button>
+    <div class="settings-dynamic-item__fields">
+      <label>
+        <span>T&iacute;tulo</span>
+        <input type="text" data-field="title" value="${escapeHtml(doc.title || '')}" placeholder="Ej: RUT" />
+      </label>
+      <label>
+        <span>Categor&iacute;a</span>
+        <select data-field="category">
+          <option value="general" ${doc.category === 'general' ? 'selected' : ''}>General</option>
+          <option value="legal" ${doc.category === 'legal' ? 'selected' : ''}>Legal</option>
+          <option value="fiscal" ${doc.category === 'fiscal' ? 'selected' : ''}>Fiscal</option>
+          <option value="comercial" ${doc.category === 'comercial' ? 'selected' : ''}>Comercial</option>
+        </select>
+      </label>
+      <label class="settings-dynamic-item__full">
+        <span>Descripci&oacute;n (obligatoria &mdash; el agente usa esto para saber cu&aacute;ndo compartir el documento)</span>
+        <input type="text" data-field="description" value="${escapeHtml(doc.description || '')}" placeholder="Ej: Registro &Uacute;nico Tributario de la empresa" required />
+      </label>
+      <label class="settings-dynamic-item__full">
+        <span>URL del documento</span>
+        <input type="url" data-field="url" value="${escapeHtml(doc.url || '')}" placeholder="https://..." />
+      </label>
+    </div>
+    <label class="settings-dynamic-item__inline">
+      <input type="checkbox" data-field="send_when_asked" ${doc.send_when_asked !== false ? 'checked' : ''} />
+      <span>Enviar autom&aacute;ticamente cuando el cliente lo solicite</span>
+    </label>
+  `;
+  return item;
+}
+
+function renderDocumentsList(docs) {
+  const container = elements.settings.companyDocumentsList;
+  if (!container) return;
+  container.innerHTML = '';
+  (docs || []).forEach(function(doc, i) {
+    container.appendChild(renderDocumentItem(doc, i));
+  });
+}
+
+function readDocumentsList() {
+  const container = elements.settings.companyDocumentsList;
+  if (!container) return [];
+  var items = container.querySelectorAll('.settings-dynamic-item');
+  var docs = [];
+  items.forEach(function(item, i) {
+    var title = (item.querySelector('[data-field="title"]').value || '').trim();
+    var description = (item.querySelector('[data-field="description"]').value || '').trim();
+    var url = (item.querySelector('[data-field="url"]').value || '').trim();
+    var category = item.querySelector('[data-field="category"]').value || 'general';
+    var sendWhenAsked = item.querySelector('[data-field="send_when_asked"]').checked;
+    if (title || description || url) {
+      docs.push({
+        document_key: title.toLowerCase().replace(/[^a-z0-9]+/g, '_') || 'doc_' + i,
+        title: title,
+        description: description,
+        url: url,
+        category: category,
+        send_when_asked: sendWhenAsked,
+      });
+    }
+  });
+  return docs;
+}
+
 function readSettingsForm() {
   return {
     tonePreset: elements.settings.tonePreset.value,
     toneGuidelinesExtra: elements.settings.toneExtra.value,
     initialMessageTemplate: elements.settings.initialMessage.value,
-    handoffMessage: elements.settings.handoffMessage.value,
     publicAppBaseUrl: elements.settings.publicAppBaseUrl.value,
     paymentMethodsText: elements.settings.paymentMethodsText.value,
     ownerTestModeEnabled: elements.settings.ownerTestMode.checked,
@@ -423,6 +510,15 @@ function readSettingsForm() {
     selectionNotificationRecipients: elements.settings.selectionRecipients.value,
     selectionNotificationTemplateName: elements.settings.selectionTemplateName.value,
     selectionNotificationTemplateLanguage: elements.settings.selectionTemplateLanguage.value,
+    globalPromptAddendum: elements.settings.globalPromptAddendum.value.trim(),
+    qualifyingPromptAddendum: elements.settings.qualifyingPromptAddendum.value.trim(),
+    offeringPromptAddendum: elements.settings.offeringPromptAddendum.value.trim(),
+    verifyingAvailabilityPromptAddendum: elements.settings.verifyingPromptAddendum.value.trim(),
+    qaPromptAddendum: elements.settings.qaPromptAddendum.value.trim(),
+    hitlPromptAddendum: elements.settings.hitlPromptAddendum.value.trim(),
+    confirmingReservationPromptAddendum: elements.settings.confirmingPromptAddendum.value.trim(),
+    companyKnowledge: elements.settings.companyKnowledge.value.trim(),
+    companyDocuments: readDocumentsList(),
   };
 }
 
@@ -1520,6 +1616,24 @@ function bindSettings() {
     event.preventDefault();
     void saveSettings();
   });
+
+  if (elements.settings.addDocumentBtn) {
+    elements.settings.addDocumentBtn.addEventListener('click', () => {
+      const container = elements.settings.companyDocumentsList;
+      const index = container.querySelectorAll('.settings-dynamic-item').length;
+      container.appendChild(renderDocumentItem({}, index));
+      markSettingsDirty();
+    });
+  }
+
+  if (elements.settings.companyDocumentsList) {
+    elements.settings.companyDocumentsList.addEventListener('click', (event) => {
+      if (event.target.dataset.action === 'remove-doc') {
+        event.target.closest('.settings-dynamic-item').remove();
+        markSettingsDirty();
+      }
+    });
+  }
 }
 
 function bindTabs() {

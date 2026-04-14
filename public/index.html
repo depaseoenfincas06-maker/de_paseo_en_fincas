@@ -272,35 +272,99 @@
                   ></textarea>
                   <small class="settings-help">Este es el saludo inicial que verá el cliente al comenzar la atención.</small>
                 </label>
+              </section>
+
+              <section class="settings-card settings-card--wide">
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Instrucciones adicionales para el agente</h3>
+                    <p class="settings-card__subtext">Se agregan al final del prompt base de cada agente. Dejar vacío para usar solo el prompt base.</p>
+                  </div>
+                </div>
                 <label class="settings-field">
-                  <span>Mensaje cuando pasa a una persona del equipo</span>
-                  <textarea
-                    id="settings-handoff-message"
-                    name="handoffMessage"
-                    rows="4"
-                    placeholder="Mensaje que se enviará cuando el asistente deje la conversación en manos del equipo."
-                  ></textarea>
-                  <small class="settings-help">Se usa cuando la conversación deja de ser atendida por el asistente.</small>
+                  <span>Instrucciones globales (aplican a todos los agentes)</span>
+                  <textarea id="settings-globalPromptAddendum" name="globalPromptAddendum" rows="3"
+                    placeholder="Instrucciones adicionales que se agregan a todos los agentes del sistema..."></textarea>
+                </label>
+                <div class="settings-accordion">
+                  <details class="settings-accordion__item">
+                    <summary>Qualifying (calificaci&oacute;n)</summary>
+                    <textarea id="settings-qualifyingPromptAddendum" name="qualifyingPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de calificaci&oacute;n..."></textarea>
+                  </details>
+                  <details class="settings-accordion__item">
+                    <summary>Offering (oferta de fincas)</summary>
+                    <textarea id="settings-offeringPromptAddendum" name="offeringPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de oferta..."></textarea>
+                  </details>
+                  <details class="settings-accordion__item">
+                    <summary>Verifying (verificaci&oacute;n de disponibilidad)</summary>
+                    <textarea id="settings-verifyingPromptAddendum" name="verifyingAvailabilityPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de verificaci&oacute;n..."></textarea>
+                  </details>
+                  <details class="settings-accordion__item">
+                    <summary>QA (preguntas y respuestas)</summary>
+                    <textarea id="settings-qaPromptAddendum" name="qaPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de preguntas..."></textarea>
+                  </details>
+                  <details class="settings-accordion__item">
+                    <summary>HITL (escalaci&oacute;n a humano)</summary>
+                    <textarea id="settings-hitlPromptAddendum" name="hitlPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de escalaci&oacute;n..."></textarea>
+                  </details>
+                  <details class="settings-accordion__item">
+                    <summary>Confirming (confirmaci&oacute;n de reserva)</summary>
+                    <textarea id="settings-confirmingPromptAddendum" name="confirmingReservationPromptAddendum" rows="3"
+                      placeholder="Instrucciones adicionales para el agente de confirmaci&oacute;n..."></textarea>
+                  </details>
+                </div>
+              </section>
+
+              <section class="settings-card settings-card--wide">
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Conocimiento de la empresa</h3>
+                    <p class="settings-card__subtext">Informaci&oacute;n institucional, medios de pago y documentos que el agente usar&aacute; para responder preguntas sobre la empresa.</p>
+                  </div>
+                </div>
+                <label class="settings-field">
+                  <span>Informaci&oacute;n general de la empresa</span>
+                  <small class="settings-help">Incluye sedes, representante legal, historia, redes sociales y cualquier dato institucional relevante.</small>
+                  <textarea id="settings-companyKnowledge" name="companyKnowledge" rows="8"
+                    placeholder="Sedes, representante legal, historia, redes sociales, datos institucionales..."></textarea>
                 </label>
                 <label class="settings-field">
-                  <span>URL pública del dashboard / simulador</span>
+                  <span>Medios de pago</span>
+                  <small class="settings-help">Describe c&oacute;mo deben pagar los clientes: cuentas, n&uacute;meros, instrucciones y condiciones.</small>
+                  <textarea
+                    id="settings-payment-methods-text"
+                    name="paymentMethodsText"
+                    rows="6"
+                    placeholder="Ej: Transferencia Bancolombia - Cuenta de ahorros 123-456789-00 a nombre de De Paseo en Fincas SAS. Nequi al 300-123-4567. El anticipo es del 50% para confirmar la reserva."
+                  ></textarea>
+                </label>
+                <h4 style="margin: 16px 0 4px; font-size: 0.95rem; color: var(--text);">Documentos de la empresa</h4>
+                <p class="settings-card__subtext" style="margin-bottom: 10px;">Documentos que el agente puede compartir cuando el cliente los solicite (RUT, C&aacute;mara de Comercio, etc).</p>
+                <div id="settings-companyDocuments-list" class="settings-dynamic-list"></div>
+                <button type="button" id="settings-addDocument" class="settings-add-btn">+ Agregar documento</button>
+              </section>
+
+              <section class="settings-card">
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Confirmaci&oacute;n de reserva</h3>
+                    <p class="settings-card__subtext">Configuraci&oacute;n del PDF de confirmaci&oacute;n que se env&iacute;a al cliente.</p>
+                  </div>
+                </div>
+                <label class="settings-field">
+                  <span>URL p&uacute;blica del dashboard / simulador</span>
+                  <small class="settings-help">Se usa para generar el PDF de confirmaci&oacute;n de reserva que se env&iacute;a al cliente.</small>
                   <input
                     id="settings-public-app-base-url"
                     name="publicAppBaseUrl"
                     type="text"
                     placeholder="https://tu-app.vercel.app"
                   />
-                  <small class="settings-help">Se usa para generar el PDF de confirmación de reserva que se envía al cliente.</small>
-                </label>
-                <label class="settings-field">
-                  <span>Medios de pago para confirmación</span>
-                  <textarea
-                    id="settings-payment-methods-text"
-                    name="paymentMethodsText"
-                    rows="6"
-                    placeholder="Escribe un método por línea. Ejemplo: Bancolombia"
-                  ></textarea>
-                  <small class="settings-help">Escribe los medios de pago tal como quieres que aparezcan en la confirmación de reserva.</small>
                 </label>
               </section>
 
