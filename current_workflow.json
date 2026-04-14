@@ -3184,6 +3184,184 @@
         -1728,
         128
       ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT coalesce(string_agg(content, E'\\n' ORDER BY created_at), '') as aggregated_pending FROM public.messages WHERE conversation_id = {{ \"'\" + String($('config').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }} AND pending = true AND direction = 'INBOUND'",
+        "options": {}
+      },
+      "id": "623a95de-f785-40c4-91f6-2eacc52de564",
+      "name": "Collect pending messages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3300,
+        520
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prevData = $input.first().json || {};\nconst compact = (v) => String(v ?? '').trim();\nconst chatwootId = compact(prevData.chatwoot_id || $('Get Context-conversations1').item.json.chatwoot_id);\nconst myMessageId = compact($('Normalize inbound payload').item.json.chatwoot_message_id);\nconst source = compact($('Normalize inbound payload').item.json.source);\n\nif (source === 'simulator' || !chatwootId || !myMessageId) {\n  return [{ json: { ...prevData, is_latest_inbound: true } }];\n}\n\ntry {\n  const url = 'https://chatwoot-9qe1j-u48275.vm.elestio.app/api/v1/accounts/1/conversations/' + chatwootId + '/messages';\n  const resp = await this.helpers.httpRequest({\n    url, method: 'GET',\n    headers: { api_access_token: '__CHATWOOT_API_TOKEN__', Accept: 'application/json' },\n    json: true, timeout: 10000, ignoreHttpStatusErrors: true,\n  });\n  const messages = resp?.payload || [];\n  const inbound = messages.filter(m => m.message_type === 0);\n  const latestInbound = inbound[inbound.length - 1];\n  const isLatest = !latestInbound || String(latestInbound.id) === myMessageId;\n  return [{ json: { ...prevData, is_latest_inbound: isLatest } }];\n} catch {\n  return [{ json: { ...prevData, is_latest_inbound: true } }];\n}"
+      },
+      "id": "f52c4cbe-8b1d-48e4-8f4b-082c0a87258b",
+      "name": "Is latest inbound?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8fe7649c-2f5b-4f7a-8468-4a8b34bed428",
+              "leftValue": "={{ $('Is latest inbound?').item.json.is_latest_inbound === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "id": "ea1d84c1-7af7-41d0-8d2e-c43a11378ad6",
+      "name": "Should update and send?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3400,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.messages (conversation_id, direction, message_type, content, state_at_time, agent_used, pending) VALUES ({{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }}, 'INBOUND', 'TEXT', {{ $('Merge Sets1').item.json['last-message'] ? \"'\" + String($('Merge Sets1').item.json['last-message']).replace(/'/g, \"''\") + \"'\" : \"null\" }}, {{ \"'\" + String($json.current_state_after || 'QUALIFYING').replace(/'/g, \"''\") + \"'\" }}, 'USER', true)",
+        "options": {}
+      },
+      "id": "7a4520f0-87eb-4d61-9f41-2e93c6d3ea06",
+      "name": "Save message as pending",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3600,
+        720
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.messages SET pending = false WHERE conversation_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }} AND pending = true AND direction = 'INBOUND'",
+        "options": {}
+      },
+      "id": "67446692-5e2a-4b5c-bcb4-4b9f8f8ef8b6",
+      "name": "Clear pending messages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3600,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0cc08422-4a7e-4617-bbf0-7cd82dba0307",
+              "leftValue": "={{ Boolean($('Collect pending messages').item.json.aggregated_pending) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "id": "d84a7a34-810a-4853-af8d-89f4b0633a9b",
+      "name": "Has pending to re-run?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3800,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const pending = String($('Collect pending messages').item.json.aggregated_pending || '').trim();\nconst currentMessage = String($('Merge Sets1').item.json['last-message'] || '').trim();\nconst fullMessage = pending ? pending + '\\n' + currentMessage : currentMessage;\nconst prevData = $('Is latest inbound?').item.json || {};\n\n// Fire a new webhook execution with the aggregated message\nconst chatwootId = String(prevData.chatwoot_id || '').trim();\nconst waId = String($('Merge Sets1').item.json.conversation_key || '').trim();\nconst webhookUrl = 'https://rh-n8n-u48275.vm.elestio.app/webhook/chatwoot/de-paseo-en-fincas/inbound';\n\ntry {\n  await this.helpers.httpRequest({\n    url: webhookUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      chatInput: fullMessage,\n      wa_id: waId,\n      chatwoot_id: chatwootId,\n      chatwoot_message_id: String($('Normalize inbound payload').item.json.chatwoot_message_id || ''),\n    }),\n    timeout: 5000,\n    json: true,\n  });\n  console.log('[burst] Fired self-webhook with aggregated message: ' + fullMessage.substring(0, 60));\n} catch (err) {\n  console.log('[burst] Self-webhook error: ' + (err.message || err));\n}\n\nreturn [{ json: { ...prevData, burst_refired: true } }];"
+      },
+      "id": "7cf5bdbb-bda6-4d10-8a1e-7b7970e7e5bd",
+      "name": "Build aggregated message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.messages SET pending = false WHERE conversation_id = {{ \"'\" + String($('Merge Sets1').item.json.conversation_key).replace(/'/g, \"''\") + \"'\" }} AND pending = true AND direction = 'INBOUND'",
+        "options": {}
+      },
+      "id": "08b74ad5-7b5f-4486-b963-64f4fc966ac1",
+      "name": "Clear pending before re-run",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4200,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CKoiBGlPXq82taIc",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "connections": {
@@ -4237,7 +4415,7 @@
       "main": [
         [
           {
-            "node": "actualizar contexto1",
+            "node": "Is latest inbound?",
             "type": "main",
             "index": 0
           }
@@ -4354,6 +4532,108 @@
       ]
     },
     "Handle owner inbound": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect pending messages": {
+      "main": [
+        [
+          {
+            "node": "Should update and send?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is latest inbound?": {
+      "main": [
+        [
+          {
+            "node": "Collect pending messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should update and send?": {
+      "main": [
+        [
+          {
+            "node": "Clear pending messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save message as pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear pending messages": {
+      "main": [
+        [
+          {
+            "node": "Has pending to re-run?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save message as pending": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has pending to re-run?": {
+      "main": [
+        [
+          {
+            "node": "Build aggregated message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "actualizar contexto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build aggregated message": {
+      "main": [
+        [
+          {
+            "node": "Clear pending before re-run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear pending before re-run": {
       "main": [
         [
           {
