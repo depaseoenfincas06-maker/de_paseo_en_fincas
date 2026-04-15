@@ -1464,7 +1464,17 @@ function createApp() {
 
   app.put('/api/settings', async (req, res) => {
   try {
-    const settings = await saveAgentSettings(req.body || {});
+    // Merge payload with current settings so missing fields don't get wiped
+    const current = await getAgentSettings();
+    const merged = { ...current, ...(req.body || {}) };
+    // Preserve arrays/objects if not explicitly sent
+    if (req.body && !('companyDocuments' in req.body) && current.companyDocuments) {
+      merged.companyDocuments = current.companyDocuments;
+    }
+    if (req.body && !('companyKnowledge' in req.body) && current.companyKnowledge) {
+      merged.companyKnowledge = current.companyKnowledge;
+    }
+    const settings = await saveAgentSettings(merged);
     res.json({
       ok: true,
       settings,

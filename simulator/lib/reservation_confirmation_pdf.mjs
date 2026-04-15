@@ -263,10 +263,18 @@ class PdfTextDocument {
     const y = options.y ?? this.currentPage.y;
     const font = options.font === 'bold' ? 'F2' : 'F1';
     const fontSize = options.fontSize ?? 11;
+    const color = options.color || null;
+    let colorCmd = '';
+    if (color) {
+      const r = parseInt(color.slice(0, 2), 16) / 255;
+      const g = parseInt(color.slice(2, 4), 16) / 255;
+      const b = parseInt(color.slice(4, 6), 16) / 255;
+      colorCmd = `${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)} rg `;
+    }
     this.currentPage.commands.push(
-      `BT /${font} ${fontSize} Tf 1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm <${textToPdfHex(
+      `${colorCmd}BT /${font} ${fontSize} Tf 1 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)} Tm <${textToPdfHex(
         content,
-      )}> Tj ET`,
+      )}> Tj ET${color ? ' 0 0 0 rg' : ''}`,
     );
   }
 
@@ -290,6 +298,7 @@ class PdfTextDocument {
           y: this.currentPage.y,
           font,
           fontSize,
+          color: options.color || null,
         });
       }
       this.currentPage.y -= leading;
@@ -299,11 +308,18 @@ class PdfTextDocument {
   }
 
   writeSectionTitle(title) {
+    this.ensureSpace(24);
+    const y = this.currentPage.y - 2;
+    this.currentPage.commands.push(
+      `0.110 0.369 0.541 RG 0.5 w ${this.marginLeft.toFixed(2)} ${y.toFixed(2)} m ${(this.pageWidth - this.marginRight).toFixed(2)} ${y.toFixed(2)} l S 0 0 0 RG`,
+    );
+    this.currentPage.y -= 8;
     this.writeWrapped(title, {
       font: 'bold',
       fontSize: 13,
       leading: 16,
       gapAfter: 4,
+      color: '1C5E8A',
     });
   }
 
@@ -506,9 +522,10 @@ export function buildReservationConfirmationPdf(payload = {}) {
 
   doc.writeWrapped('CONFIRMACION DE RESERVA', {
     font: 'bold',
-    fontSize: 18,
-    leading: 24,
-    gapAfter: 4,
+    fontSize: 20,
+    leading: 26,
+    gapAfter: 6,
+    color: '1C5E8A',
   });
   doc.writeRule();
 
@@ -597,12 +614,15 @@ export function buildReservationConfirmationPdf(payload = {}) {
   }
 
   doc.currentPage.y -= 10;
+  doc.currentPage.y -= 4;
+  doc.writeRule();
   doc.writeWrapped(
     `En total acuerdo con lo anterior firman: DEPASEOENFINCAS.COM - CLIENTE: ${data.clientName || 'Pendiente por confirmar'}`,
     {
       font: 'bold',
       fontSize: 11,
       leading: 14,
+      color: '1C5E8A',
     },
   );
 
