@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T16:49:14.081Z",
+  "updatedAt": "2026-05-09T17:28:02.174Z",
   "createdAt": "2026-05-09T03:26:19.190Z",
   "id": "Bg5nl2Y26PuwF2NB",
   "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
@@ -737,9 +737,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  $1::bigint, $2::bigint, $3::text, NULLIF($4::text, ''), NULLIF($5::text,'')::bigint, $6::text\nWHERE $3::text IS NOT NULL AND length($3::text) > 0\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
+        "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  (data->>'mid')::bigint,\n  (data->>'cid')::bigint,\n  (data->>'fid')::text,\n  NULLIF((data->>'title')::text, ''),\n  NULLIF((data->>'aid')::text, '')::bigint,\n  (data->>'kind')::text\nFROM (SELECT $1::jsonb AS data) t\nWHERE (data->>'fid') IS NOT NULL\n  AND length(data->>'fid') > 0\n  AND (data->>'mid')::bigint IS NOT NULL\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
         "options": {
-          "queryReplacement": "={{ [\n  $('Upload media to Chatwoot').item.json.id || $('Upload media to Chatwoot').item.json.message?.id || '',\n  $('Loop outbound items').item.json.chatwoot_id || '',\n  $('Loop outbound items').item.json.property_id || '',\n  $('Loop outbound items').item.json.property_title || '',\n  ($('Upload media to Chatwoot').item.json.attachments && $('Upload media to Chatwoot').item.json.attachments[0]?.id) || '',\n  'media'\n].join(',') }}"
+          "queryReplacement": "={{ JSON.stringify({mid: $('Upload media to Chatwoot').item.json.id || $('Upload media to Chatwoot').item.json.message?.id || 0,cid: Number($('Loop outbound items').item.json.chatwoot_id || 0),fid: String($('Loop outbound items').item.json.property_id || ''),title: String($('Loop outbound items').item.json.property_title || ''),aid: ($('Upload media to Chatwoot').item.json.attachments && $('Upload media to Chatwoot').item.json.attachments[0]?.id) ? String($('Upload media to Chatwoot').item.json.attachments[0].id) : '',kind: 'media'}) }}"
         }
       },
       "id": "769ed152-fb9d-4f71-bd41-a79a6c9614dd",
@@ -763,9 +763,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  $1::bigint, $2::bigint, $3::text, NULLIF($4::text, ''), NULLIF($5::text,'')::bigint, $6::text\nWHERE $3::text IS NOT NULL AND length($3::text) > 0\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
+        "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  (data->>'mid')::bigint,\n  (data->>'cid')::bigint,\n  (data->>'fid')::text,\n  NULLIF((data->>'title')::text, ''),\n  NULLIF((data->>'aid')::text, '')::bigint,\n  (data->>'kind')::text\nFROM (SELECT $1::jsonb AS data) t\nWHERE (data->>'fid') IS NOT NULL\n  AND length(data->>'fid') > 0\n  AND (data->>'mid')::bigint IS NOT NULL\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
         "options": {
-          "queryReplacement": "={{ [\n  $('Send Chatwoot text direct').item.json.id || $('Send Chatwoot text direct').item.json.message?.id || '',\n  $('Loop outbound items').item.json.chatwoot_id || '',\n  $('Loop outbound items').item.json.property_id || '',\n  $('Loop outbound items').item.json.property_title || '',\n  '',\n  'card'\n].join(',') }}"
+          "queryReplacement": "={{ JSON.stringify({mid: $('Send Chatwoot text direct').item.json.id || $('Send Chatwoot text direct').item.json.message?.id || 0,cid: Number($('Loop outbound items').item.json.chatwoot_id || 0),fid: String($('Loop outbound items').item.json.property_id || ''),title: String($('Loop outbound items').item.json.property_title || ''),aid: '',kind: 'card'}) }}"
         }
       },
       "id": "3793ebf4-603c-44bd-adfe-0f409fc3d20a",
@@ -1056,9 +1056,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "539de5dc-4519-47c5-b180-59debe701ef5",
-  "activeVersionId": "539de5dc-4519-47c5-b180-59debe701ef5",
-  "versionCounter": 14,
+  "versionId": "ea754ed6-73e4-497f-a09f-74dc41b4f913",
+  "activeVersionId": "ea754ed6-73e4-497f-a09f-74dc41b4f913",
+  "versionCounter": 17,
   "triggerCount": 1,
   "shared": [
     {
@@ -1081,9 +1081,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-09T16:49:14.083Z",
-    "createdAt": "2026-05-09T16:49:14.083Z",
-    "versionId": "539de5dc-4519-47c5-b180-59debe701ef5",
+    "updatedAt": "2026-05-09T17:28:02.175Z",
+    "createdAt": "2026-05-09T17:28:02.175Z",
+    "versionId": "ea754ed6-73e4-497f-a09f-74dc41b4f913",
     "workflowId": "Bg5nl2Y26PuwF2NB",
     "nodes": [
       {
@@ -1816,9 +1816,9 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  $1::bigint, $2::bigint, $3::text, NULLIF($4::text, ''), NULLIF($5::text,'')::bigint, $6::text\nWHERE $3::text IS NOT NULL AND length($3::text) > 0\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
+          "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  (data->>'mid')::bigint,\n  (data->>'cid')::bigint,\n  (data->>'fid')::text,\n  NULLIF((data->>'title')::text, ''),\n  NULLIF((data->>'aid')::text, '')::bigint,\n  (data->>'kind')::text\nFROM (SELECT $1::jsonb AS data) t\nWHERE (data->>'fid') IS NOT NULL\n  AND length(data->>'fid') > 0\n  AND (data->>'mid')::bigint IS NOT NULL\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
           "options": {
-            "queryReplacement": "={{ [\n  $('Upload media to Chatwoot').item.json.id || $('Upload media to Chatwoot').item.json.message?.id || '',\n  $('Loop outbound items').item.json.chatwoot_id || '',\n  $('Loop outbound items').item.json.property_id || '',\n  $('Loop outbound items').item.json.property_title || '',\n  ($('Upload media to Chatwoot').item.json.attachments && $('Upload media to Chatwoot').item.json.attachments[0]?.id) || '',\n  'media'\n].join(',') }}"
+            "queryReplacement": "={{ JSON.stringify({mid: $('Upload media to Chatwoot').item.json.id || $('Upload media to Chatwoot').item.json.message?.id || 0,cid: Number($('Loop outbound items').item.json.chatwoot_id || 0),fid: String($('Loop outbound items').item.json.property_id || ''),title: String($('Loop outbound items').item.json.property_title || ''),aid: ($('Upload media to Chatwoot').item.json.attachments && $('Upload media to Chatwoot').item.json.attachments[0]?.id) ? String($('Upload media to Chatwoot').item.json.attachments[0].id) : '',kind: 'media'}) }}"
           }
         },
         "id": "769ed152-fb9d-4f71-bd41-a79a6c9614dd",
@@ -1842,9 +1842,9 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  $1::bigint, $2::bigint, $3::text, NULLIF($4::text, ''), NULLIF($5::text,'')::bigint, $6::text\nWHERE $3::text IS NOT NULL AND length($3::text) > 0\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
+          "query": "INSERT INTO outbound_property_messages (\n  chatwoot_message_id, chatwoot_conversation_id, finca_id, property_title, attachment_id, message_kind\n)\nSELECT\n  (data->>'mid')::bigint,\n  (data->>'cid')::bigint,\n  (data->>'fid')::text,\n  NULLIF((data->>'title')::text, ''),\n  NULLIF((data->>'aid')::text, '')::bigint,\n  (data->>'kind')::text\nFROM (SELECT $1::jsonb AS data) t\nWHERE (data->>'fid') IS NOT NULL\n  AND length(data->>'fid') > 0\n  AND (data->>'mid')::bigint IS NOT NULL\nON CONFLICT (chatwoot_message_id) DO NOTHING\nRETURNING chatwoot_message_id, finca_id",
           "options": {
-            "queryReplacement": "={{ [\n  $('Send Chatwoot text direct').item.json.id || $('Send Chatwoot text direct').item.json.message?.id || '',\n  $('Loop outbound items').item.json.chatwoot_id || '',\n  $('Loop outbound items').item.json.property_id || '',\n  $('Loop outbound items').item.json.property_title || '',\n  '',\n  'card'\n].join(',') }}"
+            "queryReplacement": "={{ JSON.stringify({mid: $('Send Chatwoot text direct').item.json.id || $('Send Chatwoot text direct').item.json.message?.id || 0,cid: Number($('Loop outbound items').item.json.chatwoot_id || 0),fid: String($('Loop outbound items').item.json.property_id || ''),title: String($('Loop outbound items').item.json.property_title || ''),aid: '',kind: 'card'}) }}"
           }
         },
         "id": "3793ebf4-603c-44bd-adfe-0f409fc3d20a",
@@ -2134,18 +2134,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-09T16:49:14.147Z",
-        "id": 78,
+        "createdAt": "2026-05-09T17:28:02.243Z",
+        "id": 88,
         "workflowId": "Bg5nl2Y26PuwF2NB",
-        "versionId": "539de5dc-4519-47c5-b180-59debe701ef5",
+        "versionId": "ea754ed6-73e4-497f-a09f-74dc41b4f913",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-09T16:49:14.167Z",
-        "id": 79,
+        "createdAt": "2026-05-09T17:28:02.270Z",
+        "id": 89,
         "workflowId": "Bg5nl2Y26PuwF2NB",
-        "versionId": "539de5dc-4519-47c5-b180-59debe701ef5",
+        "versionId": "ea754ed6-73e4-497f-a09f-74dc41b4f913",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
