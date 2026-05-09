@@ -405,24 +405,33 @@
                     </p>
                   </div>
                 </div>
-                <div data-season-cat="festivos_y_puentes" class="settings-field">
-                  <span style="font-weight:600">Festivos y puentes</span>
-                  <small class="settings-help" style="margin-bottom:.5rem">Días feriados oficiales y puentes lunes festivo. Por defecto 2 noches mínimas; el cliente paga base + extra por persona desde la capacidad mínima.</small>
+                <details data-season-cat="festivos_y_puentes" class="settings-field season-group">
+                  <summary class="season-summary">
+                    <span class="season-summary__title">Festivos y puentes</span>
+                    <span class="season-summary__count" data-season-count>0</span>
+                  </summary>
+                  <small class="settings-help" style="margin:.5rem 0">Días feriados oficiales y puentes lunes festivo. Por defecto 2 noches mínimas; el cliente paga base + extra por persona desde la capacidad mínima.</small>
                   <div class="season-rows" style="display:flex;flex-direction:column;gap:.4rem"></div>
                   <button type="button" class="primary-btn season-add-btn" data-season-cat-add="festivos_y_puentes" data-default-min="2" style="margin-top:.5rem;align-self:flex-start;background:transparent;color:inherit;border:1px dashed #aaa;font-size:.85rem">+ Agregar rango</button>
-                </div>
-                <div data-season-cat="semana_santa" class="settings-field">
-                  <span style="font-weight:600">Semana Santa</span>
-                  <small class="settings-help" style="margin-bottom:.5rem">Domingo de Ramos a Domingo de Resurrección. Tarifa fija (flat) por noche; sin cobro por persona extra hasta firmar contrato.</small>
+                </details>
+                <details data-season-cat="semana_santa" class="settings-field season-group">
+                  <summary class="season-summary">
+                    <span class="season-summary__title">Semana Santa</span>
+                    <span class="season-summary__count" data-season-count>0</span>
+                  </summary>
+                  <small class="settings-help" style="margin:.5rem 0">Domingo de Ramos a Domingo de Resurrección. Tarifa fija (flat) por noche; sin cobro por persona extra hasta firmar contrato.</small>
                   <div class="season-rows" style="display:flex;flex-direction:column;gap:.4rem"></div>
                   <button type="button" class="primary-btn season-add-btn" data-season-cat-add="semana_santa" data-default-min="3" style="margin-top:.5rem;align-self:flex-start;background:transparent;color:inherit;border:1px dashed #aaa;font-size:.85rem">+ Agregar rango</button>
-                </div>
-                <div data-season-cat="temporada_alta" class="settings-field">
-                  <span style="font-weight:600">Temporada alta (Navidad / Año Nuevo / vacaciones)</span>
-                  <small class="settings-help" style="margin-bottom:.5rem">Periodos de alta demanda. Tarifa fija (flat) por noche. Sugerido: Navidad 3 noches mínimo, Año Nuevo 5 noches mínimo.</small>
+                </details>
+                <details data-season-cat="temporada_alta" class="settings-field season-group">
+                  <summary class="season-summary">
+                    <span class="season-summary__title">Temporada alta (Navidad / Año Nuevo / vacaciones)</span>
+                    <span class="season-summary__count" data-season-count>0</span>
+                  </summary>
+                  <small class="settings-help" style="margin:.5rem 0">Periodos de alta demanda. Tarifa fija (flat) por noche. Sugerido: Navidad 3 noches mínimo, Año Nuevo 5 noches mínimo.</small>
                   <div class="season-rows" style="display:flex;flex-direction:column;gap:.4rem"></div>
                   <button type="button" class="primary-btn season-add-btn" data-season-cat-add="temporada_alta" data-default-min="3" style="margin-top:.5rem;align-self:flex-start;background:transparent;color:inherit;border:1px dashed #aaa;font-size:.85rem">+ Agregar rango</button>
-                </div>
+                </details>
               </section>
 
               <section class="settings-card">

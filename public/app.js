@@ -501,6 +501,13 @@ function renderSeasonRow(category, row) {
   return item;
 }
 
+function updateSeasonCount(section) {
+  if (!section) return;
+  const badge = section.querySelector('[data-season-count]');
+  const rows = section.querySelectorAll('.season-rows .settings-dynamic-item');
+  if (badge) badge.textContent = String(rows.length);
+}
+
 function renderPricingSeasons(pricingSeasons) {
   if (!elements.settings.pricingSeasonsCard) return;
   const data = pricingSeasons || {};
@@ -512,6 +519,7 @@ function renderPricingSeasons(pricingSeasons) {
     container.innerHTML = '';
     const rows = Array.isArray(data[cat]) ? data[cat] : [];
     rows.forEach((row) => container.appendChild(renderSeasonRow(cat, row)));
+    updateSeasonCount(section);
   }
 }
 
@@ -1720,19 +1728,24 @@ function bindSettings() {
     elements.settings.pricingSeasonsCard.addEventListener('click', (event) => {
       const addBtn = event.target.closest('[data-season-cat-add]');
       if (addBtn) {
+        event.preventDefault();
         const cat = addBtn.dataset.seasonCatAdd;
         const defaultMin = Number(addBtn.dataset.defaultMin) || SEASON_DEFAULT_MIN[cat] || 1;
         const section = elements.settings.pricingSeasonsCard.querySelector(`[data-season-cat="${cat}"]`);
         const container = section && section.querySelector('.season-rows');
         if (container) {
           container.appendChild(renderSeasonRow(cat, { min_noches: defaultMin }));
+          updateSeasonCount(section);
+          if (section && section.tagName === 'DETAILS') section.open = true;
           markSettingsDirty();
         }
         return;
       }
       if (event.target.dataset.action === 'remove-season') {
         const item = event.target.closest('.settings-dynamic-item');
+        const section = item && item.closest('[data-season-cat]');
         if (item) item.remove();
+        updateSeasonCount(section);
         markSettingsDirty();
       }
     });

@@ -1755,6 +1755,58 @@ body,
   background: white;
 }
 
+.season-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: .65rem .85rem;
+  background: #fafafa;
+}
+.season-group[open] {
+  background: #fff;
+}
+.season-summary {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: .15rem 0;
+}
+.season-summary::-webkit-details-marker {
+  display: none;
+}
+.season-summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: .8rem;
+  color: #6b7280;
+  width: .85rem;
+  transition: transform .15s ease;
+}
+.season-group[open] > .season-summary::before {
+  transform: rotate(90deg);
+}
+.season-summary__title {
+  flex: 1;
+}
+.season-summary__count {
+  display: inline-block;
+  min-width: 1.6rem;
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #4b5563;
+  background: #e5e7eb;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+}
+.season-group[open] .season-summary__count {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
 .settings-dynamic-item__remove {
   position: absolute;
   top: 8px;
