@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T23:26:18.970Z",
+  "updatedAt": "2026-05-09T23:30:31.051Z",
   "createdAt": "2026-05-09T23:26:18.970Z",
   "id": "Lt8n12vKuqnvd1LH",
   "name": "Global Error Logger - De Paseo en Fincas",
@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Map the Error Trigger payload to the columns the Apps Script expects.\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst node = err.node || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(node.name || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || 'unknown'),\n    error_message: compact(err.message),\n    error_stack: compact(err.stack || err.description || ''),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const data = ctx.data || ctx.itemIndex || j.runData || {};\n      return safeJson(data).slice(0, 1000);\n    })(),\n  },\n}];"
+        "jsCode": "// n8n Error Trigger payload shape:\n//   { execution: { id, url, mode, error, lastNodeExecuted, executionContext },\n//     workflow:  { id, name } }\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(exec.lastNodeExecuted || (err.node && err.node.name) || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || err.level || 'error'),\n    error_message: compact(err.message || err.description || ''),\n    error_stack: compact(err.stack || err.description || '').slice(0, 4000),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const trig = (exec.executionContext && exec.executionContext.triggerNode) || {};\n      return safeJson({ trigger: trig, mode: exec.mode || '', err_ctx: ctx }).slice(0, 1000);\n    })(),\n  },\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -102,9 +102,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
-  "activeVersionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
-  "versionCounter": 3,
+  "versionId": "6763c843-18e4-47d7-bba3-23f0cebfcb74",
+  "activeVersionId": "6763c843-18e4-47d7-bba3-23f0cebfcb74",
+  "versionCounter": 6,
   "triggerCount": 0,
   "shared": [
     {
@@ -127,9 +127,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-09T23:26:18.970Z",
-    "createdAt": "2026-05-09T23:26:18.970Z",
-    "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+    "updatedAt": "2026-05-09T23:30:31.052Z",
+    "createdAt": "2026-05-09T23:30:31.052Z",
+    "versionId": "6763c843-18e4-47d7-bba3-23f0cebfcb74",
     "workflowId": "Lt8n12vKuqnvd1LH",
     "nodes": [
       {
@@ -145,7 +145,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Map the Error Trigger payload to the columns the Apps Script expects.\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst node = err.node || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(node.name || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || 'unknown'),\n    error_message: compact(err.message),\n    error_stack: compact(err.stack || err.description || ''),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const data = ctx.data || ctx.itemIndex || j.runData || {};\n      return safeJson(data).slice(0, 1000);\n    })(),\n  },\n}];"
+          "jsCode": "// n8n Error Trigger payload shape:\n//   { execution: { id, url, mode, error, lastNodeExecuted, executionContext },\n//     workflow:  { id, name } }\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(exec.lastNodeExecuted || (err.node && err.node.name) || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || err.level || 'error'),\n    error_message: compact(err.message || err.description || ''),\n    error_stack: compact(err.stack || err.description || '').slice(0, 4000),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const trig = (exec.executionContext && exec.executionContext.triggerNode) || {};\n      return safeJson({ trigger: trig, mode: exec.mode || '', err_ctx: ctx }).slice(0, 1000);\n    })(),\n  },\n}];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -227,10 +227,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-09T23:26:20.458Z",
-        "id": 126,
+        "createdAt": "2026-05-09T23:30:31.096Z",
+        "id": 147,
         "workflowId": "Lt8n12vKuqnvd1LH",
-        "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+        "versionId": "6763c843-18e4-47d7-bba3-23f0cebfcb74",
+        "event": "deactivated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-09T23:30:31.114Z",
+        "id": 148,
+        "workflowId": "Lt8n12vKuqnvd1LH",
+        "versionId": "6763c843-18e4-47d7-bba3-23f0cebfcb74",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
