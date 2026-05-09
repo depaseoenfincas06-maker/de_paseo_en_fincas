@@ -8,9 +8,9 @@ import pkg from 'pg';
 
 import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_media_relay.mjs';
 import {
-  buildReservationConfirmationFilename,
-  buildReservationConfirmationPdf,
-} from './lib/reservation_confirmation_pdf.mjs';
+  buildReservationConfirmationDocx,
+  buildReservationDocxFilename,
+} from './lib/reservation_confirmation_docx.mjs';
 
 const { Pool, types } = pkg;
 
@@ -1488,15 +1488,26 @@ function createApp() {
   }
   });
 
-  app.get('/api/reservation-confirmation.pdf', async (req, res) => {
+  // Public reservation confirmation document (Word .docx).
+  // The customer agent (n8n) builds a base64url-encoded payload with the
+  // property + dates + quote + client data, and points the customer to
+  // public_app_base_url + /api/reservation-confirmation.docx?payload=<...>.
+  // This route fills the canonical Word template in
+  // public/templates/reservation_template.docx (15 placeholders) using
+  // docxtemplater and returns the binary .docx so Chatwoot can attach it
+  // to the WhatsApp conversation.
+  const reservationDocxHandler = async (req, res) => {
     try {
       const decodedPayload = decodeBase64UrlJson(req.query.payload);
       const settings = await getAgentSettings();
       const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
-      const buffer = buildReservationConfirmationPdf(payload);
-      const filename = buildReservationConfirmationFilename(payload);
+      const buffer = buildReservationConfirmationDocx(payload);
+      const filename = buildReservationDocxFilename(payload);
 
-      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
       res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
       res.setHeader('Cache-Control', 'no-store');
       res.send(buffer);
@@ -1510,7 +1521,12 @@ function createApp() {
         details: apiError.details,
       });
     }
-  });
+  };
+  app.get('/api/reservation-confirmation.docx', reservationDocxHandler);
+  // Backward-compat: keep the .pdf URL working but serve .docx — old links
+  // shared with customers don't break, just download a Word file instead
+  // of a PDF.
+  app.get('/api/reservation-confirmation.pdf', reservationDocxHandler);
 
   app.post('/api/chatwoot/send-drive-asset', async (req, res) => {
     const payload = req.body || {};
