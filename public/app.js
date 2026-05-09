@@ -129,7 +129,15 @@ const elements = {
     companyKnowledge: document.getElementById('settings-companyKnowledge'),
     companyDocumentsList: document.getElementById('settings-companyDocuments-list'),
     addDocumentBtn: document.getElementById('settings-addDocument'),
+    pricingSeasonsCard: document.getElementById('settings-pricing-seasons-card'),
   },
+};
+
+const SEASON_CATEGORIES = ['festivos_y_puentes', 'semana_santa', 'temporada_alta'];
+const SEASON_DEFAULT_MIN = {
+  festivos_y_puentes: 2,
+  semana_santa: 3,
+  temporada_alta: 3,
 };
 
 function escapeHtml(value) {
@@ -406,6 +414,7 @@ function applySettingsToForm(settings) {
   elements.settings.confirmingPromptAddendum.value = settings.confirmingReservationPromptAddendum || '';
   elements.settings.companyKnowledge.value = settings.companyKnowledge || '';
   renderDocumentsList(settings.companyDocuments || []);
+  renderPricingSeasons(settings.pricingSeasons || {});
   elements.settings.coverageZones.value = settings.coverageZonesText || '';
   elements.settings.maxProperties.value = String(settings.maxPropertiesToShow || 3);
   elements.settings.selectionEnabled.checked = settings.selectionNotificationEnabled === true;
@@ -458,6 +467,77 @@ function renderDocumentsList(docs) {
   (docs || []).forEach(function(doc, i) {
     container.appendChild(renderDocumentItem(doc, i));
   });
+}
+
+function renderSeasonRow(category, row) {
+  const item = document.createElement('div');
+  item.className = 'settings-dynamic-item';
+  item.dataset.seasonCategory = category;
+  item.style.display = 'grid';
+  item.style.gridTemplateColumns = 'repeat(2, minmax(140px, 1fr)) 2fr 110px auto';
+  item.style.gap = '.5rem';
+  item.style.alignItems = 'end';
+  const defaultMin = SEASON_DEFAULT_MIN[category] || 1;
+  const minValue = row && row.min_noches != null && row.min_noches !== '' ? row.min_noches : defaultMin;
+  item.innerHTML = `
+    <label style="display:flex;flex-direction:column;gap:.2rem">
+      <span style="font-size:.75rem;color:#666">Desde</span>
+      <input type="date" data-field="from" value="${escapeHtml((row && row.from) || '')}" required />
+    </label>
+    <label style="display:flex;flex-direction:column;gap:.2rem">
+      <span style="font-size:.75rem;color:#666">Hasta</span>
+      <input type="date" data-field="to" value="${escapeHtml((row && row.to) || '')}" required />
+    </label>
+    <label style="display:flex;flex-direction:column;gap:.2rem">
+      <span style="font-size:.75rem;color:#666">Etiqueta</span>
+      <input type="text" data-field="label" value="${escapeHtml((row && row.label) || '')}" placeholder="Ej: Semana Santa 2026" />
+    </label>
+    <label style="display:flex;flex-direction:column;gap:.2rem">
+      <span style="font-size:.75rem;color:#666">Mín. noches</span>
+      <input type="number" min="1" max="30" data-field="min_noches" value="${escapeHtml(String(minValue))}" />
+    </label>
+    <button type="button" class="settings-dynamic-item__remove" data-action="remove-season" title="Eliminar rango" style="align-self:end">&times;</button>
+  `;
+  return item;
+}
+
+function renderPricingSeasons(pricingSeasons) {
+  if (!elements.settings.pricingSeasonsCard) return;
+  const data = pricingSeasons || {};
+  for (const cat of SEASON_CATEGORIES) {
+    const section = elements.settings.pricingSeasonsCard.querySelector(`[data-season-cat="${cat}"]`);
+    if (!section) continue;
+    const container = section.querySelector('.season-rows');
+    if (!container) continue;
+    container.innerHTML = '';
+    const rows = Array.isArray(data[cat]) ? data[cat] : [];
+    rows.forEach((row) => container.appendChild(renderSeasonRow(cat, row)));
+  }
+}
+
+function readPricingSeasons() {
+  const out = { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] };
+  if (!elements.settings.pricingSeasonsCard) return out;
+  for (const cat of SEASON_CATEGORIES) {
+    const section = elements.settings.pricingSeasonsCard.querySelector(`[data-season-cat="${cat}"]`);
+    if (!section) continue;
+    const items = section.querySelectorAll('.settings-dynamic-item');
+    items.forEach((item) => {
+      const from = (item.querySelector('[data-field="from"]').value || '').trim();
+      const to = (item.querySelector('[data-field="to"]').value || '').trim();
+      const label = (item.querySelector('[data-field="label"]').value || '').trim();
+      const minRaw = (item.querySelector('[data-field="min_noches"]').value || '').trim();
+      const minNoches = Number(minRaw);
+      if (!from && !to && !label) return;
+      out[cat].push({
+        from,
+        to,
+        label,
+        min_noches: Number.isFinite(minNoches) && minNoches > 0 ? Math.floor(minNoches) : SEASON_DEFAULT_MIN[cat],
+      });
+    });
+  }
+  return out;
 }
 
 function readDocumentsList() {
@@ -519,6 +599,7 @@ function readSettingsForm() {
     confirmingReservationPromptAddendum: elements.settings.confirmingPromptAddendum.value.trim(),
     companyKnowledge: elements.settings.companyKnowledge.value.trim(),
     companyDocuments: readDocumentsList(),
+    pricingSeasons: readPricingSeasons(),
   };
 }
 
@@ -1630,6 +1711,28 @@ function bindSettings() {
     elements.settings.companyDocumentsList.addEventListener('click', (event) => {
       if (event.target.dataset.action === 'remove-doc') {
         event.target.closest('.settings-dynamic-item').remove();
+        markSettingsDirty();
+      }
+    });
+  }
+
+  if (elements.settings.pricingSeasonsCard) {
+    elements.settings.pricingSeasonsCard.addEventListener('click', (event) => {
+      const addBtn = event.target.closest('[data-season-cat-add]');
+      if (addBtn) {
+        const cat = addBtn.dataset.seasonCatAdd;
+        const defaultMin = Number(addBtn.dataset.defaultMin) || SEASON_DEFAULT_MIN[cat] || 1;
+        const section = elements.settings.pricingSeasonsCard.querySelector(`[data-season-cat="${cat}"]`);
+        const container = section && section.querySelector('.season-rows');
+        if (container) {
+          container.appendChild(renderSeasonRow(cat, { min_noches: defaultMin }));
+          markSettingsDirty();
+        }
+        return;
+      }
+      if (event.target.dataset.action === 'remove-season') {
+        const item = event.target.closest('.settings-dynamic-item');
+        if (item) item.remove();
         markSettingsDirty();
       }
     });

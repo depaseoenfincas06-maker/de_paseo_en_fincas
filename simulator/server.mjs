@@ -493,6 +493,22 @@ function serializeSettings(row = {}) {
         row.selection_notification_template_language ||
           DEFAULT_SETTINGS.selectionNotificationTemplateLanguage,
       ) || DEFAULT_SETTINGS.selectionNotificationTemplateLanguage,
+    // pricing_seasons is a JSONB with 3 lists of {from,to,label,min_noches?} ranges.
+    // Surface as plain JS object so the dashboard can edit; the API takes it as-is.
+    pricingSeasons:
+      row.pricing_seasons && typeof row.pricing_seasons === 'object'
+        ? {
+            festivos_y_puentes: Array.isArray(row.pricing_seasons.festivos_y_puentes)
+              ? row.pricing_seasons.festivos_y_puentes
+              : [],
+            semana_santa: Array.isArray(row.pricing_seasons.semana_santa)
+              ? row.pricing_seasons.semana_santa
+              : [],
+            temporada_alta: Array.isArray(row.pricing_seasons.temporada_alta)
+              ? row.pricing_seasons.temporada_alta
+              : [],
+          }
+        : { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] },
     updatedAt: toIsoString(row.updated_at),
   };
 }
@@ -571,6 +587,34 @@ function sanitizeSettingsPayload(payload = {}) {
         payload.selectionNotificationTemplateLanguage ||
           DEFAULT_SETTINGS.selectionNotificationTemplateLanguage,
       ) || DEFAULT_SETTINGS.selectionNotificationTemplateLanguage,
+    pricingSeasons: (function() {
+      const v = payload.pricingSeasons;
+      if (!v || typeof v !== 'object' || Array.isArray(v)) {
+        return { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] };
+      }
+      function clean(list) {
+        if (!Array.isArray(list)) return [];
+        return list
+          .map((r) => {
+            if (!r || typeof r !== 'object') return null;
+            const from = compactText(r.from);
+            const to = compactText(r.to);
+            if (!from || !to) return null;
+            const out = { from, to };
+            const label = compactText(r.label);
+            if (label) out.label = label;
+            const min = Number(r.min_noches);
+            if (Number.isFinite(min) && min > 0 && min <= 30) out.min_noches = min;
+            return out;
+          })
+          .filter(Boolean);
+      }
+      return {
+        festivos_y_puentes: clean(v.festivos_y_puentes),
+        semana_santa: clean(v.semana_santa),
+        temporada_alta: clean(v.temporada_alta),
+      };
+    })(),
   };
 }
 
@@ -627,6 +671,7 @@ async function getAgentSettings() {
           selection_notification_recipients,
           selection_notification_template_name,
           selection_notification_template_language,
+          pricing_seasons,
           updated_at
         from public.agent_settings
         where id = 1
@@ -681,7 +726,8 @@ async function saveAgentSettings(payload) {
         selection_notification_enabled,
         selection_notification_recipients,
         selection_notification_template_name,
-        selection_notification_template_language
+        selection_notification_template_language,
+        pricing_seasons
       )
       values (
         1,
@@ -717,7 +763,8 @@ async function saveAgentSettings(payload) {
         $30,
         $31,
         $32,
-        $33
+        $33,
+        $34::jsonb
       )
       on conflict (id)
       do update set
@@ -754,6 +801,7 @@ async function saveAgentSettings(payload) {
         selection_notification_recipients = excluded.selection_notification_recipients,
         selection_notification_template_name = excluded.selection_notification_template_name,
         selection_notification_template_language = excluded.selection_notification_template_language,
+        pricing_seasons = excluded.pricing_seasons,
         updated_at = now()
       returning
         id,
@@ -790,6 +838,7 @@ async function saveAgentSettings(payload) {
         selection_notification_recipients,
         selection_notification_template_name,
         selection_notification_template_language,
+        pricing_seasons,
         updated_at
     `,
     [
@@ -826,6 +875,7 @@ async function saveAgentSettings(payload) {
       next.selectionNotificationRecipients || null,
       next.selectionNotificationTemplateName,
       next.selectionNotificationTemplateLanguage,
+      JSON.stringify(next.pricingSeasons || { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] }),
     ],
   );
 
