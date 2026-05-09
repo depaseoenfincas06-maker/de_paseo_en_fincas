@@ -1,0 +1,239 @@
+{
+  "updatedAt": "2026-05-09T23:26:18.970Z",
+  "createdAt": "2026-05-09T23:26:18.970Z",
+  "id": "Lt8n12vKuqnvd1LH",
+  "name": "Global Error Logger - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "et-error-trigger-aaaa-bbbb-cccc-dddd00000001",
+      "name": "On error in any workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Map the Error Trigger payload to the columns the Apps Script expects.\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst node = err.node || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(node.name || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || 'unknown'),\n    error_message: compact(err.message),\n    error_stack: compact(err.stack || err.description || ''),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const data = ctx.data || ctx.itemIndex || j.runData || {};\n      return safeJson(data).slice(0, 1000);\n    })(),\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "et-format-row-aaaa-bbbb-cccc-dddd00000002",
+      "name": "Format error row"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbzP5gPvB7z3p2uZdvyUetTbXom6EyWprQqH1DVhTxMVCsxk5aP8lgiErER4eSiYFLUQKg/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "et-post-sheet-aaaa-bbbb-cccc-dddd00000003",
+      "name": "POST to error log sheet"
+    }
+  ],
+  "connections": {
+    "On error in any workflow": {
+      "main": [
+        [
+          {
+            "node": "Format error row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format error row": {
+      "main": [
+        [
+          {
+            "node": "POST to error log sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+  "activeVersionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-05-09T23:26:18.970Z",
+      "createdAt": "2026-05-09T23:26:18.970Z",
+      "role": "workflow:owner",
+      "workflowId": "Lt8n12vKuqnvd1LH",
+      "projectId": "72GVorD8Nd4GZR0Z",
+      "project": {
+        "updatedAt": "2026-05-09T02:57:51.320Z",
+        "createdAt": "2026-05-09T01:59:53.638Z",
+        "id": "72GVorD8Nd4GZR0Z",
+        "name": "JUANDAVID VIZCAYA <depaseoenfincas06@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-09T23:26:18.970Z",
+    "createdAt": "2026-05-09T23:26:18.970Z",
+    "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+    "workflowId": "Lt8n12vKuqnvd1LH",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "et-error-trigger-aaaa-bbbb-cccc-dddd00000001",
+        "name": "On error in any workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Map the Error Trigger payload to the columns the Apps Script expects.\nconst j = $json || {};\nconst exec = j.execution || {};\nconst wf = j.workflow || {};\nconst err = exec.error || j.error || {};\nconst node = err.node || {};\nconst compact = (v) => (v === undefined || v === null) ? '' : String(v);\nconst safeJson = (v) => { try { return JSON.stringify(v); } catch (e) { return String(v); } };\n\nreturn [{\n  json: {\n    workflow_id: compact(wf.id),\n    workflow_name: compact(wf.name),\n    execution_id: compact(exec.id),\n    execution_url: compact(exec.url),\n    node_name: compact(node.name || j.lastNodeExecuted),\n    error_type: compact(err.name || err.errorCode || 'unknown'),\n    error_message: compact(err.message),\n    error_stack: compact(err.stack || err.description || ''),\n    last_node_input: (function() {\n      const ctx = err.context || {};\n      const data = ctx.data || ctx.itemIndex || j.runData || {};\n      return safeJson(data).slice(0, 1000);\n    })(),\n  },\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          0
+        ],
+        "id": "et-format-row-aaaa-bbbb-cccc-dddd00000002",
+        "name": "Format error row"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://script.google.com/macros/s/AKfycbzP5gPvB7z3p2uZdvyUetTbXom6EyWprQqH1DVhTxMVCsxk5aP8lgiErER4eSiYFLUQKg/exec",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 15000,
+            "redirect": {
+              "redirect": {
+                "followRedirects": true
+              }
+            },
+            "response": {
+              "response": {
+                "responseFormat": "json",
+                "neverError": true
+              }
+            }
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          480,
+          0
+        ],
+        "id": "et-post-sheet-aaaa-bbbb-cccc-dddd00000003",
+        "name": "POST to error log sheet"
+      }
+    ],
+    "connections": {
+      "On error in any workflow": {
+        "main": [
+          [
+            {
+              "node": "Format error row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format error row": {
+        "main": [
+          [
+            {
+              "node": "POST to error log sheet",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-09T23:26:20.458Z",
+        "id": 126,
+        "workflowId": "Lt8n12vKuqnvd1LH",
+        "versionId": "a8b4a09a-aaa0-4d21-b522-cac0873c26f5",
+        "event": "activated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      }
+    ]
+  }
+}

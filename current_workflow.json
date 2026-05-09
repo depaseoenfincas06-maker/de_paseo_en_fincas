@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T23:01:21.037Z",
+  "updatedAt": "2026-05-09T23:27:01.332Z",
   "createdAt": "2026-05-09T03:26:20.967Z",
   "id": "2NV08zRFKENUsQVC",
   "name": "De paseo en fincas customer agent",
@@ -4998,7 +4998,8 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "timezone": "America/Bogota"
+    "timezone": "America/Bogota",
+    "errorWorkflow": "Lt8n12vKuqnvd1LH"
   },
   "staticData": {
     "global": {
@@ -5009,7 +5010,7 @@
   "pinData": null,
   "versionId": "1202a79b-464b-4a1e-b0a1-057bef8bebab",
   "activeVersionId": "1202a79b-464b-4a1e-b0a1-057bef8bebab",
-  "versionCounter": 131,
+  "versionCounter": 134,
   "triggerCount": 1,
   "shared": [
     {
@@ -10042,6 +10043,22 @@
       {
         "createdAt": "2026-05-09T23:01:21.248Z",
         "id": 123,
+        "workflowId": "2NV08zRFKENUsQVC",
+        "versionId": "1202a79b-464b-4a1e-b0a1-057bef8bebab",
+        "event": "activated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-09T23:27:01.486Z",
+        "id": 131,
+        "workflowId": "2NV08zRFKENUsQVC",
+        "versionId": "1202a79b-464b-4a1e-b0a1-057bef8bebab",
+        "event": "deactivated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-09T23:27:01.625Z",
+        "id": 132,
         "workflowId": "2NV08zRFKENUsQVC",
         "versionId": "1202a79b-464b-4a1e-b0a1-057bef8bebab",
         "event": "activated",

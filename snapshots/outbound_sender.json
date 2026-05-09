@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T20:36:02.387Z",
+  "updatedAt": "2026-05-09T23:27:25.431Z",
   "createdAt": "2026-05-09T03:26:19.190Z",
   "id": "Bg5nl2Y26PuwF2NB",
   "name": "Chatwoot Outbound Sender - De Paseo en Fincas",
@@ -1063,14 +1063,15 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "timezone": "America/Bogota"
+    "timezone": "America/Bogota",
+    "errorWorkflow": "Lt8n12vKuqnvd1LH"
   },
   "staticData": null,
   "meta": null,
   "pinData": null,
   "versionId": "a17ecf93-40fa-42c1-9df9-e120b1ccf295",
   "activeVersionId": "a17ecf93-40fa-42c1-9df9-e120b1ccf295",
-  "versionCounter": 23,
+  "versionCounter": 26,
   "triggerCount": 1,
   "shared": [
     {
@@ -2168,6 +2169,22 @@
       {
         "createdAt": "2026-05-09T20:36:02.492Z",
         "id": 115,
+        "workflowId": "Bg5nl2Y26PuwF2NB",
+        "versionId": "a17ecf93-40fa-42c1-9df9-e120b1ccf295",
+        "event": "activated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-09T23:27:25.475Z",
+        "id": 141,
+        "workflowId": "Bg5nl2Y26PuwF2NB",
+        "versionId": "a17ecf93-40fa-42c1-9df9-e120b1ccf295",
+        "event": "deactivated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-09T23:27:25.496Z",
+        "id": 142,
         "workflowId": "Bg5nl2Y26PuwF2NB",
         "versionId": "a17ecf93-40fa-42c1-9df9-e120b1ccf295",
         "event": "activated",
