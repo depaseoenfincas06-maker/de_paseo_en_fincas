@@ -178,6 +178,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     'Hola (NOMBRE) 👋 ¿Pudiste revisar la confirmación de reserva que te envié? Para asegurar tus fechas solo necesitamos tu OK por aquí. Si hay algo que quieras ajustar me cuentas y lo modificamos al momento ☀️',
   confirmingIntroMessageTemplate:
     '*Pasos para Reservar 🏡*\n\nAl elegir la propiedad que te enamoró, me brindas por favor los siguientes datos:\n\n•  Nombre Completo\n•  Tipo y Número de Documento\n•  Número de Celular\n•  Correo Electrónico\n•  Dirección\n\nLos anteriores se tomarán para generarte la *Confirmación de Reserva*, una vez emitida y aceptada procedemos a realizar el abono del 50% del total de tu reserva o en su defecto la totalidad de la misma.\n\n*Nuestros Medios de Pago son los siguientes:*\n\n•  Bancolombia\n•  Davivienda\n•  Colpatria\n•  Nequi\n•  Daviplata\n•  Tarjeta Crédito - Débito - PSE o presencial en Anapoima, todas ellas + 4% o Efectivo',
+  visitOfferMessageTemplate:
+    'Claro que si, dime cuando quieres conocer la propiedad y nosotros agendamos la visita con nuestro agentes de zona para que la conozcoas personalmente👌\n\nTambién recuerda que si sete dificulta el viajar para la vista,  podemos hacer videollamada desde cualquiera de nuestros propiedades para que así las conozcas ✅',
   inventorySheetEnabled: true,
   inventorySheetDocumentId:
     process.env.INVENTORY_SHEET_DOCUMENT_ID || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',
@@ -500,6 +502,9 @@ function serializeSettings(row = {}) {
       String(
         row.confirming_intro_message_template || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
       ).trim() || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
+    visitOfferMessageTemplate:
+      String(row.visit_offer_message_template || DEFAULT_SETTINGS.visitOfferMessageTemplate).trim() ||
+      DEFAULT_SETTINGS.visitOfferMessageTemplate,
     inventorySheetEnabled:
       row.inventory_sheet_enabled === undefined
         ? DEFAULT_SETTINGS.inventorySheetEnabled
@@ -604,9 +609,11 @@ function sanitizeSettingsPayload(payload = {}) {
         payload.followupMessageConfirmingReservation || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
       ).trim() || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
     confirmingIntroMessageTemplate:
-      String(
-        payload.confirmingIntroMessageTemplate || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
-      ).trim() || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
+      boundedText(payload.confirmingIntroMessageTemplate || DEFAULT_SETTINGS.confirmingIntroMessageTemplate, 10000) ||
+      DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
+    visitOfferMessageTemplate:
+      boundedText(payload.visitOfferMessageTemplate || DEFAULT_SETTINGS.visitOfferMessageTemplate, 5000) ||
+      DEFAULT_SETTINGS.visitOfferMessageTemplate,
     inventorySheetEnabled: normalizeBoolean(payload.inventorySheetEnabled, DEFAULT_SETTINGS.inventorySheetEnabled),
     inventorySheetDocumentId: validSheetId(
       payload.inventorySheetDocumentId,
@@ -716,6 +723,7 @@ async function getAgentSettings() {
           followup_message_verifying_availability,
           followup_message_confirming_reservation,
           confirming_intro_message_template,
+          visit_offer_message_template,
           inventory_sheet_enabled,
           inventory_sheet_document_id,
           inventory_sheet_tab_name,
@@ -783,7 +791,8 @@ async function saveAgentSettings(payload) {
         selection_notification_template_language,
         pricing_seasons,
         followup_message_confirming_reservation,
-        confirming_intro_message_template
+        confirming_intro_message_template,
+        visit_offer_message_template
       )
       values (
         1,
@@ -822,7 +831,8 @@ async function saveAgentSettings(payload) {
         $33,
         $34::jsonb,
         $35,
-        $36
+        $36,
+        $37
       )
       on conflict (id)
       do update set
@@ -862,6 +872,7 @@ async function saveAgentSettings(payload) {
         pricing_seasons = excluded.pricing_seasons,
         followup_message_confirming_reservation = excluded.followup_message_confirming_reservation,
         confirming_intro_message_template = excluded.confirming_intro_message_template,
+        visit_offer_message_template = excluded.visit_offer_message_template,
         updated_at = now()
       returning
         id,
@@ -891,6 +902,7 @@ async function saveAgentSettings(payload) {
         followup_message_verifying_availability,
         followup_message_confirming_reservation,
         confirming_intro_message_template,
+        visit_offer_message_template,
         inventory_sheet_enabled,
         inventory_sheet_document_id,
         inventory_sheet_tab_name,
@@ -940,6 +952,7 @@ async function saveAgentSettings(payload) {
       JSON.stringify(next.pricingSeasons || { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] }),
       next.followupMessageConfirmingReservation,
       next.confirmingIntroMessageTemplate,
+      next.visitOfferMessageTemplate,
     ],
   );
 

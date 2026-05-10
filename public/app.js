@@ -112,6 +112,7 @@ const elements = {
     followupVerifying: document.getElementById('settings-followup-verifying'),
     followupConfirming: document.getElementById('settings-followup-confirming'),
     confirmingIntro: document.getElementById('settings-confirming-intro'),
+    visitOffer: document.getElementById('settings-visit-offer'),
     inventoryEnabled: document.getElementById('settings-inventory-enabled'),
     inventoryDoc: document.getElementById('settings-inventory-doc'),
     inventoryTab: document.getElementById('settings-inventory-tab'),
@@ -406,6 +407,7 @@ function applySettingsToForm(settings) {
   elements.settings.followupVerifying.value = settings.followupMessageVerifyingAvailability || '';
   if (elements.settings.followupConfirming) elements.settings.followupConfirming.value = settings.followupMessageConfirmingReservation || '';
   if (elements.settings.confirmingIntro) elements.settings.confirmingIntro.value = settings.confirmingIntroMessageTemplate || '';
+  if (elements.settings.visitOffer) elements.settings.visitOffer.value = settings.visitOfferMessageTemplate || '';
   elements.settings.inventoryEnabled.checked = settings.inventorySheetEnabled === true;
   elements.settings.inventoryDoc.value = settings.inventorySheetDocumentId || '';
   elements.settings.inventoryTab.value = settings.inventorySheetTabName || '';
@@ -595,6 +597,7 @@ function readSettingsForm() {
     followupMessageVerifyingAvailability: elements.settings.followupVerifying.value,
     followupMessageConfirmingReservation: elements.settings.followupConfirming ? elements.settings.followupConfirming.value : '',
     confirmingIntroMessageTemplate: elements.settings.confirmingIntro ? elements.settings.confirmingIntro.value : '',
+    visitOfferMessageTemplate: elements.settings.visitOffer ? elements.settings.visitOffer.value : '',
     inventorySheetEnabled: elements.settings.inventoryEnabled.checked,
     inventorySheetDocumentId: elements.settings.inventoryDoc.value,
     inventorySheetTabName: elements.settings.inventoryTab.value,
