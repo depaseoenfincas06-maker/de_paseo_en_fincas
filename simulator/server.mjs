@@ -172,6 +172,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     'Hola, sigo atento. Si quieres, te comparto más opciones o ajustamos la búsqueda por zona, capacidad o presupuesto.',
   followupMessageVerifyingAvailability:
     'Hola, sigo atento con tu solicitud. Si quieres, también puedo ayudarte a revisar otra opción similar.',
+  followupMessageConfirmingReservation:
+    'Hola (NOMBRE) 👋 ¿Pudiste revisar la confirmación de reserva que te envié? Para asegurar tus fechas solo necesitamos tu OK por aquí. Si hay algo que quieras ajustar me cuentas y lo modificamos al momento ☀️',
   inventorySheetEnabled: true,
   inventorySheetDocumentId:
     process.env.INVENTORY_SHEET_DOCUMENT_ID || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',
@@ -456,6 +458,10 @@ function serializeSettings(row = {}) {
       String(
         row.followup_message_verifying_availability || DEFAULT_SETTINGS.followupMessageVerifyingAvailability,
       ).trim() || DEFAULT_SETTINGS.followupMessageVerifyingAvailability,
+    followupMessageConfirmingReservation:
+      String(
+        row.followup_message_confirming_reservation || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
+      ).trim() || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
     inventorySheetEnabled:
       row.inventory_sheet_enabled === undefined
         ? DEFAULT_SETTINGS.inventorySheetEnabled
@@ -556,6 +562,10 @@ function sanitizeSettingsPayload(payload = {}) {
       String(
         payload.followupMessageVerifyingAvailability || DEFAULT_SETTINGS.followupMessageVerifyingAvailability,
       ).trim() || DEFAULT_SETTINGS.followupMessageVerifyingAvailability,
+    followupMessageConfirmingReservation:
+      String(
+        payload.followupMessageConfirmingReservation || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
+      ).trim() || DEFAULT_SETTINGS.followupMessageConfirmingReservation,
     inventorySheetEnabled: normalizeBoolean(payload.inventorySheetEnabled, DEFAULT_SETTINGS.inventorySheetEnabled),
     inventorySheetDocumentId:
       compactText(payload.inventorySheetDocumentId || DEFAULT_SETTINGS.inventorySheetDocumentId) ||
@@ -662,6 +672,7 @@ async function getAgentSettings() {
           followup_message_qualifying,
           followup_message_offering,
           followup_message_verifying_availability,
+          followup_message_confirming_reservation,
           inventory_sheet_enabled,
           inventory_sheet_document_id,
           inventory_sheet_tab_name,
@@ -727,7 +738,8 @@ async function saveAgentSettings(payload) {
         selection_notification_recipients,
         selection_notification_template_name,
         selection_notification_template_language,
-        pricing_seasons
+        pricing_seasons,
+        followup_message_confirming_reservation
       )
       values (
         1,
@@ -764,7 +776,8 @@ async function saveAgentSettings(payload) {
         $31,
         $32,
         $33,
-        $34::jsonb
+        $34::jsonb,
+        $35
       )
       on conflict (id)
       do update set
@@ -802,6 +815,7 @@ async function saveAgentSettings(payload) {
         selection_notification_template_name = excluded.selection_notification_template_name,
         selection_notification_template_language = excluded.selection_notification_template_language,
         pricing_seasons = excluded.pricing_seasons,
+        followup_message_confirming_reservation = excluded.followup_message_confirming_reservation,
         updated_at = now()
       returning
         id,
@@ -829,6 +843,7 @@ async function saveAgentSettings(payload) {
         followup_message_qualifying,
         followup_message_offering,
         followup_message_verifying_availability,
+        followup_message_confirming_reservation,
         inventory_sheet_enabled,
         inventory_sheet_document_id,
         inventory_sheet_tab_name,
@@ -876,6 +891,7 @@ async function saveAgentSettings(payload) {
       next.selectionNotificationTemplateName,
       next.selectionNotificationTemplateLanguage,
       JSON.stringify(next.pricingSeasons || { festivos_y_puentes: [], semana_santa: [], temporada_alta: [] }),
+      next.followupMessageConfirmingReservation,
     ],
   );
 
