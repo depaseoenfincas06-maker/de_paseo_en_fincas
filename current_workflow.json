@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-10T03:33:59.304Z",
+  "updatedAt": "2026-05-10T16:32:23.449Z",
   "createdAt": "2026-05-09T03:26:20.967Z",
   "id": "2NV08zRFKENUsQVC",
   "name": "De paseo en fincas customer agent",
@@ -3425,7 +3425,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const pending = String($('Collect pending messages').item.json.aggregated_pending || '').trim();\nconst currentMessage = String($('Merge Sets1').item.json['last-message'] || '').trim();\nconst fullMessage = pending ? pending + '\\n' + currentMessage : currentMessage;\nconst prevData = $('Is latest inbound?').item.json || {};\n\n// Fire a new webhook execution with the aggregated message\nconst chatwootId = String(prevData.chatwoot_id || '').trim();\nconst waId = String($('Merge Sets1').item.json.conversation_key || '').trim();\nconst webhookUrl = 'https://n8n.depaseoenfincas.raaamp.co/webhook/chatwoot/de-paseo-en-fincas/inbound';\n\ntry {\n  await this.helpers.httpRequest({\n    url: webhookUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      chatInput: fullMessage,\n      wa_id: waId,\n      chatwoot_id: chatwootId,\n      chatwoot_message_id: String($('Normalize inbound payload').item.json.chatwoot_message_id || ''),\n    }),\n    timeout: 5000,\n    json: true,\n  });\n  console.log('[burst] Fired self-webhook with aggregated message: ' + fullMessage.substring(0, 60));\n} catch (err) {\n  console.log('[burst] Self-webhook error: ' + (err.message || err));\n}\n\nreturn [{ json: { ...prevData, burst_refired: true } }];"
+        "jsCode": "const pending = String($('Collect pending messages').item.json.aggregated_pending || '').trim();\nconst currentMessage = String($('Merge Sets1').item.json['last-message'] || '').trim();\nconst fullMessage = pending ? pending + '\\n' + currentMessage : currentMessage;\nconst prevData = $('Is latest inbound?').item.json || {};\n\n// Fire a new webhook execution with the aggregated message\nconst chatwootId = String(prevData.chatwoot_id || '').trim();\nconst waId = String($('Merge Sets1').item.json.conversation_key || '').trim();\nconst webhookUrl = 'https://n8n.depaseoenfincas.raaamp.co/webhook/customer-agent-direct/de-paseo-en-fincas/inbound';\n\ntry {\n  await this.helpers.httpRequest({\n    url: webhookUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      chatInput: fullMessage,\n      wa_id: waId,\n      chatwoot_id: chatwootId,\n      chatwoot_message_id: String($('Normalize inbound payload').item.json.chatwoot_message_id || ''),\n    }),\n    timeout: 5000,\n    json: true,\n  });\n  console.log('[burst] Fired self-webhook with aggregated message: ' + fullMessage.substring(0, 60));\n} catch (err) {\n  console.log('[burst] Self-webhook error: ' + (err.message || err));\n}\n\nreturn [{ json: { ...prevData, burst_refired: true } }];"
       },
       "id": "7cf5bdbb-bda6-4d10-8a1e-7b7970e7e5bd",
       "name": "Build aggregated message",
@@ -5032,9 +5032,9 @@
   },
   "meta": null,
   "pinData": null,
-  "versionId": "6ced0d5b-0569-469c-9d64-044287c9d760",
-  "activeVersionId": "6ced0d5b-0569-469c-9d64-044287c9d760",
-  "versionCounter": 170,
+  "versionId": "54fcb446-ee59-4b1b-a539-1e57a69371f3",
+  "activeVersionId": "54fcb446-ee59-4b1b-a539-1e57a69371f3",
+  "versionCounter": 173,
   "triggerCount": 1,
   "shared": [
     {
@@ -5057,9 +5057,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-10T03:33:59.311Z",
-    "createdAt": "2026-05-10T03:33:59.311Z",
-    "versionId": "6ced0d5b-0569-469c-9d64-044287c9d760",
+    "updatedAt": "2026-05-10T16:32:23.455Z",
+    "createdAt": "2026-05-10T16:32:23.455Z",
+    "versionId": "54fcb446-ee59-4b1b-a539-1e57a69371f3",
     "workflowId": "2NV08zRFKENUsQVC",
     "nodes": [
       {
@@ -8480,7 +8480,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const pending = String($('Collect pending messages').item.json.aggregated_pending || '').trim();\nconst currentMessage = String($('Merge Sets1').item.json['last-message'] || '').trim();\nconst fullMessage = pending ? pending + '\\n' + currentMessage : currentMessage;\nconst prevData = $('Is latest inbound?').item.json || {};\n\n// Fire a new webhook execution with the aggregated message\nconst chatwootId = String(prevData.chatwoot_id || '').trim();\nconst waId = String($('Merge Sets1').item.json.conversation_key || '').trim();\nconst webhookUrl = 'https://n8n.depaseoenfincas.raaamp.co/webhook/chatwoot/de-paseo-en-fincas/inbound';\n\ntry {\n  await this.helpers.httpRequest({\n    url: webhookUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      chatInput: fullMessage,\n      wa_id: waId,\n      chatwoot_id: chatwootId,\n      chatwoot_message_id: String($('Normalize inbound payload').item.json.chatwoot_message_id || ''),\n    }),\n    timeout: 5000,\n    json: true,\n  });\n  console.log('[burst] Fired self-webhook with aggregated message: ' + fullMessage.substring(0, 60));\n} catch (err) {\n  console.log('[burst] Self-webhook error: ' + (err.message || err));\n}\n\nreturn [{ json: { ...prevData, burst_refired: true } }];"
+          "jsCode": "const pending = String($('Collect pending messages').item.json.aggregated_pending || '').trim();\nconst currentMessage = String($('Merge Sets1').item.json['last-message'] || '').trim();\nconst fullMessage = pending ? pending + '\\n' + currentMessage : currentMessage;\nconst prevData = $('Is latest inbound?').item.json || {};\n\n// Fire a new webhook execution with the aggregated message\nconst chatwootId = String(prevData.chatwoot_id || '').trim();\nconst waId = String($('Merge Sets1').item.json.conversation_key || '').trim();\nconst webhookUrl = 'https://n8n.depaseoenfincas.raaamp.co/webhook/customer-agent-direct/de-paseo-en-fincas/inbound';\n\ntry {\n  await this.helpers.httpRequest({\n    url: webhookUrl,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      chatInput: fullMessage,\n      wa_id: waId,\n      chatwoot_id: chatwootId,\n      chatwoot_message_id: String($('Normalize inbound payload').item.json.chatwoot_message_id || ''),\n    }),\n    timeout: 5000,\n    json: true,\n  });\n  console.log('[burst] Fired self-webhook with aggregated message: ' + fullMessage.substring(0, 60));\n} catch (err) {\n  console.log('[burst] Self-webhook error: ' + (err.message || err));\n}\n\nreturn [{ json: { ...prevData, burst_refired: true } }];"
         },
         "id": "7cf5bdbb-bda6-4d10-8a1e-7b7970e7e5bd",
         "name": "Build aggregated message",
@@ -10081,18 +10081,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-10T03:33:59.471Z",
-        "id": 171,
+        "createdAt": "2026-05-10T16:32:23.627Z",
+        "id": 173,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "6ced0d5b-0569-469c-9d64-044287c9d760",
+        "versionId": "54fcb446-ee59-4b1b-a539-1e57a69371f3",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-10T03:33:59.512Z",
-        "id": 172,
+        "createdAt": "2026-05-10T16:32:23.671Z",
+        "id": 174,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "6ced0d5b-0569-469c-9d64-044287c9d760",
+        "versionId": "54fcb446-ee59-4b1b-a539-1e57a69371f3",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
