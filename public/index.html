@@ -574,6 +574,24 @@
                   ></textarea>
                 </label>
               </section>
+
+              <section class="settings-card settings-card--wide">
+                <div class="settings-card__head">
+                  <div>
+                    <h3>Plantillas de la etapa de reserva</h3>
+                    <p class="settings-card__subtext">Mensajes que el bot envía cuando el cliente entra al flujo de confirmación de reserva. Se envían textuales, sin parafrasear.</p>
+                  </div>
+                </div>
+                <label class="settings-field">
+                  <span>Mensaje "Pasos para Reservar" (intro de confirmación)</span>
+                  <small class="settings-help">Es el primer mensaje que recibe el cliente al elegir una finca, después del ack cálido. Se envía literal junto con el video. Usá <code>*texto*</code> para negrita en WhatsApp.</small>
+                  <textarea
+                    id="settings-confirming-intro"
+                    name="confirmingIntroMessageTemplate"
+                    rows="14"
+                  ></textarea>
+                </label>
+              </section>
             </form>
           </div>
         </section>
