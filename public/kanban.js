@@ -198,7 +198,7 @@ function renderCard(conv) {
       <span class="kb-badge kb-badge--age">⏱ ${age} en pipeline</span>
       ${finca ? `<span class="kb-card__finca">${esc(finca)}</span>` : ''}
     </div>
-    ${chatwootLink ? `<a href="${chatwootLink}" target="_blank" rel="noopener" class="kb-card__chatwoot" onclick="event.stopPropagation()">💬 Chatwoot</a>` : ''}
+    ${chatwootLink ? `<a href="${esc(chatwootLink)}" target="_blank" rel="noopener" class="kb-card__chatwoot" onclick="event.stopPropagation()">💬 Chatwoot</a>` : ''}
   `;
 
   card.addEventListener('click', () => openDetail(conv.waId));
@@ -267,7 +267,7 @@ function renderDetail(data, conv) {
       </div>
       <div class="kb-detail__info-item">
         <div class="kb-detail__info-label">Personas</div>
-        <div class="kb-detail__info-value">${sc.personas || '—'}</div>
+        <div class="kb-detail__info-value">${esc(String(sc.personas || '—'))}</div>
       </div>
       <div class="kb-detail__info-item">
         <div class="kb-detail__info-label">Fechas</div>
@@ -278,7 +278,7 @@ function renderDetail(data, conv) {
         <div class="kb-detail__info-value">${esc(conv?.selectedFincaName || '—')}</div>
       </div>
     </div>
-    ${chatwootLink ? `<a href="${chatwootLink}" target="_blank" rel="noopener" class="kb-card__chatwoot" style="margin-top:12px;display:inline-flex">💬 Abrir en Chatwoot</a>` : ''}
+    ${chatwootLink ? `<a href="${esc(chatwootLink)}" target="_blank" rel="noopener" class="kb-card__chatwoot" style="margin-top:12px;display:inline-flex">💬 Abrir en Chatwoot</a>` : ''}
   </div>`;
 
   // Messages

@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import dotenv from 'dotenv';
 import express from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import pkg from 'pg';
 
 import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_media_relay.mjs';
@@ -250,6 +252,36 @@ function matchesTimeframe(value, timeframe = 'all') {
 
 function compactText(value) {
   return String(value || '').trim();
+}
+
+// Bounded text helper — protege la DB y la memoria contra inputs gigantes.
+// Si el operador (o un atacante con acceso al dashboard) manda 50MB, lo
+// truncamos al límite y seguimos. No throw — UX friendly.
+function boundedText(value, maxLen = 10000) {
+  const s = String(value || '').trim();
+  return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
+// URL validation — solo aceptar HTTP/HTTPS. Rechaza javascript:, data:,
+// file:, etc. Si la URL no parsea, devuelve el fallback.
+function validHttpsUrl(value, fallback = '') {
+  const s = String(value || '').trim();
+  if (!s) return fallback;
+  try {
+    const u = new URL(s);
+    if (u.protocol === 'https:' || u.protocol === 'http:') {
+      return u.toString().replace(/\/$/, '');
+    }
+  } catch (_) { /* fall through */ }
+  return fallback;
+}
+
+// Google Sheets ID validator — formato típico de 20-80 chars alfanuméricos
+// con guiones/underscores. Bloquea strings raros que podrían ser tampering.
+function validSheetId(value, fallback = '') {
+  const s = String(value || '').trim();
+  if (/^[A-Za-z0-9_-]{20,80}$/.test(s)) return s;
+  return fallback;
 }
 
 function decodeBase64UrlJson(rawValue) {
@@ -527,25 +559,24 @@ function serializeSettings(row = {}) {
 
 function sanitizeSettingsPayload(payload = {}) {
   return {
-    tonePreset: compactText(payload.tonePreset || DEFAULT_SETTINGS.tonePreset) || DEFAULT_SETTINGS.tonePreset,
-    toneGuidelinesExtra: compactText(payload.toneGuidelinesExtra),
-    publicAppBaseUrl:
-      compactText(payload.publicAppBaseUrl || DEFAULT_SETTINGS.publicAppBaseUrl) ||
-      DEFAULT_SETTINGS.publicAppBaseUrl,
-    globalPromptAddendum: compactText(payload.globalPromptAddendum),
-    qualifyingPromptAddendum: compactText(payload.qualifyingPromptAddendum),
-    offeringPromptAddendum: compactText(payload.offeringPromptAddendum),
-    verifyingAvailabilityPromptAddendum: compactText(payload.verifyingAvailabilityPromptAddendum),
-    qaPromptAddendum: compactText(payload.qaPromptAddendum),
-    hitlPromptAddendum: compactText(payload.hitlPromptAddendum),
-    confirmingReservationPromptAddendum: compactText(payload.confirmingReservationPromptAddendum),
+    tonePreset: boundedText(payload.tonePreset || DEFAULT_SETTINGS.tonePreset, 60) || DEFAULT_SETTINGS.tonePreset,
+    toneGuidelinesExtra: boundedText(payload.toneGuidelinesExtra, 5000),
+    publicAppBaseUrl: validHttpsUrl(payload.publicAppBaseUrl, DEFAULT_SETTINGS.publicAppBaseUrl),
+    globalPromptAddendum: boundedText(payload.globalPromptAddendum, 10000),
+    qualifyingPromptAddendum: boundedText(payload.qualifyingPromptAddendum, 10000),
+    offeringPromptAddendum: boundedText(payload.offeringPromptAddendum, 10000),
+    verifyingAvailabilityPromptAddendum: boundedText(payload.verifyingAvailabilityPromptAddendum, 10000),
+    qaPromptAddendum: boundedText(payload.qaPromptAddendum, 10000),
+    hitlPromptAddendum: boundedText(payload.hitlPromptAddendum, 10000),
+    confirmingReservationPromptAddendum: boundedText(payload.confirmingReservationPromptAddendum, 10000),
     initialMessageTemplate:
-      String(payload.initialMessageTemplate || DEFAULT_SETTINGS.initialMessageTemplate).trim() ||
+      boundedText(payload.initialMessageTemplate || DEFAULT_SETTINGS.initialMessageTemplate, 5000) ||
       DEFAULT_SETTINGS.initialMessageTemplate,
     handoffMessage:
-      String(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage).trim() || DEFAULT_SETTINGS.handoffMessage,
+      boundedText(payload.handoffMessage || DEFAULT_SETTINGS.handoffMessage, 2000) ||
+      DEFAULT_SETTINGS.handoffMessage,
     companyKnowledge:
-      String(payload.companyKnowledge || DEFAULT_SETTINGS.companyKnowledge).trim() ||
+      boundedText(payload.companyKnowledge || DEFAULT_SETTINGS.companyKnowledge, 50000) ||
       DEFAULT_SETTINGS.companyKnowledge,
     companyDocuments: normalizeCompanyDocuments(
       payload.companyDocuments,
@@ -577,14 +608,15 @@ function sanitizeSettingsPayload(payload = {}) {
         payload.confirmingIntroMessageTemplate || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
       ).trim() || DEFAULT_SETTINGS.confirmingIntroMessageTemplate,
     inventorySheetEnabled: normalizeBoolean(payload.inventorySheetEnabled, DEFAULT_SETTINGS.inventorySheetEnabled),
-    inventorySheetDocumentId:
-      compactText(payload.inventorySheetDocumentId || DEFAULT_SETTINGS.inventorySheetDocumentId) ||
+    inventorySheetDocumentId: validSheetId(
+      payload.inventorySheetDocumentId,
       DEFAULT_SETTINGS.inventorySheetDocumentId,
+    ),
     inventorySheetTabName:
-      compactText(payload.inventorySheetTabName || DEFAULT_SETTINGS.inventorySheetTabName) ||
+      boundedText(payload.inventorySheetTabName || DEFAULT_SETTINGS.inventorySheetTabName, 100) ||
       DEFAULT_SETTINGS.inventorySheetTabName,
     coverageZonesText:
-      String(payload.coverageZonesText || DEFAULT_SETTINGS.coverageZonesText).trim() ||
+      boundedText(payload.coverageZonesText || DEFAULT_SETTINGS.coverageZonesText, 2000) ||
       DEFAULT_SETTINGS.coverageZonesText,
     maxPropertiesToShow: normalizeInteger(
       payload.maxPropertiesToShow,
@@ -1499,6 +1531,46 @@ async function listConversationSnapshots() {
 
 function createApp() {
   const app = express();
+
+  // Trust Vercel's proxy so rate-limit + IP-based logic see real client IPs.
+  app.set('trust proxy', 1);
+
+  // Helmet — security headers. Empezamos sin CSP estricto para no romper el
+  // dashboard (que tiene scripts inline). HSTS, X-Frame-Options=DENY,
+  // X-Content-Type-Options=nosniff, Referrer-Policy, X-DNS-Prefetch-Control
+  // se aplican por default. Cuando se quiera CSP estricto, definirlo aquí.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      // Frame ancestors via X-Frame-Options DENY (default). Si se necesita
+      // embedar el dashboard en un iframe interno, cambiar a SAMEORIGIN.
+    }),
+  );
+
+  // Rate limiting global en todas las rutas /api/*. 60 req/min por IP es
+  // generoso para uso normal, suficiente para detectar abuso.
+  const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please slow down.' },
+  });
+  // Limiter más estricto en el endpoint del PDF — un humano nunca lo hits
+  // más de 20 veces por minuto, y este endpoint es el más sensible
+  // (genera docs con datos del cliente) por lo que lo blindamos contra
+  // scraping/scanning.
+  const pdfLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please slow down.' },
+  });
+  app.use('/api/reservation-confirmation.docx', pdfLimiter);
+  app.use('/api/reservation-confirmation.pdf', pdfLimiter);
+  app.use('/api/', apiLimiter);
 
   app.use(express.json({ limit: '1mb' }));
   app.use(express.static(publicDir));

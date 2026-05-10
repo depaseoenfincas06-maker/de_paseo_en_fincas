@@ -8,10 +8,12 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "docxtemplater": "^3.61.0",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.5.1",
+    "helmet": "^8.1.0",
     "pg": "^8.16.3",
-    "docxtemplater": "^3.61.0",
     "pizzip": "^3.1.7"
   }
 }
