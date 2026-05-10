@@ -6,3 +6,7 @@
 node_modules/
 simulator/data/conversations.json
 scripts/tmp-audio/
+
+# One-off generated reports (not source code)
+analisis_inventario*.docx
+*.tmp.mjs
