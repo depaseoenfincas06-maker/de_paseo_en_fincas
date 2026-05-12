@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-12T09:07:15.769Z",
+  "updatedAt": "2026-05-12T09:16:30.922Z",
   "createdAt": "2026-05-09T03:26:20.967Z",
   "id": "2NV08zRFKENUsQVC",
   "name": "De paseo en fincas customer agent",
@@ -1018,17 +1018,6 @@
               "type": "string",
               "removed": false,
               "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.fecha_fin || '' }}"
-            },
-            {
-              "id": "f5e1d355-aa45-44de-af74-182236cc3a0b",
-              "displayName": "wa_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false,
-              "stringValue": "={{ $('Merge Sets1').item.json.conversation_key || $('Get Context-conversations1').item.json.wa_id || '' }}"
             }
           ],
           "attemptToConvertTypes": false,
@@ -2347,7 +2336,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'CONTINUE',\n        route_mode: 'STATE',\n        reason: 'owner_available_confirmed',\n        skip_validator: true,\n        forced_state: 'CONFIRMING_RESERVATION',\n        effective_state: 'CONFIRMING_RESERVATION',\n        loop_reason: 'owner_available_confirmed',\n        post_actions: {\n          state_transition: 'CONFIRMING_RESERVATION',\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
+        "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n  // wa_id en el base para que viaje a Run offering pass / inventory_reader_tool\n  // via passthrough → trigger del sub-exec. NUNCA confiar en\n  // workflowInputs.schema fields con $('...') — n8n los dropea silencioso.\n  wa_id: String(merge.conversation_key || conversation.wa_id || '').trim(),\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'CONTINUE',\n        route_mode: 'STATE',\n        reason: 'owner_available_confirmed',\n        skip_validator: true,\n        forced_state: 'CONFIRMING_RESERVATION',\n        effective_state: 'CONFIRMING_RESERVATION',\n        loop_reason: 'owner_available_confirmed',\n        post_actions: {\n          state_transition: 'CONFIRMING_RESERVATION',\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
       },
       "id": "7887f398-a80e-4faa-a292-eddc51e960b8",
       "name": "Compute deterministic prechecks",
@@ -3698,7 +3687,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "select wa_id, search_criteria\nfrom public.conversations\nwhere wa_id = {{ \"'\" + String($('When inventory tool is called').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }};",
+        "query": "-- Always returns exactly 1 row even if wa_id es '' o no existe.\n-- Garantiza que la sub-exec siga downstream sin tirar BIT/Persist/Return.\nselect coalesce(c.wa_id, '') as wa_id,\n       coalesce(c.search_criteria, '{}'::jsonb) as search_criteria\nfrom (select 1) as dummy\nleft join public.conversations c\n  on c.wa_id = {{ \"'\" + String($('When inventory tool is called').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }};",
         "options": {}
       },
       "id": "52ce3a33-f98e-44bf-9a9c-e28f6b717b29",
@@ -5221,9 +5210,9 @@
   },
   "meta": null,
   "pinData": {},
-  "versionId": "a552617f-a50b-4aed-911e-1749188f1b1a",
-  "activeVersionId": "a552617f-a50b-4aed-911e-1749188f1b1a",
-  "versionCounter": 209,
+  "versionId": "e8aac21d-47b0-41df-b71f-d689874374ba",
+  "activeVersionId": "e8aac21d-47b0-41df-b71f-d689874374ba",
+  "versionCounter": 212,
   "triggerCount": 1,
   "shared": [
     {
@@ -5246,9 +5235,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-12T09:07:15.775Z",
-    "createdAt": "2026-05-12T09:07:15.775Z",
-    "versionId": "a552617f-a50b-4aed-911e-1749188f1b1a",
+    "updatedAt": "2026-05-12T09:16:30.930Z",
+    "createdAt": "2026-05-12T09:16:30.930Z",
+    "versionId": "e8aac21d-47b0-41df-b71f-d689874374ba",
     "workflowId": "2NV08zRFKENUsQVC",
     "nodes": [
       {
@@ -6262,17 +6251,6 @@
                 "type": "string",
                 "removed": false,
                 "stringValue": "={{ $('Get Context-conversations1').item.json.context?.search_criteria?.fecha_fin || '' }}"
-              },
-              {
-                "id": "f5e1d355-aa45-44de-af74-182236cc3a0b",
-                "displayName": "wa_id",
-                "required": false,
-                "defaultMatch": false,
-                "display": true,
-                "canBeUsedToMatch": true,
-                "type": "string",
-                "removed": false,
-                "stringValue": "={{ $('Merge Sets1').item.json.conversation_key || $('Get Context-conversations1').item.json.wa_id || '' }}"
               }
             ],
             "attemptToConvertTypes": false,
@@ -7591,7 +7569,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'CONTINUE',\n        route_mode: 'STATE',\n        reason: 'owner_available_confirmed',\n        skip_validator: true,\n        forced_state: 'CONFIRMING_RESERVATION',\n        effective_state: 'CONFIRMING_RESERVATION',\n        loop_reason: 'owner_available_confirmed',\n        post_actions: {\n          state_transition: 'CONFIRMING_RESERVATION',\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
+          "jsCode": "const conversation = $('Get Context-conversations1').item.json || {};\nconst context = conversation.context || {};\nconst merge = $('Merge Sets1').item.json || {};\nconst handoffMessage =\n  $('config').item.json.handoff_message ||\n  'Te voy a pasar con un asesor humano para continuar con tu solicitud.';\n\nconst compact = (value) => String(value || '').trim();\nconst currentState = String(conversation.current_state || context.conversation?.current_state || 'QUALIFYING').trim() || 'QUALIFYING';\nconst lastMessage = compact(merge['last-message']);\nconst skipValidator = merge.skip_validator === true;\nconst forcedState = compact(merge.forced_state) || null;\nconst loopReason = compact(merge.loop_reason) || null;\nconst ownerUnavailable = merge.owner_unavailable === true;\nconst ownerResponse = conversation.owner_response ?? context.owner_response ?? null;\nconst agenteActivo = conversation.agente_activo !== false;\n\nconst base = {\n  action: 'CONTINUE',\n  route_mode: null,\n  reason: null,\n  post_actions: {},\n  final_whatsapp_text: null,\n  current_state_changed: false,\n  skip_validator: false,\n  forced_state: forcedState,\n  effective_state: forcedState || currentState,\n  loop_reason: loopReason,\n  owner_unavailable: ownerUnavailable,\n  // wa_id en el base para que viaje a Run offering pass / inventory_reader_tool\n  // via passthrough → trigger del sub-exec. NUNCA confiar en\n  // workflowInputs.schema fields con $('...') — n8n los dropea silencioso.\n  wa_id: String(merge.conversation_key || conversation.wa_id || '').trim(),\n};\n\nif (!agenteActivo) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'NOOP_BOT_DISABLED',\n        reason: 'bot_disabled',\n        post_actions: {\n          agente_activo: false,\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === true\n) {\n  return [\n    {\n      json: {\n        ...base,\n        action: 'CONTINUE',\n        route_mode: 'STATE',\n        reason: 'owner_available_confirmed',\n        skip_validator: true,\n        forced_state: 'CONFIRMING_RESERVATION',\n        effective_state: 'CONFIRMING_RESERVATION',\n        loop_reason: 'owner_available_confirmed',\n        post_actions: {\n          state_transition: 'CONFIRMING_RESERVATION',\n          waiting_for: 'CLIENT',\n        },\n      },\n    },\n  ];\n}\n\nif (\n  currentState === 'VERIFYING_AVAILABILITY' &&\n  ownerResponse &&\n  typeof ownerResponse === 'object' &&\n  ownerResponse.disponible === false\n) {\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: 'owner_unavailable_resume_offering',\n        skip_validator: true,\n        forced_state: 'OFFERING',\n        effective_state: 'OFFERING',\n        loop_reason: 'owner_unavailable',\n        owner_unavailable: true,\n        post_actions: {\n          state_transition: 'OFFERING',\n          waiting_for: 'CLIENT',\n          selected_finca_id: '__CLEAR__',\n          selected_finca: '__CLEAR__',\n        },\n      },\n    },\n  ];\n}\n\nif (skipValidator || forcedState || !lastMessage) {\n  const effectiveState = forcedState || currentState;\n  return [\n    {\n      json: {\n        ...base,\n        route_mode: 'STATE',\n        reason: skipValidator ? 'skip_validator_loop' : 'empty_message_or_forced_state',\n        skip_validator: true,\n        forced_state: effectiveState,\n        effective_state: effectiveState,\n        loop_reason: loopReason || 'state_transition',\n        owner_unavailable: ownerUnavailable,\n      },\n    },\n  ];\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      action: 'CONTINUE',\n      route_mode: null,\n      reason: 'requires_validator',\n      skip_validator: false,\n      forced_state: forcedState,\n      effective_state: forcedState || currentState,\n      loop_reason: loopReason,\n      owner_unavailable: ownerUnavailable,\n    },\n  },\n];"
         },
         "id": "7887f398-a80e-4faa-a292-eddc51e960b8",
         "name": "Compute deterministic prechecks",
@@ -8942,7 +8920,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "select wa_id, search_criteria\nfrom public.conversations\nwhere wa_id = {{ \"'\" + String($('When inventory tool is called').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }};",
+          "query": "-- Always returns exactly 1 row even if wa_id es '' o no existe.\n-- Garantiza que la sub-exec siga downstream sin tirar BIT/Persist/Return.\nselect coalesce(c.wa_id, '') as wa_id,\n       coalesce(c.search_criteria, '{}'::jsonb) as search_criteria\nfrom (select 1) as dummy\nleft join public.conversations c\n  on c.wa_id = {{ \"'\" + String($('When inventory tool is called').item.json.wa_id || '').replace(/'/g, \"''\") + \"'\" }};",
           "options": {}
         },
         "id": "52ce3a33-f98e-44bf-9a9c-e28f6b717b29",
@@ -10458,18 +10436,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-12T09:07:15.931Z",
-        "id": 197,
+        "createdAt": "2026-05-12T09:16:31.087Z",
+        "id": 199,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "a552617f-a50b-4aed-911e-1749188f1b1a",
+        "versionId": "e8aac21d-47b0-41df-b71f-d689874374ba",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-12T09:07:16.032Z",
-        "id": 198,
+        "createdAt": "2026-05-12T09:16:31.131Z",
+        "id": 200,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "a552617f-a50b-4aed-911e-1749188f1b1a",
+        "versionId": "e8aac21d-47b0-41df-b71f-d689874374ba",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
