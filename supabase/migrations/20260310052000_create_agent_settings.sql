@@ -55,7 +55,7 @@ Por favor indícame:
 *Tarifa aproximada por noche
 
 🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
-  'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
+  'Dame un momento, te paso con mi compañero del área encargada para continuar con tu solicitud.',
   null,
   true,
   true,

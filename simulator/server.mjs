@@ -159,7 +159,7 @@ const DEFAULT_SETTINGS = Object.freeze({
   confirmingReservationPromptAddendum: '',
   initialMessageTemplate:
     'Excelente día!🤩🌅\nMi nombre es Santiago Gallego\nDepaseoenfincas.com, estaré frente a tu reserva!⚡\nPor favor indícame:\n*Fechas exactas?\n*Número de huéspedes?\n*Localización?\n*Tarifa aproximada por noche\n\n🌎 En el momento disponemos de propiedades en Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio.',
-  handoffMessage: 'Te voy a pasar con un asesor humano para continuar con tu solicitud.',
+  handoffMessage: 'Dame un momento, te paso con mi compañero del área encargada para continuar con tu solicitud.',
   companyKnowledge: '',
   companyDocuments: [],
   paymentMethods: [
