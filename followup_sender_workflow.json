@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-25T17:54:13.694Z",
+  "updatedAt": "2026-05-25T18:36:49.450Z",
   "createdAt": "2026-05-25T17:42:41.181Z",
   "id": "xxK2FfX6QMPxKaZw",
   "name": "Follow-up Sender - De Paseo en Fincas",
@@ -21,7 +21,7 @@
           "interval": [
             {
               "field": "minutes",
-              "minutesInterval": 1
+              "minutesInterval": 30
             }
           ]
         }
@@ -38,7 +38,7 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.context        as conversation_context,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
+        "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
         "options": {}
       },
       "credentials": {
@@ -335,9 +335,9 @@
   },
   "meta": null,
   "pinData": null,
-  "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
-  "activeVersionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
-  "versionCounter": 10,
+  "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
+  "activeVersionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
+  "versionCounter": 16,
   "triggerCount": 1,
   "shared": [
     {
@@ -360,9 +360,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-25T17:54:13.695Z",
-    "createdAt": "2026-05-25T17:54:13.695Z",
-    "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+    "updatedAt": "2026-05-25T18:36:49.452Z",
+    "createdAt": "2026-05-25T18:36:49.452Z",
+    "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
     "workflowId": "xxK2FfX6QMPxKaZw",
     "nodes": [
       {
@@ -379,7 +379,7 @@
             "interval": [
               {
                 "field": "minutes",
-                "minutesInterval": 1
+                "minutesInterval": 30
               }
             ]
           }
@@ -396,7 +396,7 @@
         ],
         "parameters": {
           "operation": "executeQuery",
-          "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.context        as conversation_context,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
+          "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
           "options": {}
         },
         "credentials": {
@@ -683,18 +683,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-25T17:54:13.745Z",
-        "id": 232,
+        "createdAt": "2026-05-25T18:36:49.502Z",
+        "id": 240,
         "workflowId": "xxK2FfX6QMPxKaZw",
-        "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+        "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-25T17:54:13.771Z",
-        "id": 233,
+        "createdAt": "2026-05-25T18:36:49.539Z",
+        "id": 241,
         "workflowId": "xxK2FfX6QMPxKaZw",
-        "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+        "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
