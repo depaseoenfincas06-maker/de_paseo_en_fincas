@@ -1,0 +1,703 @@
+{
+  "updatedAt": "2026-05-25T17:54:13.694Z",
+  "createdAt": "2026-05-25T17:42:41.181Z",
+  "id": "xxK2FfX6QMPxKaZw",
+  "name": "Follow-up Sender - De Paseo en Fincas",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "0a892e22-3389-4c28-a59d-a75e7db9343d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ffcc6a57-72a4-4c8f-ae6f-fbf6a0d05ae1",
+      "name": "Select due follow-ups",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.context        as conversation_context,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "id": "OY6FEujGvFF1rDbg",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "fad7ad96-4298-4214-a2a2-3dc2b307ddb3",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "8f2f34b3-b4ed-401f-8a08-6e7ad2910328",
+      "name": "Decide path",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Add should_use_llm flag based on the 24h WhatsApp window rule.\n// If hours_since_inbound < 24 → LLM-text path; otherwise → template path.\nconst item = $input.first().json || {};\nconst hours = Number(item.hours_since_inbound);\nconst should_use_llm = Number.isFinite(hours) && hours < 24;\n\n// Build a compact context block useful for both paths.\nconst search_criteria = item.search_criteria || {};\nconst missing = [];\nif (!search_criteria.fecha_inicio || !search_criteria.fecha_fin) missing.push('fechas');\nif (!search_criteria.personas) missing.push('personas');\nif (!search_criteria.zona) missing.push('zona');\n\nreturn [{\n  json: {\n    ...item,\n    should_use_llm,\n    datos_faltantes: missing,\n  }\n}];"
+      }
+    },
+    {
+      "id": "3b779d05-744d-4fef-9189-1a17b64e7884",
+      "name": "Should use LLM?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        960,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66f4f8ac-ad40-4643-93e6-3fc4565493e4",
+              "leftValue": "={{ $json.should_use_llm === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "be08f8d0-cc50-4b4b-8f39-d13d886d6fdc",
+      "name": "Follow-up Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1200,
+        -100
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Cliente: {{ $json.client_name || 'cliente' }}\nEstado actual: {{ $json.current_state }}\nattempt_number (este es el FU #): {{ $json.attempt_number }}\nDatos disponibles (search_criteria):\n{{ JSON.stringify($json.search_criteria || {}, null, 2) }}\nDatos faltantes: {{ JSON.stringify($json.datos_faltantes || []) }}\nHoras desde el último mensaje del cliente: {{ $json.hours_since_inbound }}\n\nRedactá el mensaje según las reglas. Devolvé SOLO el JSON con las 3 claves.",
+        "options": {
+          "systemMessage": "Sos el bot \"Santiago\" de De Paseo en Fincas. Estás haciendo follow-up porque el cliente no contestó. Mandá UN solo mensaje WhatsApp ultra-corto.\n\nREGLAS DE REDACCIÓN:\n- NO confirmes datos ya recibidos. No repitas \"para X personas en Y del A al B\".\n- Si faltan datos, preguntá SOLO por lo que falta. Una pregunta corta.\n- Si ya hay todos los datos pero el cliente no eligió finca, sondeá amable\n  (\"¿qué te parecieron las opciones?\", \"¿alguna te gustó?\").\n- Si está en CONFIRMING y no aprobó el PDF, retomá amable\n  (\"¿pudiste revisar la confirmación?\").\n- Máximo ~120 caracteres.\n- Sin signos de admiración invertidos (¡) ni de pregunta invertidos (¿).\n- Saludo personalizado con NOMBRE si está disponible.\n\nREGLA DE TIMING:\n- next_followup_at_offset_hours: número de horas desde \"ahora\" para programar\n  el SIGUIENTE follow-up (FU #2 o #3) si el cliente no responde.\n  - Default razonable: 24.\n  - Si el cliente dijo \"hablamos la otra semana\", poné las horas hasta entonces.\n  - Si solo le falta un dato y está cordial, 24-48.\n  - Si vio cards y no respondió, 48.\n- should_stop_followups: true SOLO si el cliente expresó claramente que no quiere\n  más mensajes, o si la conversación se cerró formalmente. Default false.\n\nOUTPUT JSON estricto (sin code fences, sin texto extra antes/después):\n{\n  \"mensaje\": \"string corto\",\n  \"next_followup_at_offset_hours\": <number>,\n  \"should_stop_followups\": <boolean>\n}",
+          "maxIterations": 2
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "243e8896-a675-4e80-911a-5405fd0fd90d",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        80
+      ],
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {}
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "P2iS8hYjm7h4Ez13",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "id": "5b8671cc-5e70-44b7-8f06-59e7eb96c266",
+      "name": "Send LLM message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "// Parse the LLM JSON output, then send via Chatwoot API as a regular outgoing message.\n// On success, attach sent_via, message_text, next_offset_hours, should_stop to the item\n// so the downstream \"Mark sent\" Postgres node can use them.\n//\n// Helper: $httpRequest is available globally in n8n Code nodes.\n\nconst item = $input.first().json || {};\nconst llmOutputRaw = String(item.output ?? '').trim();\n\n// Strip code fences if any\nlet cleaned = llmOutputRaw\n  .replace(/^```json\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nlet parsed = null;\ntry { parsed = JSON.parse(cleaned); }\ncatch (e) {\n  // try to extract first {...}\n  const m = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { parsed = JSON.parse(m[0]); } catch (e2) {} }\n}\n\nif (!parsed || typeof parsed !== 'object') {\n  // LLM failed to produce valid JSON → fallback to a generic message + 24h offset\n  parsed = {\n    mensaje: \"Hola, sigo por aquí para retomar cuando quieras.\",\n    next_followup_at_offset_hours: 24,\n    should_stop_followups: false,\n  };\n}\n\n// Pull the previous-node row data (Decide path or Split In Batches still have it).\n// $('Decide path') is safer because $input.first().json here might be the agent's output only.\nlet row = {};\ntry { row = $('Decide path').item.json || {}; } catch (e) { row = item; }\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst messageText = String(parsed.mensaje || '').trim() || 'Hola, sigo por aquí.';\nconst nextOffsetHours = Number(parsed.next_followup_at_offset_hours);\nconst shouldStop = parsed.should_stop_followups === true;\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: messageText,\n        message_type: 'outgoing',\n        private: false,\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'llm',\n    message_text: messageText,\n    template_name: null,\n    next_offset_hours: Number.isFinite(nextOffsetHours) && nextOffsetHours > 0 ? nextOffsetHours : 24,\n    should_stop: shouldStop,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+      }
+    },
+    {
+      "id": "0c91d505-9253-4670-9e7b-334882b948ed",
+      "name": "Send template message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "parameters": {
+        "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'follow_up_final_check_in' : 'follow_up_warm_reengagement';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+      }
+    },
+    {
+      "id": "c45cd927-a8ff-40f0-9549-2a15c955ce1c",
+      "name": "Mark sent + reprogram",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1680,
+        80
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with bumped as (\n  update public.conversations\n  set followup_count = followup_count + 1,\n      last_message_from = 'AGENT',\n      next_followup_at = null,\n      updated_at = now()\n  where wa_id = {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}\n  returning followup_count, client_name\n),\nsent as (\n  update public.follow_on\n  set status = case when {{ $json.ok ? 'true' : 'false' }} then 'enviada' else 'pendiente' end,\n      sent_at = case when {{ $json.ok ? 'true' : 'false' }} then now() else null end,\n      message = {{ \"'\" + String($json.message_text || '').replace(/'/g, \"''\") + \"'\" }},\n      metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(\n        'sent_via',           {{ \"'\" + String($json.sent_via || '').replace(/'/g, \"''\") + \"'\" }},\n        'template_name',      {{ $json.template_name ? \"'\" + String($json.template_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n        'provider_message_id',{{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n        'response_status',    {{ $json.response_status || 'null' }},\n        'error_message',      {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : 'null' }}\n      ),\n      updated_at = now()\n  where id = {{ Number($json.follow_on_id) }}\n),\nmaybe_lost as (\n  update public.conversations\n  set funnel_status = 'lost'\n  where wa_id = {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}\n    and (\n      (select followup_count from bumped) >= 3\n      or {{ $json.should_stop ? 'true' : 'false' }} = true\n    )\n),\nmaybe_next as (\n  insert into public.follow_on (conversation_id, message, scheduled_for, status, attempt_number, metadata)\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }},\n    null,\n    now() + ({{ Number($json.next_offset_hours) || 24 }} || ' hours')::interval,\n    'pendiente',\n    (select followup_count from bumped) + 1,\n    jsonb_build_object('source', 'cron', 'attempt', (select followup_count from bumped) + 1)\n  where (select followup_count from bumped) < 3\n    and {{ $json.should_stop ? 'true' : 'false' }} = false\n    and {{ $json.ok ? 'true' : 'false' }} = true\n)\nselect (select followup_count from bumped) as new_followup_count;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "id": "OY6FEujGvFF1rDbg",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Select due follow-ups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select due follow-ups": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Decide path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide path": {
+      "main": [
+        [
+          {
+            "node": "Should use LLM?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should use LLM?": {
+      "main": [
+        [
+          {
+            "node": "Follow-up Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send template message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Follow-up Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Follow-up Agent": {
+      "main": [
+        [
+          {
+            "node": "Send LLM message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send LLM message": {
+      "main": [
+        [
+          {
+            "node": "Mark sent + reprogram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send template message": {
+      "main": [
+        [
+          {
+            "node": "Mark sent + reprogram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark sent + reprogram": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "Lt8n12vKuqnvd1LH"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": null,
+  "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+  "activeVersionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+  "versionCounter": 10,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-05-25T17:42:41.181Z",
+      "createdAt": "2026-05-25T17:42:41.181Z",
+      "role": "workflow:owner",
+      "workflowId": "xxK2FfX6QMPxKaZw",
+      "projectId": "72GVorD8Nd4GZR0Z",
+      "project": {
+        "updatedAt": "2026-05-09T02:57:51.320Z",
+        "createdAt": "2026-05-09T01:59:53.638Z",
+        "id": "72GVorD8Nd4GZR0Z",
+        "name": "JUANDAVID VIZCAYA <depaseoenfincas06@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-25T17:54:13.695Z",
+    "createdAt": "2026-05-25T17:54:13.695Z",
+    "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+    "workflowId": "xxK2FfX6QMPxKaZw",
+    "nodes": [
+      {
+        "id": "0a892e22-3389-4c28-a59d-a75e7db9343d",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "ffcc6a57-72a4-4c8f-ae6f-fbf6a0d05ae1",
+        "name": "Select due follow-ups",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "select\n  fo.id            as follow_on_id,\n  fo.conversation_id,\n  fo.attempt_number,\n  fo.metadata      as fo_metadata,\n  fo.scheduled_for,\n  c.chatwoot_id,\n  c.client_name,\n  c.current_state,\n  c.search_criteria,\n  c.context        as conversation_context,\n  c.followup_count,\n  (extract(epoch from (now() - coalesce(li.last_inbound_at, fo.created_at))) / 3600.0)::numeric(10,2) as hours_since_inbound\nfrom public.follow_on fo\njoin public.conversations c on c.wa_id = fo.conversation_id\nleft join lateral (\n  select max(m.created_at) as last_inbound_at\n  from public.messages m\n  where m.conversation_id = fo.conversation_id\n    and m.direction = 'INBOUND'\n) li on true\ncross join lateral (\n  select followup_window_start, followup_window_end\n  from public.agent_settings where id = 1\n) s\nwhere fo.status = 'pendiente'\n  and fo.scheduled_for <= now()\n  and c.agente_activo = true\n  and c.followup_enabled = true\n  and c.waiting_for in ('CLIENT', 'CLIENT_APPROVAL')\n  and c.last_message_from = 'AGENT'\n  and ((now() AT TIME ZONE 'America/Bogota')::time\n       between coalesce(s.followup_window_start, time '08:00')\n           and coalesce(s.followup_window_end,   time '22:00'))\norder by fo.scheduled_for asc\nlimit 20\nfor update of fo skip locked;",
+          "options": {}
+        },
+        "credentials": {
+          "postgres": {
+            "id": "OY6FEujGvFF1rDbg",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "fad7ad96-4298-4214-a2a2-3dc2b307ddb3",
+        "name": "Split In Batches",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          480,
+          0
+        ],
+        "parameters": {
+          "batchSize": 1,
+          "options": {}
+        }
+      },
+      {
+        "id": "8f2f34b3-b4ed-401f-8a08-6e7ad2910328",
+        "name": "Decide path",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          0
+        ],
+        "parameters": {
+          "jsCode": "// Add should_use_llm flag based on the 24h WhatsApp window rule.\n// If hours_since_inbound < 24 → LLM-text path; otherwise → template path.\nconst item = $input.first().json || {};\nconst hours = Number(item.hours_since_inbound);\nconst should_use_llm = Number.isFinite(hours) && hours < 24;\n\n// Build a compact context block useful for both paths.\nconst search_criteria = item.search_criteria || {};\nconst missing = [];\nif (!search_criteria.fecha_inicio || !search_criteria.fecha_fin) missing.push('fechas');\nif (!search_criteria.personas) missing.push('personas');\nif (!search_criteria.zona) missing.push('zona');\n\nreturn [{\n  json: {\n    ...item,\n    should_use_llm,\n    datos_faltantes: missing,\n  }\n}];"
+        }
+      },
+      {
+        "id": "3b779d05-744d-4fef-9189-1a17b64e7884",
+        "name": "Should use LLM?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          960,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "66f4f8ac-ad40-4643-93e6-3fc4565493e4",
+                "leftValue": "={{ $json.should_use_llm === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        }
+      },
+      {
+        "id": "be08f8d0-cc50-4b4b-8f39-d13d886d6fdc",
+        "name": "Follow-up Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          1200,
+          -100
+        ],
+        "parameters": {
+          "promptType": "define",
+          "text": "=Cliente: {{ $json.client_name || 'cliente' }}\nEstado actual: {{ $json.current_state }}\nattempt_number (este es el FU #): {{ $json.attempt_number }}\nDatos disponibles (search_criteria):\n{{ JSON.stringify($json.search_criteria || {}, null, 2) }}\nDatos faltantes: {{ JSON.stringify($json.datos_faltantes || []) }}\nHoras desde el último mensaje del cliente: {{ $json.hours_since_inbound }}\n\nRedactá el mensaje según las reglas. Devolvé SOLO el JSON con las 3 claves.",
+          "options": {
+            "systemMessage": "Sos el bot \"Santiago\" de De Paseo en Fincas. Estás haciendo follow-up porque el cliente no contestó. Mandá UN solo mensaje WhatsApp ultra-corto.\n\nREGLAS DE REDACCIÓN:\n- NO confirmes datos ya recibidos. No repitas \"para X personas en Y del A al B\".\n- Si faltan datos, preguntá SOLO por lo que falta. Una pregunta corta.\n- Si ya hay todos los datos pero el cliente no eligió finca, sondeá amable\n  (\"¿qué te parecieron las opciones?\", \"¿alguna te gustó?\").\n- Si está en CONFIRMING y no aprobó el PDF, retomá amable\n  (\"¿pudiste revisar la confirmación?\").\n- Máximo ~120 caracteres.\n- Sin signos de admiración invertidos (¡) ni de pregunta invertidos (¿).\n- Saludo personalizado con NOMBRE si está disponible.\n\nREGLA DE TIMING:\n- next_followup_at_offset_hours: número de horas desde \"ahora\" para programar\n  el SIGUIENTE follow-up (FU #2 o #3) si el cliente no responde.\n  - Default razonable: 24.\n  - Si el cliente dijo \"hablamos la otra semana\", poné las horas hasta entonces.\n  - Si solo le falta un dato y está cordial, 24-48.\n  - Si vio cards y no respondió, 48.\n- should_stop_followups: true SOLO si el cliente expresó claramente que no quiere\n  más mensajes, o si la conversación se cerró formalmente. Default false.\n\nOUTPUT JSON estricto (sin code fences, sin texto extra antes/después):\n{\n  \"mensaje\": \"string corto\",\n  \"next_followup_at_offset_hours\": <number>,\n  \"should_stop_followups\": <boolean>\n}",
+            "maxIterations": 2
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "id": "243e8896-a675-4e80-911a-5405fd0fd90d",
+        "name": "Google Gemini Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          1200,
+          80
+        ],
+        "parameters": {
+          "modelName": "models/gemini-flash-latest",
+          "options": {}
+        },
+        "credentials": {
+          "googlePalmApi": {
+            "id": "P2iS8hYjm7h4Ez13",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "id": "5b8671cc-5e70-44b7-8f06-59e7eb96c266",
+        "name": "Send LLM message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          -100
+        ],
+        "parameters": {
+          "jsCode": "// Parse the LLM JSON output, then send via Chatwoot API as a regular outgoing message.\n// On success, attach sent_via, message_text, next_offset_hours, should_stop to the item\n// so the downstream \"Mark sent\" Postgres node can use them.\n//\n// Helper: $httpRequest is available globally in n8n Code nodes.\n\nconst item = $input.first().json || {};\nconst llmOutputRaw = String(item.output ?? '').trim();\n\n// Strip code fences if any\nlet cleaned = llmOutputRaw\n  .replace(/^```json\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nlet parsed = null;\ntry { parsed = JSON.parse(cleaned); }\ncatch (e) {\n  // try to extract first {...}\n  const m = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (m) { try { parsed = JSON.parse(m[0]); } catch (e2) {} }\n}\n\nif (!parsed || typeof parsed !== 'object') {\n  // LLM failed to produce valid JSON → fallback to a generic message + 24h offset\n  parsed = {\n    mensaje: \"Hola, sigo por aquí para retomar cuando quieras.\",\n    next_followup_at_offset_hours: 24,\n    should_stop_followups: false,\n  };\n}\n\n// Pull the previous-node row data (Decide path or Split In Batches still have it).\n// $('Decide path') is safer because $input.first().json here might be the agent's output only.\nlet row = {};\ntry { row = $('Decide path').item.json || {}; } catch (e) { row = item; }\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst messageText = String(parsed.mensaje || '').trim() || 'Hola, sigo por aquí.';\nconst nextOffsetHours = Number(parsed.next_followup_at_offset_hours);\nconst shouldStop = parsed.should_stop_followups === true;\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: messageText,\n        message_type: 'outgoing',\n        private: false,\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'llm',\n    message_text: messageText,\n    template_name: null,\n    next_offset_hours: Number.isFinite(nextOffsetHours) && nextOffsetHours > 0 ? nextOffsetHours : 24,\n    should_stop: shouldStop,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+        }
+      },
+      {
+        "id": "0c91d505-9253-4670-9e7b-334882b948ed",
+        "name": "Send template message",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          240
+        ],
+        "parameters": {
+          "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'follow_up_final_check_in' : 'follow_up_warm_reengagement';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+        }
+      },
+      {
+        "id": "c45cd927-a8ff-40f0-9549-2a15c955ce1c",
+        "name": "Mark sent + reprogram",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1680,
+          80
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "with bumped as (\n  update public.conversations\n  set followup_count = followup_count + 1,\n      last_message_from = 'AGENT',\n      next_followup_at = null,\n      updated_at = now()\n  where wa_id = {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}\n  returning followup_count, client_name\n),\nsent as (\n  update public.follow_on\n  set status = case when {{ $json.ok ? 'true' : 'false' }} then 'enviada' else 'pendiente' end,\n      sent_at = case when {{ $json.ok ? 'true' : 'false' }} then now() else null end,\n      message = {{ \"'\" + String($json.message_text || '').replace(/'/g, \"''\") + \"'\" }},\n      metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object(\n        'sent_via',           {{ \"'\" + String($json.sent_via || '').replace(/'/g, \"''\") + \"'\" }},\n        'template_name',      {{ $json.template_name ? \"'\" + String($json.template_name).replace(/'/g, \"''\") + \"'\" : 'null' }},\n        'provider_message_id',{{ $json.provider_message_id ? \"'\" + String($json.provider_message_id).replace(/'/g, \"''\") + \"'\" : 'null' }},\n        'response_status',    {{ $json.response_status || 'null' }},\n        'error_message',      {{ $json.error_message ? \"'\" + String($json.error_message).replace(/'/g, \"''\") + \"'\" : 'null' }}\n      ),\n      updated_at = now()\n  where id = {{ Number($json.follow_on_id) }}\n),\nmaybe_lost as (\n  update public.conversations\n  set funnel_status = 'lost'\n  where wa_id = {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }}\n    and (\n      (select followup_count from bumped) >= 3\n      or {{ $json.should_stop ? 'true' : 'false' }} = true\n    )\n),\nmaybe_next as (\n  insert into public.follow_on (conversation_id, message, scheduled_for, status, attempt_number, metadata)\n  select\n    {{ \"'\" + String($json.conversation_id).replace(/'/g, \"''\") + \"'\" }},\n    null,\n    now() + ({{ Number($json.next_offset_hours) || 24 }} || ' hours')::interval,\n    'pendiente',\n    (select followup_count from bumped) + 1,\n    jsonb_build_object('source', 'cron', 'attempt', (select followup_count from bumped) + 1)\n  where (select followup_count from bumped) < 3\n    and {{ $json.should_stop ? 'true' : 'false' }} = false\n    and {{ $json.ok ? 'true' : 'false' }} = true\n)\nselect (select followup_count from bumped) as new_followup_count;",
+          "options": {}
+        },
+        "credentials": {
+          "postgres": {
+            "id": "OY6FEujGvFF1rDbg",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Select due follow-ups",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Select due follow-ups": {
+        "main": [
+          [
+            {
+              "node": "Split In Batches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split In Batches": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Decide path",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decide path": {
+        "main": [
+          [
+            {
+              "node": "Should use LLM?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Should use LLM?": {
+        "main": [
+          [
+            {
+              "node": "Follow-up Agent",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send template message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Follow-up Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Follow-up Agent": {
+        "main": [
+          [
+            {
+              "node": "Send LLM message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send LLM message": {
+        "main": [
+          [
+            {
+              "node": "Mark sent + reprogram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send template message": {
+        "main": [
+          [
+            {
+              "node": "Mark sent + reprogram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark sent + reprogram": {
+        "main": [
+          [
+            {
+              "node": "Split In Batches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "JUANDAVID VIZCAYA",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-25T17:54:13.745Z",
+        "id": 232,
+        "workflowId": "xxK2FfX6QMPxKaZw",
+        "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+        "event": "deactivated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      },
+      {
+        "createdAt": "2026-05-25T17:54:13.771Z",
+        "id": 233,
+        "workflowId": "xxK2FfX6QMPxKaZw",
+        "versionId": "b77884c8-578b-489c-9eae-1dff2ebe9299",
+        "event": "activated",
+        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
+      }
+    ]
+  }
+}
