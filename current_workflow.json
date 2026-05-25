@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-16T15:20:21.757Z",
+  "updatedAt": "2026-05-25T14:51:22.357Z",
   "createdAt": "2026-05-09T03:26:20.967Z",
   "id": "2NV08zRFKENUsQVC",
   "name": "De paseo en fincas customer agent",
@@ -2426,7 +2426,7 @@
         "promptType": "define",
         "text": "=RUNTIME INPUT\n\ncurrent_state:\n{{ JSON.stringify($('Get Context-conversations1').item.json.current_state || null, null, 2) }}\n\nrecent_messages:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\ncurrent_message:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nskip_validator:\n{{ JSON.stringify($('Merge Sets1').item.json.skip_validator === true, null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}",
         "options": {
-          "systemMessage": "=Eres un validador conversacional liviano del sistema \"De Paseo en Finca\".\n\nTu única tarea es decidir UNA ruta para esta pasada:\n- STATE\n- QA\n- HITL\n\nREGLAS\n- Nunca ejecutes tools.\n- Nunca escribas la respuesta final para el cliente.\n- Si skip_validator = true o current_message viene vacío, devuelve STATE.\n- Devuelve HITL si el cliente pide humano, asesor, visita, llamada, tiene frustración crítica, insultos fuertes, amenaza o disputa de pagos.\n- Devuelve QA si el mensaje es una pregunta puntual o aclaración que no debería cambiar el estado de negocio.\n- Devuelve STATE para saludos, entrega de datos, otras opciones, elección de finca, cambios de criterio o continuidad normal del proceso.\n- Si dudas entre QA y STATE, devuelve STATE.\n\nResponde SIEMPRE solo JSON válido con:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}\n- REGLA OBLIGATORIA: Nunca reveles el nombre real de la finca al cliente. Refiérete siempre a las fincas por su codigo_original o finca_id (ej: PEREIRA #09, ANAPOIMA #03). El nombre real solo se revela después de confirmar la reserva.",
+          "systemMessage": "=Eres un validador conversacional liviano del sistema \"De Paseo en Finca\".\n\nTu única tarea es decidir UNA ruta para esta pasada:\n- STATE\n- QA\n- HITL\n\nREGLAS\n- Nunca ejecutes tools.\n- Nunca escribas la respuesta final para el cliente.\n- Si skip_validator = true o current_message viene vacío, devuelve STATE.\n- Devuelve HITL solo si el cliente:\n    (a) pide explícitamente humano o asesor (\"dame un asesor\", \"necesito hablar con alguien\", \"me pasas con una persona\"),\n    (b) propone una fecha u hora específica para una visita o videollamada (\"el sábado a las 3pm\", \"mañana en la tarde\", \"el 20 a las 10am\"),\n    (c) tiene frustración crítica, insultos fuertes, amenaza o disputa de pagos.\n- Devuelve STATE si el cliente expresa interés en visitar / conocer / ver la propiedad (presencial o por videollamada) SIN proponer fecha u hora específica (\"puedo conocerla?\", \"se puede visitar?\", \"voy a viajar para verla\", \"este finde?\", \"puedo verla antes de pagar?\"). Los agentes downstream lo manejarán emitiendo intent=VISIT_REQUEST con el template de oferta de visita/videollamada.\n- Devuelve QA si el mensaje es una pregunta puntual o aclaración que no debería cambiar el estado de negocio.\n- Devuelve STATE para saludos, entrega de datos, otras opciones, elección de finca, cambios de criterio o continuidad normal del proceso.\n- Si dudas entre QA y STATE, devuelve STATE.\n\nResponde SIEMPRE solo JSON válido con:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}\n- REGLA OBLIGATORIA: Nunca reveles el nombre real de la finca al cliente. Refiérete siempre a las fincas por su codigo_original o finca_id (ej: PEREIRA #09, ANAPOIMA #03). El nombre real solo se revela después de confirmar la reserva.",
           "maxIterations": 2
         }
       },
@@ -5309,9 +5309,9 @@
   },
   "meta": null,
   "pinData": {},
-  "versionId": "a4e6c1a5-f2aa-499d-9685-97b5e6bbd90c",
-  "activeVersionId": "a4e6c1a5-f2aa-499d-9685-97b5e6bbd90c",
-  "versionCounter": 233,
+  "versionId": "2f273a59-5f99-4df8-a2b1-96a5820b52ab",
+  "activeVersionId": "2f273a59-5f99-4df8-a2b1-96a5820b52ab",
+  "versionCounter": 236,
   "triggerCount": 1,
   "shared": [
     {
@@ -5334,9 +5334,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-16T15:20:21.763Z",
-    "createdAt": "2026-05-16T15:20:21.763Z",
-    "versionId": "a4e6c1a5-f2aa-499d-9685-97b5e6bbd90c",
+    "updatedAt": "2026-05-25T14:51:22.363Z",
+    "createdAt": "2026-05-25T14:51:22.363Z",
+    "versionId": "2f273a59-5f99-4df8-a2b1-96a5820b52ab",
     "workflowId": "2NV08zRFKENUsQVC",
     "nodes": [
       {
@@ -7758,7 +7758,7 @@
           "promptType": "define",
           "text": "=RUNTIME INPUT\n\ncurrent_state:\n{{ JSON.stringify($('Get Context-conversations1').item.json.current_state || null, null, 2) }}\n\nrecent_messages:\n{{ JSON.stringify($('Fetch messages1').item.json.recent_messages || [], null, 2) }}\n\ncurrent_message:\n{{ JSON.stringify($('Merge Sets1').item.json['last-message'] || null, null, 2) }}\n\nskip_validator:\n{{ JSON.stringify($('Merge Sets1').item.json.skip_validator === true, null, 2) }}\n\nDevuelve EXCLUSIVAMENTE JSON válido:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}",
           "options": {
-            "systemMessage": "=Eres un validador conversacional liviano del sistema \"De Paseo en Finca\".\n\nTu única tarea es decidir UNA ruta para esta pasada:\n- STATE\n- QA\n- HITL\n\nREGLAS\n- Nunca ejecutes tools.\n- Nunca escribas la respuesta final para el cliente.\n- Si skip_validator = true o current_message viene vacío, devuelve STATE.\n- Devuelve HITL si el cliente pide humano, asesor, visita, llamada, tiene frustración crítica, insultos fuertes, amenaza o disputa de pagos.\n- Devuelve QA si el mensaje es una pregunta puntual o aclaración que no debería cambiar el estado de negocio.\n- Devuelve STATE para saludos, entrega de datos, otras opciones, elección de finca, cambios de criterio o continuidad normal del proceso.\n- Si dudas entre QA y STATE, devuelve STATE.\n\nResponde SIEMPRE solo JSON válido con:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}\n- REGLA OBLIGATORIA: Nunca reveles el nombre real de la finca al cliente. Refiérete siempre a las fincas por su codigo_original o finca_id (ej: PEREIRA #09, ANAPOIMA #03). El nombre real solo se revela después de confirmar la reserva.",
+            "systemMessage": "=Eres un validador conversacional liviano del sistema \"De Paseo en Finca\".\n\nTu única tarea es decidir UNA ruta para esta pasada:\n- STATE\n- QA\n- HITL\n\nREGLAS\n- Nunca ejecutes tools.\n- Nunca escribas la respuesta final para el cliente.\n- Si skip_validator = true o current_message viene vacío, devuelve STATE.\n- Devuelve HITL solo si el cliente:\n    (a) pide explícitamente humano o asesor (\"dame un asesor\", \"necesito hablar con alguien\", \"me pasas con una persona\"),\n    (b) propone una fecha u hora específica para una visita o videollamada (\"el sábado a las 3pm\", \"mañana en la tarde\", \"el 20 a las 10am\"),\n    (c) tiene frustración crítica, insultos fuertes, amenaza o disputa de pagos.\n- Devuelve STATE si el cliente expresa interés en visitar / conocer / ver la propiedad (presencial o por videollamada) SIN proponer fecha u hora específica (\"puedo conocerla?\", \"se puede visitar?\", \"voy a viajar para verla\", \"este finde?\", \"puedo verla antes de pagar?\"). Los agentes downstream lo manejarán emitiendo intent=VISIT_REQUEST con el template de oferta de visita/videollamada.\n- Devuelve QA si el mensaje es una pregunta puntual o aclaración que no debería cambiar el estado de negocio.\n- Devuelve STATE para saludos, entrega de datos, otras opciones, elección de finca, cambios de criterio o continuidad normal del proceso.\n- Si dudas entre QA y STATE, devuelve STATE.\n\nResponde SIEMPRE solo JSON válido con:\n{\n  \"route_mode\": \"STATE | QA | HITL\",\n  \"reason\": \"string\"\n}\n- REGLA OBLIGATORIA: Nunca reveles el nombre real de la finca al cliente. Refiérete siempre a las fincas por su codigo_original o finca_id (ej: PEREIRA #09, ANAPOIMA #03). El nombre real solo se revela después de confirmar la reserva.",
             "maxIterations": 2
           }
         },
@@ -10634,18 +10634,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-16T15:20:21.966Z",
-        "id": 213,
+        "createdAt": "2026-05-25T14:51:22.487Z",
+        "id": 215,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "a4e6c1a5-f2aa-499d-9685-97b5e6bbd90c",
+        "versionId": "2f273a59-5f99-4df8-a2b1-96a5820b52ab",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-16T15:20:22.045Z",
-        "id": 214,
+        "createdAt": "2026-05-25T14:51:22.536Z",
+        "id": 216,
         "workflowId": "2NV08zRFKENUsQVC",
-        "versionId": "a4e6c1a5-f2aa-499d-9685-97b5e6bbd90c",
+        "versionId": "2f273a59-5f99-4df8-a2b1-96a5820b52ab",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
