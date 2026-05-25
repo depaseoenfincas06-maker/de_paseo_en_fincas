@@ -12,6 +12,7 @@ import { downloadAssetBuffer, sendChatwootAttachment } from './lib/chatwoot_medi
 import {
   buildReservationConfirmationDocx,
   buildReservationDocxFilename,
+  buildReservationPdfFilename,
 } from './lib/reservation_confirmation_docx.mjs';
 
 const { Pool, types } = pkg;
@@ -26,6 +27,14 @@ const PORT = Number(process.env.SIMULATOR_PORT || 3101);
 const N8N_BASE_URL = process.env.N8N_BASE_URL;
 const PUBLIC_APP_BASE_URL = process.env.PUBLIC_APP_BASE_URL || '';
 const SIMULATOR_WEBHOOK_PATH = process.env.SIMULATOR_WEBHOOK_PATH || 'simulator/de-paseo-en-fincas/inbound';
+// Gotenberg (self-hosted at Coolify) converts the rendered docx to PDF for the
+// /api/reservation-confirmation.pdf endpoint. The endpoint falls back to
+// serving the docx when these vars are missing or Gotenberg is unreachable —
+// the customer always gets *something*, even if Gotenberg is down.
+const GOTENBERG_URL = (process.env.GOTENBERG_URL || '').replace(/\/+$/, '');
+const GOTENBERG_USER = process.env.GOTENBERG_USER || '';
+const GOTENBERG_PASSWORD = process.env.GOTENBERG_PASSWORD || '';
+const GOTENBERG_TIMEOUT_MS = Number(process.env.GOTENBERG_TIMEOUT_MS || 25_000);
 const BOGOTA_TIMEZONE = 'America/Bogota';
 const IS_VERCEL = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL);
 const CHATWOOT_BASE_URL = process.env.CHATWOOT_BASE_URL || '';
@@ -1663,37 +1672,129 @@ function createApp() {
   // public/templates/reservation_template.docx (15 placeholders) using
   // docxtemplater and returns the binary .docx so Chatwoot can attach it
   // to the WhatsApp conversation.
+  // Helper: convert a docx Buffer to a PDF Buffer using Gotenberg.
+  // Throws on any failure (caller decides whether to fall back to docx).
+  async function convertDocxToPdfViaGotenberg(docxBuffer, sourceFilename) {
+    if (!GOTENBERG_URL) {
+      throw Object.assign(new Error('GOTENBERG_URL not configured'), { code: 'GOTENBERG_NOT_CONFIGURED' });
+    }
+    const form = new FormData();
+    // Gotenberg's LibreOffice route expects the source file under the `files`
+    // field. The filename matters because LibreOffice picks the converter from
+    // the extension — must end with .docx.
+    const blob = new Blob([docxBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    form.append('files', blob, sourceFilename || 'reservation.docx');
+
+    const headers = {};
+    if (GOTENBERG_USER || GOTENBERG_PASSWORD) {
+      const credentials = Buffer.from(`${GOTENBERG_USER}:${GOTENBERG_PASSWORD}`).toString('base64');
+      headers.Authorization = `Basic ${credentials}`;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), GOTENBERG_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(`${GOTENBERG_URL}/forms/libreoffice/convert`, {
+        method: 'POST',
+        body: form,
+        headers,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw Object.assign(
+        new Error(`Gotenberg returned HTTP ${response.status}: ${text.slice(0, 200)}`),
+        { code: 'GOTENBERG_HTTP_ERROR', status: response.status },
+      );
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
+  // Build the docx buffer + filename from the encoded payload. Shared by
+  // both the .docx and .pdf handlers.
+  async function buildReservationDocxFromRequest(req) {
+    const decodedPayload = decodeBase64UrlJson(req.query.payload);
+    const settings = await getAgentSettings();
+    const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
+    const docxBuffer = buildReservationConfirmationDocx(payload);
+    return {
+      payload,
+      docxBuffer,
+      docxFilename: buildReservationDocxFilename(payload),
+      pdfFilename: buildReservationPdfFilename(payload),
+    };
+  }
+
+  function sendError(res, error) {
+    const code = error?.code;
+    const status =
+      code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
+    const apiError = presentApiError(error);
+    res.status(status).json({
+      message: apiError.message,
+      details: apiError.details,
+    });
+  }
+
   const reservationDocxHandler = async (req, res) => {
     try {
-      const decodedPayload = decodeBase64UrlJson(req.query.payload);
-      const settings = await getAgentSettings();
-      const payload = mergeReservationPayloadWithSettings(decodedPayload, settings);
-      const buffer = buildReservationConfirmationDocx(payload);
-      const filename = buildReservationDocxFilename(payload);
-
+      const { docxBuffer, docxFilename } = await buildReservationDocxFromRequest(req);
       res.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       );
-      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `inline; filename="${docxFilename}"`);
       res.setHeader('Cache-Control', 'no-store');
-      res.send(buffer);
+      res.send(docxBuffer);
     } catch (error) {
-      const code = error?.code;
-      const status =
-        code === 'RESERVATION_PAYLOAD_MISSING' || code === 'RESERVATION_PAYLOAD_INVALID' ? 400 : 500;
-      const apiError = presentApiError(error);
-      res.status(status).json({
-        message: apiError.message,
-        details: apiError.details,
-      });
+      sendError(res, error);
     }
   };
+
+  // The .pdf handler: build docx in memory, ship to Gotenberg, return PDF.
+  // If Gotenberg is misconfigured or unreachable, we fall back to serving the
+  // docx so the customer still gets a valid document instead of an error.
+  // We log the fallback to stderr loudly so it's visible in Vercel logs.
+  const reservationPdfHandler = async (req, res) => {
+    let docxBuffer, docxFilename, pdfFilename;
+    try {
+      ({ docxBuffer, docxFilename, pdfFilename } = await buildReservationDocxFromRequest(req));
+    } catch (error) {
+      sendError(res, error);
+      return;
+    }
+    try {
+      const pdfBuffer = await convertDocxToPdfViaGotenberg(docxBuffer, docxFilename);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${pdfFilename}"`);
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error(
+        '[reservation-pdf] Gotenberg conversion failed, falling back to docx:',
+        error?.code || error?.message || error,
+      );
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+      res.setHeader('Content-Disposition', `inline; filename="${docxFilename}"`);
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Reservation-Fallback', 'docx-after-pdf-error');
+      res.send(docxBuffer);
+    }
+  };
+
   app.get('/api/reservation-confirmation.docx', reservationDocxHandler);
-  // Backward-compat: keep the .pdf URL working but serve .docx — old links
-  // shared with customers don't break, just download a Word file instead
-  // of a PDF.
-  app.get('/api/reservation-confirmation.pdf', reservationDocxHandler);
+  app.get('/api/reservation-confirmation.pdf', reservationPdfHandler);
 
   app.post('/api/chatwoot/send-drive-asset', async (req, res) => {
     const payload = req.body || {};

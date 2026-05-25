@@ -103,6 +103,11 @@ export function buildReservationDocxFilename(payload = {}) {
   return `confirmacion_reserva_${propCode}.docx`;
 }
 
+export function buildReservationPdfFilename(payload = {}) {
+  const propCode = safeFilename(payload.property_code, 'reserva');
+  return `confirmacion_reserva_${propCode}.pdf`;
+}
+
 /**
  * Render the docx and return a Buffer.
  */
