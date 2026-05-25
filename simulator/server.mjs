@@ -1778,10 +1778,10 @@ function createApp() {
       res.setHeader('Cache-Control', 'no-store');
       res.send(pdfBuffer);
     } catch (error) {
-      console.error(
-        '[reservation-pdf] Gotenberg conversion failed, falling back to docx:',
-        error?.code || error?.message || error,
-      );
+      const reason = String(error?.code || error?.cause?.code || error?.message || error)
+        .slice(0, 200)
+        .replace(/[\r\n]+/g, ' ');
+      console.error('[reservation-pdf] Gotenberg conversion failed, falling back to docx:', reason);
       res.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -1789,6 +1789,9 @@ function createApp() {
       res.setHeader('Content-Disposition', `inline; filename="${docxFilename}"`);
       res.setHeader('Cache-Control', 'no-store');
       res.setHeader('X-Reservation-Fallback', 'docx-after-pdf-error');
+      // Tag the reason in a header so we can diagnose without Vercel log access.
+      // Safe: only the error.code (short identifier) or short message goes here.
+      res.setHeader('X-Reservation-Fallback-Reason', reason);
       res.send(docxBuffer);
     }
   };
