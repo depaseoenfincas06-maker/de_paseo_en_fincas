@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-09T23:27:07.129Z",
+  "updatedAt": "2026-06-30T23:42:40.131Z",
   "createdAt": "2026-05-09T03:25:34.618Z",
   "id": "oLikVnoYAIw2qReE",
   "name": "Chatwoot Inbound - De Paseo en Fincas",
@@ -92,7 +92,10 @@
           "id": "OY6FEujGvFF1rDbg",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -520,9 +523,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
-  "activeVersionId": "6a868ff0-e784-459d-a8fd-246396da5960",
-  "versionCounter": 24,
+  "versionId": "8a540ca0-4bce-463e-b98b-3aa84b608a7a",
+  "activeVersionId": "8a540ca0-4bce-463e-b98b-3aa84b608a7a",
+  "versionCounter": 27,
   "triggerCount": 1,
   "shared": [
     {
@@ -545,9 +548,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-09T23:10:04.799Z",
-    "createdAt": "2026-05-09T23:10:04.799Z",
-    "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
+    "updatedAt": "2026-06-30T23:42:40.132Z",
+    "createdAt": "2026-06-30T23:42:40.132Z",
+    "versionId": "8a540ca0-4bce-463e-b98b-3aa84b608a7a",
     "workflowId": "oLikVnoYAIw2qReE",
     "nodes": [
       {
@@ -635,7 +638,10 @@
             "id": "OY6FEujGvFF1rDbg",
             "name": "Postgres account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       },
       {
         "parameters": {
@@ -1059,34 +1065,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-09T23:10:04.862Z",
-        "id": 124,
+        "createdAt": "2026-06-30T23:42:40.172Z",
+        "id": 412,
         "workflowId": "oLikVnoYAIw2qReE",
-        "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
+        "versionId": "8a540ca0-4bce-463e-b98b-3aa84b608a7a",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-09T23:10:04.884Z",
-        "id": 125,
+        "createdAt": "2026-06-30T23:42:40.186Z",
+        "id": 413,
         "workflowId": "oLikVnoYAIw2qReE",
-        "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
-        "event": "activated",
-        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
-      },
-      {
-        "createdAt": "2026-05-09T23:27:07.173Z",
-        "id": 133,
-        "workflowId": "oLikVnoYAIw2qReE",
-        "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
-        "event": "deactivated",
-        "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
-      },
-      {
-        "createdAt": "2026-05-09T23:27:07.221Z",
-        "id": 134,
-        "workflowId": "oLikVnoYAIw2qReE",
-        "versionId": "6a868ff0-e784-459d-a8fd-246396da5960",
+        "versionId": "8a540ca0-4bce-463e-b98b-3aa84b608a7a",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }

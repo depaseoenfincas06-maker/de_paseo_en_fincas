@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-25T18:36:49.450Z",
+  "updatedAt": "2026-06-30T23:42:33.875Z",
   "createdAt": "2026-05-25T17:42:41.181Z",
   "id": "xxK2FfX6QMPxKaZw",
   "name": "Follow-up Sender - De Paseo en Fincas",
@@ -46,7 +46,10 @@
           "id": "OY6FEujGvFF1rDbg",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "id": "fad7ad96-4298-4214-a2a2-3dc2b307ddb3",
@@ -174,7 +177,7 @@
         240
       ],
       "parameters": {
-        "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'follow_up_final_check_in' : 'follow_up_warm_reengagement';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+        "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'followup_farewell_es' : 'followup_24h_check_in_es';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
       }
     },
     {
@@ -196,7 +199,10 @@
           "id": "OY6FEujGvFF1rDbg",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     }
   ],
   "connections": {
@@ -335,9 +341,9 @@
   },
   "meta": null,
   "pinData": null,
-  "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
-  "activeVersionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
-  "versionCounter": 16,
+  "versionId": "8684865c-64ae-4f7b-a92f-0ad51ceaf5f1",
+  "activeVersionId": "8684865c-64ae-4f7b-a92f-0ad51ceaf5f1",
+  "versionCounter": 572,
   "triggerCount": 1,
   "shared": [
     {
@@ -360,9 +366,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-25T18:36:49.452Z",
-    "createdAt": "2026-05-25T18:36:49.452Z",
-    "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
+    "updatedAt": "2026-06-30T23:42:33.877Z",
+    "createdAt": "2026-06-30T23:42:33.877Z",
+    "versionId": "8684865c-64ae-4f7b-a92f-0ad51ceaf5f1",
     "workflowId": "xxK2FfX6QMPxKaZw",
     "nodes": [
       {
@@ -404,7 +410,10 @@
             "id": "OY6FEujGvFF1rDbg",
             "name": "Postgres account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       },
       {
         "id": "fad7ad96-4298-4214-a2a2-3dc2b307ddb3",
@@ -532,7 +541,7 @@
           240
         ],
         "parameters": {
-          "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'follow_up_final_check_in' : 'follow_up_warm_reengagement';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
+          "jsCode": "// Template path: pick template by attempt_number, render placeholder, send to Chatwoot.\n// For FU #1 fuera de 24h or FU #2 → warm_reengagement\n// For FU #3 → final_check_in\n\nconst row = $input.first().json || {};\n\nconst chatwoot_id = Number(row.chatwoot_id);\nconst clientName = String(row.client_name || 'hola').trim() || 'hola';\nconst attempt = Number(row.attempt_number) || 1;\n\nconst templateName = attempt >= 3 ? 'followup_farewell_es' : 'followup_24h_check_in_es';\n\nconst renderedBody = attempt >= 3\n  ? `Hola ${clientName}, no quisiera molestarte más. Si más adelante quieres retomar la búsqueda de tu finca, escríbeme por aquí y la retomamos sin problema. Quedo atento. 🌴`\n  : `Hola ${clientName}, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️`;\n\n// Para el offset del siguiente FU, sin LLM call: usar defaults sensatos.\n// FU #2 acaba de enviarse → próximo (FU #3) en 72h\n// FU #3 → no hay próximo (cron lo marca lost)\nconst nextOffsetHours = attempt === 1 ? 24 : (attempt === 2 ? 72 : 0);\n\nconst CW_BASE = 'https://chat.depaseoenfincas.raaamp.co';\nconst CW_ACCOUNT = '2';\nconst CW_TOKEN = 'HHtQoPLW991XS8Rcu5thbZ5x';\n\nlet responseStatus = null;\nlet providerMessageId = null;\nlet errorMessage = null;\n\nif (!chatwoot_id) {\n  errorMessage = 'chatwoot_id_missing';\n} else {\n  try {\n    const resp = await this.helpers.httpRequest({\n      url: `${CW_BASE}/api/v1/accounts/${CW_ACCOUNT}/conversations/${chatwoot_id}/messages`,\n      method: 'POST',\n      headers: {\n        api_access_token: CW_TOKEN,\n        'Content-Type': 'application/json',\n        Accept: 'application/json',\n      },\n      body: {\n        content: renderedBody,\n        message_type: 'outgoing',\n        private: false,\n        template_params: {\n          name: templateName,\n          category: 'MARKETING',\n          language: 'es',\n          processed_params: { body: { '1': clientName } },\n        },\n      },\n      json: true,\n      timeout: 30000,\n      returnFullResponse: true,\n      ignoreHttpStatusErrors: true,\n    });\n    responseStatus = Number(resp.statusCode || resp.status || 0);\n    if (responseStatus < 200 || responseStatus >= 300) {\n      errorMessage = resp.body?.message || `chatwoot_send_failed:${responseStatus}`;\n    } else {\n      providerMessageId = String(resp.body?.id ?? '');\n    }\n  } catch (e) {\n    errorMessage = e.message || 'chatwoot_send_exception';\n  }\n}\n\nreturn [{\n  json: {\n    ...row,\n    sent_via: 'template',\n    message_text: renderedBody,\n    template_name: templateName,\n    next_offset_hours: nextOffsetHours,\n    should_stop: false,\n    response_status: responseStatus,\n    provider_message_id: providerMessageId,\n    error_message: errorMessage,\n    ok: !errorMessage,\n  }\n}];"
         }
       },
       {
@@ -554,7 +563,10 @@
             "id": "OY6FEujGvFF1rDbg",
             "name": "Postgres account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
       }
     ],
     "connections": {
@@ -683,18 +695,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-25T18:36:49.502Z",
-        "id": 240,
+        "createdAt": "2026-06-30T23:42:33.926Z",
+        "id": 406,
         "workflowId": "xxK2FfX6QMPxKaZw",
-        "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
+        "versionId": "8684865c-64ae-4f7b-a92f-0ad51ceaf5f1",
         "event": "deactivated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       },
       {
-        "createdAt": "2026-05-25T18:36:49.539Z",
-        "id": 241,
+        "createdAt": "2026-06-30T23:42:33.954Z",
+        "id": 407,
         "workflowId": "xxK2FfX6QMPxKaZw",
-        "versionId": "56add93c-c5df-4e85-82e4-892ba1e85a21",
+        "versionId": "8684865c-64ae-4f7b-a92f-0ad51ceaf5f1",
         "event": "activated",
         "userId": "257b3b29-80bb-4c81-9a8b-3afe1e45aa51"
       }
