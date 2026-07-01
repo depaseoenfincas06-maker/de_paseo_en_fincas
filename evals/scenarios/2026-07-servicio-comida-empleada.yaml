@@ -1,0 +1,24 @@
+id: 2026-07-servicio-comida-empleada
+title: Cliente pregunta por servicio de comida → respuesta clara según amenidades
+category: real-conv / factual-question
+
+seed_source:
+  wa_id: '15617597511'
+  observed_at: '2026-06'
+  literal_client_msg: '"Incluye servicio de comida alguna finca?"'
+
+turns:
+  - user: 'Busco finca en Anapoima para 12 personas del 20 al 22 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Alguna de estas incluye servicio de comida o cocinera?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Debe responder con información real: qué finca tiene empleada,
+      # si es opcional u obligatorio, precio del servicio.
+      - contains_any:
+          - 'empleada'
+          - 'cocinera'
+          - 'servicio'

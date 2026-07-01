@@ -1,0 +1,27 @@
+id: 2026-07-privada-o-condominio
+title: Cliente pregunta si finca es privada o en condominio → respuesta específica del inventario
+category: real-conv / factual-question
+
+seed_source:
+  wa_id: '573117360736'
+  observed_at: '2026-06'
+  literal_client_msg: '"esa finca está ubicada en algún condominio o es independiente?"'
+
+# El campo `privada o condominio` está en el inventario (valores: 'privada'
+# o 'condominio'). Regla del prompt de qa_agent (línea de "¿Es conjunto
+# cerrado o privada? / ¿está en conjunto?" → cita ese campo).
+
+turns:
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La primera opción está en un condominio o es privada?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'privada'
+          - 'condominio'
+          - 'independiente'
+          - 'conjunto'

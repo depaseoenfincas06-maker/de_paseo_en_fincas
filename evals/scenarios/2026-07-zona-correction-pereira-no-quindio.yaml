@@ -1,0 +1,29 @@
+id: 2026-07-zona-correction-pereira-no-quindio
+title: Cliente reclama que bot ofrece Quindío cuando pidió Pereira
+category: real-conv / zone-matching
+
+seed_source:
+  wa_id: '573117360736'
+  observed_at: '2026-06'
+  literal_client_msg: |
+    "No, estás equivocado. Yo te solicité fincas en Pereira y veo que me
+    estás mandando del Quindío. Yo no te solicité en el Quindío, necesito
+    en Pereira."
+
+turns:
+  - user: 'Hola, busco finca en Pereira para 12 personas del 20 al 22 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  # Simular que la primera oferta trae Quindío por error o filtro amplio.
+  # Independiente de esa oferta, cuando el cliente aclara, el bot debe
+  # corregir mostrando SOLO Pereira.
+  - user: 'No, necesito en Pereira específicamente, no Quindío. Pásame solo Pereira'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'Quindío'
+      - not_contains: 'Quindio'
+      - contains_any:
+          - 'Pereira'
+          - 'PEREIRA'

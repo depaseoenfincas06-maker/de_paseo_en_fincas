@@ -1,0 +1,35 @@
+id: 2026-07-visita-con-fecha-especifica-hitl
+title: Cliente propone fecha específica de visita → debe ir a HITL
+category: real-conv / visit-request
+
+seed_source:
+  wa_id: '573144749908'
+  observed_at: '2026-06'
+  literal_client_msg: |
+    turn N: "puedo ir a visitar la finca antes de reservar?"
+    turn N+1: "Si el miércoles está bien"
+
+# Regla QA validator: VISIT_REQUEST SIN fecha → STATE (offering ofrece
+# visita/videocall). VISIT_REQUEST CON fecha específica → HITL para
+# coordinar con propietario. Este scenario cubre AMBAS transiciones.
+
+turns:
+  - user: 'Hola busco finca para 8 personas en Anapoima del 20 al 22 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  # Turn 2: pregunta genérica sobre visita → NO debe ir a HITL
+  - user: 'Puedo ir a visitar la finca antes de reservar?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true
+
+  # Turn 3: propone fecha específica → SÍ debe ir a HITL para coordinar
+  - user: 'Si me sirve el miércoles a las 10am, cómo hacemos?'
+    assert:
+      - contains_any:
+          - 'te paso con mi compañero'
+          - 'coordinar'
+          - 'confirmar con el propietario'
+          - 'compañero'

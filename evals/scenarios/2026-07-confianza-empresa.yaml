@@ -1,0 +1,26 @@
+id: 2026-07-confianza-empresa
+title: Cliente pregunta por confianza (fueron estafados antes) → respuesta con IG link + página
+category: real-conv / trust-message
+
+seed_source:
+  wa_id: '573112407139 + 573144749908'
+  observed_at: '2026-06'
+  literal_client_msg: |
+    "esto si es confiable me estafaron hace 1 mes"
+    "qué tan seguro es reservar con ustedes?"
+
+# Regla ya implementada: cuando cliente pregunta por confianza, bot debe
+# incluir IG link + página web + info empresa. Y el IG debe SIEMPRE traer el
+# link (fix del 82556fb).
+
+turns:
+  - user: 'Hola, una pregunta antes de todo — esto es confiable? Me estafaron hace poco'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - ig_link_present: true
+      - contains_any:
+          - 'depaseoenfincas.com'
+          - 'depaseoenfincas'
+          - 'oficinas'
+          - 'empresa'
+          - 'constituida'

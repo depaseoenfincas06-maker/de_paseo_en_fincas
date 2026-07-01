@@ -15,12 +15,13 @@
 import { runAssertion } from './assertions.mjs';
 
 const POLL_INTERVAL_MS = 2500;
-// 20s de quiet window — el agente frecuentemente manda un mensaje bridge
-// ("Dame un momento mientras consulto...") y luego 15-20s después las cards
-// completas del offering pass. Un quiet más corto atribuiría las cards al
-// siguiente turn y perdería la respuesta real.
-const QUIET_WINDOW_MS = 20_000;
-const TURN_TIMEOUT_MS = 150_000;
+// 30s de quiet window — el agente frecuentemente manda un mensaje bridge
+// ("Dame un momento mientras consulto...") y luego 20-30s después las cards
+// completas del offering pass. Búsquedas complejas ("cerca de Bogotá",
+// filtros con múltiples zonas) tardan hasta 30s. Un quiet más corto
+// atribuiría las cards al siguiente turn y perdería la respuesta real.
+const QUIET_WINDOW_MS = 30_000;
+const TURN_TIMEOUT_MS = 180_000;
 
 async function http(baseUrl, method, path, body) {
   const url = `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -134,6 +135,12 @@ async function waitForTurnResponse(baseUrl, id, userText, baselineMsgCount) {
   let lastOutboundTs = 0;
   let seenOutbound = false;
 
+  // Bridge patterns: mensajes tipo "Dame un momento mientras consulto
+  // disponibilidad" son placeholders del qualifying antes de que corra el
+  // offering async. Si el ÚLTIMO outbound es solo un bridge, extendemos el
+  // wait — sabemos que viene más contenido en 15-40s.
+  const BRIDGE_RE = /(dame un momento|dame un instante|consulto disponibilidad|te env[ií]o (las )?mejores|mientras (te )?consulto)/i;
+
   while (Date.now() - started < TURN_TIMEOUT_MS) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     snap = await getSnapshot(baseUrl, id);
@@ -147,7 +154,11 @@ async function waitForTurnResponse(baseUrl, id, userText, baselineMsgCount) {
       if (latestTs > lastOutboundTs) lastOutboundTs = latestTs;
     }
     const waitingForClient = String(snap.waitingFor || '').toUpperCase() === 'CLIENT';
-    if (seenOutbound && waitingForClient && Date.now() - lastOutboundTs >= QUIET_WINDOW_MS) {
+    // Suprimir el "quiet done" si el último outbound sigue siendo un bridge:
+    // significa que el bot marcó waitingFor=CLIENT prematuramente y el
+    // offering async aún no ha llegado.
+    const lastIsBridge = newOutbound.length > 0 && BRIDGE_RE.test(String(newOutbound.at(-1).content || ''));
+    if (seenOutbound && waitingForClient && !lastIsBridge && Date.now() - lastOutboundTs >= QUIET_WINDOW_MS) {
       return { snapshot: snap, timedOut: false, outboundBaseline };
     }
   }

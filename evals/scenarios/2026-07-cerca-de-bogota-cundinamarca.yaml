@@ -1,0 +1,28 @@
+id: 2026-07-cerca-de-bogota-cundinamarca
+title: Cliente pide "cerca de Bogotá" → bot debe ofrecer municipios de Cundinamarca
+category: real-conv / zone-inference
+
+seed_source:
+  wa_id: '573144749908'
+  observed_at: '2026-06'
+  literal_client_msg: '"Cerca de bogota"'
+
+# "Cerca de Bogotá" es un fraseo común. El bot debe reconocer que las
+# opciones cercanas son Anapoima, La Mesa, Tobia, Apulo, Villeta —
+# municipios de Cundinamarca a 1-2h de Bogotá. NO debe caer a HITL ni
+# pedir zona específica.
+
+turns:
+  - user: 'Hola busco finca cerca de Bogotá para 20 personas del 22 al 24 de agosto'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'no tenemos'
+      - not_contains: 'no encontramos'
+      # Debe mostrar al menos una zona cercana a Bogotá
+      - contains_any:
+          - 'Anapoima'
+          - 'La Mesa'
+          - 'Tobia'
+          - 'Apulo'
+          - 'Villeta'
+          - 'Cundinamarca'

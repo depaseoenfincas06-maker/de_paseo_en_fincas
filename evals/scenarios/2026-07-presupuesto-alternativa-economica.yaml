@@ -1,0 +1,24 @@
+id: 2026-07-presupuesto-alternativa-economica
+title: Cliente dice "se sale del presupuesto" → bot ofrece alternativas más económicas
+category: real-conv / budget-fallback
+
+seed_source:
+  wa_id: '573112407139'
+  observed_at: '2026-06-09'
+  literal_client_msg: '"Creo que se sale de el presupuesto"'
+
+turns:
+  - user: 'Busco finca en Anapoima para 10 personas del 25 al 27 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La primera me gusta pero se sale de mi presupuesto, tienes algo más económico?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'económica'
+          - 'económicas'
+          - 'presupuesto'
+          - 'alternativa'
+          - 'opción'

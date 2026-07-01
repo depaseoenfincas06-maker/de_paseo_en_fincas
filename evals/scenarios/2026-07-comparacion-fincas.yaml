@@ -1,0 +1,23 @@
+id: 2026-07-comparacion-fincas
+title: Cliente pide "cuál me recomiendas más?" → bot debe recomendar objetivamente
+category: real-conv / recommendation
+
+seed_source:
+  wa_id: '573117360736'
+  observed_at: '2026-06'
+  literal_client_msg: |
+    "entre estas dos opciones, ¿cuál me puedes recomendar más? ¿Cuál es
+     más cerca de Pereira? ¿Cuál está más cerca al pueblo?"
+
+turns:
+  - user: 'Hola busco finca en Pereira para 10 personas del 25 al 27 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Entre las opciones que me mostraste, cuál me recomiendas más?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # El bot debe dar una recomendación clara, no evadir
+      - not_contains: 'depende de ti'
+      - not_contains: 'no puedo recomendarte'

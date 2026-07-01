@@ -1,0 +1,29 @@
+id: 2026-07-ninos-menores-5-no-cuentan
+title: Niños menores de 5 años NO cuentan en el conteo — precio no debe subir
+category: real-conv / children-threshold
+
+seed_source:
+  wa_id: '573144749908'
+  observed_at: '2026-06'
+  literal_client_msg: '"Son 5 niños menores de 5 años"'
+
+# La regla del prompt (línea 202 del offering system message):
+# "UMBRAL DE NIÑOS = 5 AÑOS. Niños de 0-4 → NO cuentan, NO se cobran.
+#  Niños de 5+ → SÍ cuentan como huéspedes."
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 15 adultos + 5 niños menores de 4 años, del 20 al 22 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  # El bot debe cotizar como si fueran 15 personas (no 20). No debe cobrar
+  # por los niños <5. Y NO debe redondear ni mencionar umbral inventado
+  # tipo "menores de 2" o "de brazos".
+  - user: 'Cuánto sería el total exacto de la primera opción?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - not_contains: 'menores de 2'
+      - not_contains: 'de brazos'
+      - not_contains: 'mayores de 6'

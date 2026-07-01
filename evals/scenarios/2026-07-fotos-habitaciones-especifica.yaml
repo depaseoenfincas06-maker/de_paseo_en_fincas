@@ -1,0 +1,26 @@
+id: 2026-07-fotos-habitaciones-especifica
+title: Cliente pide fotos de habitaciones de una finca específica → bot envía fotos
+category: real-conv / photo-request
+
+seed_source:
+  wa_id: '573117360736'
+  observed_at: '2026-06'
+  literal_client_msg: '"me puedes compartir la acomodación o fotos de las habitaciones de Pereira número 10, por favor?"'
+
+# Regla del prompt (línea 129 en offering): cuando cliente pide "fotos de X",
+# emitir intent="SHOW_OPTIONS" con SOLO esa finca + su foto_url. El sistema
+# maneja el envío de media.
+
+turns:
+  - user: 'Hola busco finca en Pereira para 12 personas del 22 al 24 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Me puedes mandar más fotos de la primera opción?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # El bot debe reconocer el pedido y responder positivamente. No
+      # debe rechazar diciendo que no tiene fotos.
+      - not_contains: 'no tengo fotos'
+      - not_contains: 'no tenemos fotos'

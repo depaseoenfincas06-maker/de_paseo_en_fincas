@@ -1,0 +1,31 @@
+id: 2026-07-mensajes-fragmentados-burst
+title: Cliente manda 4-5 mensajes seguidos (ráfaga) → bot los procesa unificados
+category: real-conv / burst-handling
+
+seed_source:
+  wa_id: '15617597511'
+  observed_at: '2026-06'
+  literal_client_msgs: |
+    "Soy Samuel" (23:00:01)
+    "Hola buena noche" (23:00:02)
+    "Busco finca en zona del eje cafetero" (23:00:03)
+    "Especialmente en Anapoima" (23:00:04)
+
+# El bot tiene un burst_status con ventana de 4s (BURST_WINDOW_MS en el
+# simulator). Debe procesar los 4 mensajes como UNA solicitud coherente,
+# no responder 4 veces. Y debe extraer criterios (Anapoima + intent
+# "buscar finca").
+
+turns:
+  - user: 'Soy JD'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Hola buena tarde'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Busco finca en Anapoima para 8 personas del 22 al 24 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
