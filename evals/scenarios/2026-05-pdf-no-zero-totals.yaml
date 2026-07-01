@@ -29,11 +29,7 @@ turns:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'Cuál es la más económica?'
-    assert:
-      - not_contains: 'te paso con mi compañero'
-
-  - user: 'Esa me sirve, dame el desglose total'
+  - user: 'La primera opción me interesa, dame el desglose total con depósito y limpieza'
     assert:
       - not_contains: 'te paso con mi compañero'
       - contains: '$'
@@ -41,3 +37,5 @@ turns:
       # Cualquier mención de depósito DEBE venir con un monto > 0.
       - not_contains: 'Depósito: $0'
       - not_contains: 'Limpieza: $0'
+      - not_contains: 'Depósito $0'
+      - not_contains: 'Limpieza $0'

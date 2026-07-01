@@ -48,6 +48,16 @@ export const assertions = {
     return { ok, detail: ok ? '' : `unexpectedly contains: "${arg}"` };
   },
 
+  contains_any(ctx, arg) {
+    const options = Array.isArray(arg) ? arg : [arg];
+    const bot = lower(ctx.bot_text);
+    const found = options.find((o) => bot.includes(lower(o)));
+    return {
+      ok: Boolean(found),
+      detail: found ? '' : `none of these strings found: [${options.map((o) => `"${o}"`).join(', ')}]`,
+    };
+  },
+
   state_equals(ctx, arg) {
     const expected = String(arg || '').trim().toUpperCase();
     const actual = String(ctx.conversation?.current_state || '').toUpperCase();

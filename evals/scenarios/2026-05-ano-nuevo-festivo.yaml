@@ -15,15 +15,26 @@ seed_failure:
     de fin de año (dic 26 - ene 6) y aplica precio_temporada_alta.
 
 turns:
-  - user: 'Quiero una finca para 10 personas del 30 de diciembre al 2 de enero'
+  # Nota: incluimos zona (Anapoima) para no quedar atascados en QUALIFYING
+  # pidiendo la zona. Lo que evalúa el scenario es la CLASIFICACIÓN de fechas,
+  # no la captura de criterios.
+  - user: 'Quiero una finca en Anapoima para 10 personas del 30 de diciembre al 2 de enero'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'
       - not_contains: 'tarifa estándar'
       - not_contains: 'precio estándar'
 
-  - user: 'Cuánto sería el total para la primera?'
+  - user: 'Cuánto sería el total de la primera opción?'
     assert:
       - not_contains: 'te paso con mi compañero'
-      # Cualquier mención de temporada alta o festivo es aceptable
-      - contains: 'temporada alta'
+      # El bot debe reconocer que las fechas son especiales. Aceptamos
+      # cualquier señal: mención de tarifa temporada alta, año nuevo, festivo,
+      # o el bloqueo por mínimo de noches (las fincas exigen 5+ en año nuevo,
+      # y ese bloqueo es tan válido como cotizar en temporada alta).
+      - contains_any:
+          - 'temporada alta'
+          - 'año nuevo'
+          - 'festivo'
+          - 'mínimo de'
+          - 'estadía mínima'

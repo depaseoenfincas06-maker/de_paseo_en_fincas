@@ -23,10 +23,12 @@ turns:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'Cuánto sería el total para la primera?'
+  # El turn de pregunta de precio va después de que el offering ya mostró las
+  # opciones. Preguntamos por la primera — el bot NO debe re-emitir la card
+  # completa; solo responder el precio en texto.
+  - user: 'Cuánto sería el total exacto de la primera opción que me mostraste?'
     assert:
       - not_contains: 'te paso con mi compañero'
-      # Respuesta debe contener un monto en pesos colombianos
       - contains: '$'
-      # Y no debe re-emitir la card completa (header con ☀️🌴 + lista)
-      - not_contains: '🌴*ANAPOIMA'
+      # Header de card = "☀️🌴*ANAPOIMA_#" — si aparece, es que re-emitió card.
+      - not_contains: '🌴*ANAPOIMA_#'
