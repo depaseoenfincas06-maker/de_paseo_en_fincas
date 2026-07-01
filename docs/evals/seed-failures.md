@@ -37,9 +37,32 @@ estado del fix (si aplica).
 
 **Scenario**: [`2026-06-sopetran20-existe.yaml`](../../evals/scenarios/2026-06-sopetran20-existe.yaml)
 
-**Estado del fix**: pendiente. Crítico — viola la invariante CORE #1 ("siempre mostrar el inventario real"). Hay que asegurar que cuando el cliente nombra una finca concreta, el agente SIEMPRE consulta el inventario antes de afirmar que no existe.
+**Estado del fix**: ✅ **RESUELTO** 2026-06-30 (commit siguiente). Deployado.
 
-**Eval run 2026-06-30 (post-Hetzner unblock)**: el bug **reproduce parcialmente**. El bot ya no dice "no tenemos registrada" (eso parece arreglado), pero **ignora silenciosamente la finca específica nombrada** y muestra solo las dos alternativas que ya había ofrecido (`SAN_JERONIMO_#22`, `SANTAFE_#02`). Asserts `no_false_unavailable` ✅ + `not_contains: 'no existe'` ✅, pero `bot_recognized_finca: SOPETRAN_#20` ❌. Ver `evals/runs/2026-06-30T23-58-16-434Z/report.md`. Hipótesis del fix: cuando el offering_agent recibe un mensaje que nombra una finca específica por código (regex `(zona)\s*#?\s*\d+`), forzar una llamada a `inventory_reader_tool` con `get_finca_details` para esa finca y añadirla a las opciones mostradas si tiene capacidad.
+**Root cause analysis (6 capas)**:
+
+1. **Data (Google Sheet fila 2153)**: `SOPETRAN_#20` marcada `activa=FALSE`. JD confirmó que la desactivación es **intencional** (finca deshabilitada). Otras 7 fincas también inactivas en el inventario (SANTAFE_#17, GUATAPE_#01, LA_MESA_#06, etc.).
+
+2. **`Normalize Inventory` (línea 251)**: `activeInventory = inventory.filter(item => item.activa && item.review_status === 'READY_FOR_OFFERING')`. Filtro global — mata también las búsquedas por código específico.
+
+3. **`Build Inventory Tool Response`**: `findBestMatch()` (línea 824-831) buscaba solo en el inventory filtrado. `get_finca_details(SOPETRAN_#20)` → `null` → `notes: 'finca_not_found'`.
+
+4. **Prompt `Run offering pass`** (línea 173-180): regla "FINCA MENCIONADA POR CÓDIGO" asumía que la finca estaba en `last_inventory_items.items[]`. Sin fallback cuando no está.
+
+5. **Post-processing (`Run offering context pass`)**: el `respuesta` del offering LLM se descartaba y se reemplazaba con un `context_message` genérico generado por un mini-agent LLM que no tenía visibilidad de la respuesta original.
+
+6. **Runner de evals**: bug propio del harness — atribuía mensajes late-arriving del turn N a turn N+1 por timing incorrecto (no anclaba en el INBOUND del turn actual).
+
+**Fix aplicado (patch `patch_sopetran_root_cause.py`, deploy 2026-06-30)**:
+
+- **Capa 2 fix**: `Normalize Inventory` ahora emite `full_inventory` (todas, incluidas inactivas) junto con `inventory` (solo activas). Backward compatible.
+- **Capa 3 fix**: `Build Inventory Tool Response` usa `fullInventory` como fallback cuando la finca no está en `inventory` filtrado. `selected_finca` ahora incluye el campo `activa` explícitamente. `notes: 'finca_inactive'` cuando aplica.
+- **Capa 4 fix**: nueva regla "FINCA POR CÓDIGO NO EN CONTEXTO" en `Run offering pass` con branches para `activa=false` / `not_found` / activa fuera de filtro. Instruye al LLM a llamar `get_finca_details` obligatoriamente y responder honestamente.
+- **Capa 5 (auto-resuelto)**: el `Run offering context pass` LLM, dado que ahora recibe `offering_result` con el nuevo formato, genera el `context_message` correcto sin cambios adicionales.
+- **Capa 6 fix (runner)**: `evals/lib/runner.mjs::waitForTurnResponse` ahora ancla cada turn en su INBOUND antes de contar outbound. Y `bot_recognized_finca` en `evals/lib/assertions.mjs` normaliza acentos.
+
+**Verificación**: eval run `2026-07-01T02-13-44-571Z` — 1/1 passed. Bot response:
+> "La finca SOPETRAN_#20 actualmente no está disponible en nuestra plataforma. Te comparto alternativas similares en Antioquia: las opciones que te envié hace un momento, SAN JERONIMO #22 y SANTAFE_#02, están totalmente disponibles para tus fechas..."
 
 ---
 

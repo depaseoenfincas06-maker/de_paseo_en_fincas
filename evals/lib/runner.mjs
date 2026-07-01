@@ -14,9 +14,13 @@
 
 import { runAssertion } from './assertions.mjs';
 
-const POLL_INTERVAL_MS = 1800;
-const QUIET_WINDOW_MS = 5000;
-const TURN_TIMEOUT_MS = 90_000;
+const POLL_INTERVAL_MS = 2500;
+// 20s de quiet window — el agente frecuentemente manda un mensaje bridge
+// ("Dame un momento mientras consulto...") y luego 15-20s después las cards
+// completas del offering pass. Un quiet más corto atribuiría las cards al
+// siguiente turn y perdería la respuesta real.
+const QUIET_WINDOW_MS = 20_000;
+const TURN_TIMEOUT_MS = 150_000;
 
 async function http(baseUrl, method, path, body) {
   const url = `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -85,32 +89,73 @@ function buildAssertionContext({ snapshot, turnIndex, userText, baselineMsgCount
   };
 }
 
-async function waitForTurnQuiet(baseUrl, id, baselineMsgCount) {
+// Wait for the current turn's INBOUND record to appear in DB, then wait for
+// the bot's OUTBOUND response to stabilize (20s of quiet + waitingFor=CLIENT).
+// Returns the outboundBaseline — the index from which turn responses start —
+// so assertions only see messages that belong to THIS turn.
+//
+// Why the two-phase wait: sendMessage to the simulator returns 202 immediately
+// but the async webhook to n8n has ~2-25s of variable delay before the INBOUND
+// hits the DB. Meanwhile, LATE messages from the PREVIOUS turn (async offering
+// cards) may still be arriving. Anchoring on the current turn's INBOUND is the
+// only reliable way to separate "response to me" from "response to previous".
+async function waitForTurnResponse(baseUrl, id, userText, baselineMsgCount) {
   const started = Date.now();
-  let lastSnapshot = null;
-  let lastNewOutboundAt = 0;
-  let seenNewOutbound = false;
+  const cleanUser = String(userText).trim();
+  let inboundIdx = -1;
+  let snap = null;
+
+  // Phase 1: wait for the INBOUND that matches this turn's user text
+  while (Date.now() - started < TURN_TIMEOUT_MS && inboundIdx === -1) {
+    await new Promise((r) => setTimeout(r, 1500));
+    snap = await getSnapshot(baseUrl, id);
+    const msgs = snap.messages || [];
+    for (let i = msgs.length - 1; i >= baselineMsgCount; i -= 1) {
+      const m = msgs[i];
+      if (String(m.direction || '').toUpperCase() !== 'INBOUND') continue;
+      const c = String(m.content || '').trim();
+      // Prefix match is enough — server may lightly transform text.
+      if (c === cleanUser || c.slice(0, 80) === cleanUser.slice(0, 80)) {
+        inboundIdx = i;
+        break;
+      }
+    }
+  }
+  if (inboundIdx === -1) {
+    return {
+      snapshot: snap || (await getSnapshot(baseUrl, id)),
+      timedOut: true,
+      outboundBaseline: baselineMsgCount,
+    };
+  }
+
+  // Phase 2: from AFTER the matched INBOUND, wait for outbound to stabilize.
+  const outboundBaseline = inboundIdx + 1;
+  let lastOutboundTs = 0;
+  let seenOutbound = false;
 
   while (Date.now() - started < TURN_TIMEOUT_MS) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    const snap = await getSnapshot(baseUrl, id);
-    lastSnapshot = snap;
-    const total = (snap.messages || []).length;
-    if (total > baselineMsgCount) {
-      const newest = snap.messages.slice(baselineMsgCount);
-      const newOutbound = newest.filter((m) => String(m.direction || '').toUpperCase() === 'OUTBOUND');
-      if (newOutbound.length > 0) {
-        seenNewOutbound = true;
-        const newestOutboundTs = new Date(newOutbound.at(-1).createdAt).getTime();
-        if (newestOutboundTs > lastNewOutboundAt) lastNewOutboundAt = newestOutboundTs;
-      }
+    snap = await getSnapshot(baseUrl, id);
+    const msgs = snap.messages || [];
+    const newOutbound = msgs
+      .slice(outboundBaseline)
+      .filter((m) => String(m.direction || '').toUpperCase() === 'OUTBOUND');
+    if (newOutbound.length > 0) {
+      seenOutbound = true;
+      const latestTs = new Date(newOutbound.at(-1).createdAt).getTime();
+      if (latestTs > lastOutboundTs) lastOutboundTs = latestTs;
     }
-    // quiet window: at least one outbound seen AND last outbound was QUIET_WINDOW_MS ago
-    if (seenNewOutbound && Date.now() - lastNewOutboundAt >= QUIET_WINDOW_MS) {
-      return { snapshot: lastSnapshot, timedOut: false };
+    const waitingForClient = String(snap.waitingFor || '').toUpperCase() === 'CLIENT';
+    if (seenOutbound && waitingForClient && Date.now() - lastOutboundTs >= QUIET_WINDOW_MS) {
+      return { snapshot: snap, timedOut: false, outboundBaseline };
     }
   }
-  return { snapshot: lastSnapshot || (await getSnapshot(baseUrl, id)), timedOut: true };
+  return {
+    snapshot: snap || (await getSnapshot(baseUrl, id)),
+    timedOut: true,
+    outboundBaseline,
+  };
 }
 
 export async function runScenario(scenario, { baseUrl }) {
@@ -132,13 +177,18 @@ export async function runScenario(scenario, { baseUrl }) {
     const turnStarted = Date.now();
 
     await sendMessage(baseUrl, conversationId, userText);
-    const { snapshot, timedOut } = await waitForTurnQuiet(baseUrl, conversationId, baselineMsgCount);
+    const { snapshot, timedOut, outboundBaseline } = await waitForTurnResponse(
+      baseUrl,
+      conversationId,
+      userText,
+      baselineMsgCount,
+    );
 
     const ctx = buildAssertionContext({
       snapshot,
       turnIndex: i,
       userText,
-      baselineMsgCount,
+      baselineMsgCount: outboundBaseline,  // <- anchor on THIS turn's inbound
       allBotTextSoFar,
     });
     allBotTextSoFar = ctx.all_bot_text;

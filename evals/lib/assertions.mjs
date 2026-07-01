@@ -92,11 +92,18 @@ export const assertions = {
     const target = pickFincaId(arg) || String(arg).toUpperCase();
     const zoneMatch = target.split('_#')[0];
     const numMatch = target.split('_#')[1] || '';
-    const all = ctx.bot_text;
-    // recognized if either the finca_id, the zone+number, or selected_finca matches
-    const selected = String(ctx.conversation?.selected_finca_id || '').toUpperCase();
-    const inBody = new RegExp(`${zoneMatch}\\s*[#_\\s-]*0*${parseInt(numMatch, 10) || ''}`, 'i').test(all);
-    const ok = selected === target || inBody;
+    // Normalize both sides: strip accents so "Sopetrán 20" matches "SOPETRAN".
+    const stripAccents = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const all = stripAccents(ctx.bot_text);
+    const selected = stripAccents(String(ctx.conversation?.selected_finca_id || '')).toUpperCase();
+    const targetStripped = stripAccents(target).toUpperCase();
+    const zoneStripped = stripAccents(zoneMatch).toUpperCase();
+    // Match "SOPETRAN [any punctuation/space]* [leading zeros]* 20" in either case.
+    const inBody = new RegExp(
+      `${zoneStripped}\\s*[#_\\s-]*0*${parseInt(numMatch, 10) || ''}\\b`,
+      'i',
+    ).test(all);
+    const ok = selected === targetStripped || inBody;
     return { ok, detail: ok ? '' : `bot did NOT acknowledge finca ${target}; selected=${selected || '(none)'}` };
   },
 
