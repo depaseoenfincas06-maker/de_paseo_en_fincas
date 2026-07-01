@@ -1,0 +1,43 @@
+id: 2026-05-pdf-no-zero-totals
+title: PDF de confirmación nunca tiene depósito ni limpieza en cero
+category: regression / pdf-totals
+
+seed_failure:
+  wa_id: '(reportado 2026-05-26)'
+  observed_at: '2026-05-26'
+  fix_commit: 9305c9e
+  symptom: |
+    Los PDFs de confirmación llegaban con depósito = $0 y limpieza = $0
+    porque BIT estaba sobrescribiendo last_inventory_items en cada turn (en
+    vez de mergear), entonces para cuando confirming armaba el PDF la finca
+    seleccionada ya no tenía el quote. Adicionalmente wa_id viajaba vacío
+    desde la subexec.
+  fix_description: |
+    Persist last_inventory_items en BIT ahora MERGE por finca_id (no
+    overwrite). wa_id se mueve al user prompt del agent (systemMessage no
+    interpola {{ }}). Y se cachea en conversations.last_inventory_items para
+    cross-exec.
+
+# Nota: este scenario requiere completar el flujo hasta DOCUMENT_READY +
+# verificar que el quote del selected_finca tiene deposito/limpieza > 0.
+# Como el flujo de confirmación es largo (~6-8 turnos), este scenario es de
+# "high-touch" y vale tenerlo aunque tarde 4-5 min.
+
+turns:
+  - user: 'Busco una finca en Anapoima para 8 personas del 15 al 17 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Cuál es la más económica?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Esa me sirve, dame el desglose total'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      # El bot debe romper el total en líneas: alojamiento + depósito + limpieza.
+      # Cualquier mención de depósito DEBE venir con un monto > 0.
+      - not_contains: 'Depósito: $0'
+      - not_contains: 'Limpieza: $0'

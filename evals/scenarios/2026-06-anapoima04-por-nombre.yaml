@@ -1,0 +1,28 @@
+id: 2026-06-anapoima04-por-nombre
+title: Cliente nombra "Anapoima 04" — el agente debe reconocerla
+category: offering / recognition
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-06-30'
+  symptom: |
+    Cliente: "Hola quiero preguntar por la finca Anapoima 04, 8-10 julio,
+    32 personas". Bot pasó por OFFERING pero al confirmar "Anapoima04 es
+    la q busco" cayó al handoff fijo. No reconoció la finca por nombre.
+
+turns:
+  # Turn 1: qualifying captura criterios (zona, fechas, personas) y transita a OFFERING.
+  # No esperamos reconocimiento de la finca específica acá — eso lo hace offering en turn 2.
+  - user: 'Hola quiero preguntar por la finca Anapoima 04, 8-10 julio, 32 personas'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  # Turn 2: cliente confirma la finca nombrada. Offering debe MOSTRAR ANAPOIMA_#04
+  # (idealmente como primera/destacada opción) y no caer a HITL.
+  - user: 'Anapoima04 es la q busco'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - shown_fincas_includes: 'ANAPOIMA_#04'
+      - bot_recognized_finca: 'ANAPOIMA_#04'
+      - no_handoff_loop: true

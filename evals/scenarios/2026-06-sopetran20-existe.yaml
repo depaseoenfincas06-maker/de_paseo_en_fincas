@@ -1,0 +1,25 @@
+id: 2026-06-sopetran20-existe
+title: Cliente pregunta por SOPETRAN_#20 (capacidad 70 px) — bot debe encontrarla
+category: offering / inventory-coverage
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-06-30'
+  symptom: |
+    Cliente: "52 px en Antioquía". Bot solo mostró SAN_JERONIMO_#22 y
+    SANTAFE_#02. Cliente preguntó por SOPETRAN_#20 (capacidad real 30/70
+    según inventario). Bot respondió "no tenemos registrada ninguna
+    finca con el código Sopetrán #20" — FALSO POSITIVO de no-existencia.
+
+turns:
+  - user: 'Buenos días, busco una propiedad en Antioquia del 10 al 12 de agosto para 52 personas'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Me dejas ver la finca Sopetrán 20?'
+    assert:
+      - no_false_unavailable: 'SOPETRAN_#20'
+      - not_contains: 'no tenemos registrada'
+      - not_contains: 'no existe'
+      - bot_recognized_finca: 'SOPETRAN_#20'

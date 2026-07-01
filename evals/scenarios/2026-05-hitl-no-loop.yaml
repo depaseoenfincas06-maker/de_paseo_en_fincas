@@ -1,0 +1,34 @@
+id: 2026-05-hitl-no-loop
+title: Tras HITL el agente sigue contestando como agente, no repite mensaje fijo
+category: regression / hitl-anti-loop
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-05-28'
+  fix_commit: 82556fb
+  symptom: |
+    Tras pedir humano, el QA validator (LLM router) quedaba enganchado en
+    route_mode=HITL porque el historial mostraba el handoff en curso. Cada
+    pregunta siguiente disparaba el mensaje fijo "te paso con mi compañero…"
+    en vez de respuestas normales del agente.
+  fix_description: |
+    Parse QA validator ahora degrada HITL→STATE si el bot ya entregó el
+    handoff en alguna de sus últimas 3 respuestas.
+
+turns:
+  # Turn 1: cliente pide humano explícitamente → bot debe entregar handoff UNA vez.
+  - user: 'Quiero hablar con un humano'
+    assert:
+      - contains: 'te paso con mi compañero'
+
+  # Turn 2: pregunta factual → debe contestar como agente, no repetir handoff.
+  - user: 'Hay que pagar algo adicional?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true
+
+  # Turn 3: otra pregunta factual → mismo criterio.
+  - user: 'Tienen wifi en las fincas?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true

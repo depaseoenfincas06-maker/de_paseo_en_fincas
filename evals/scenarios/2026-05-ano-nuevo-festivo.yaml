@@ -1,0 +1,29 @@
+id: 2026-05-ano-nuevo-festivo
+title: Reserva de Año Nuevo se clasifica como temporada alta (no estándar)
+category: regression / pricing-classification
+
+seed_failure:
+  wa_id: '(suite 140 pruebas)'
+  observed_at: '2026-05-28'
+  fix_commit: 9305c9e
+  symptom: |
+    El bot clasificaba fechas que incluyen 31-dic / 1-ene como tarifa
+    "estándar", cuando deben ser temporada alta. Resultado: cotizaciones
+    subvaluadas para Año Nuevo.
+  fix_description: |
+    El classifier de fechas en BIT ahora reconoce el rango de temporada alta
+    de fin de año (dic 26 - ene 6) y aplica precio_temporada_alta.
+
+turns:
+  - user: 'Quiero una finca para 10 personas del 30 de diciembre al 2 de enero'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'tarifa estándar'
+      - not_contains: 'precio estándar'
+
+  - user: 'Cuánto sería el total para la primera?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Cualquier mención de temporada alta o festivo es aceptable
+      - contains: 'temporada alta'

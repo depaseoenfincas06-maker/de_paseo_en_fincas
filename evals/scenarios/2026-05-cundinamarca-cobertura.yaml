@@ -1,0 +1,26 @@
+id: 2026-05-cundinamarca-cobertura
+title: Búsqueda en Cundinamarca debe matchear municipios (Anapoima, Tobia, Apulo, etc)
+category: regression / zone-matching
+
+seed_failure:
+  wa_id: '(suite 140 pruebas)'
+  observed_at: '2026-05-28'
+  fix_commit: 9305c9e
+  symptom: |
+    Cliente preguntaba por "Cundinamarca" (departamento) y el bot no
+    matcheaba las fincas de Anapoima/Tobia/Apulo (municipios DE Cundinamarca),
+    o mostraba 0 opciones diciendo que no había. El matcher de zona no
+    expandía departamento → municipios.
+  fix_description: |
+    Get fresh search_criteria + BIT ahora acepta `Cundinamarca` como
+    departamento y matchea todos sus municipios listados en el inventario.
+
+turns:
+  - user: 'Buenos días, busco una finca en Cundinamarca para 8 personas, del 1 al 3 de septiembre'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'no encontramos'
+      - not_contains: 'no manejamos'
+      - not_contains: 'no hay opciones'
+      - not_contains: 'te paso con mi compañero'

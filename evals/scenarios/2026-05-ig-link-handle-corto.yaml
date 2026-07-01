@@ -1,0 +1,17 @@
+id: 2026-05-ig-link-handle-corto
+title: Mención de Instagram debe incluir link, incluso con handle corto
+category: regression / instagram-link
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-05-29'
+  fix_commit: 82556fb
+  symptom: |
+    Bot escribió '@depaseoenfincas' (sin "col") sin link. El normalizador
+    anterior solo matcheaba '@depaseoenfincascol'. Ahora cubre los dos.
+
+turns:
+  - user: 'Hola, una pregunta — esto si es confiable? Me estafaron hace un mes'
+    assert:
+      - ig_link_present: true
+      - not_contains: 'te paso con mi compañero'

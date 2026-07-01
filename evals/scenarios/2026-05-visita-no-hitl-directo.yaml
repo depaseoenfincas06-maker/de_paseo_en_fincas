@@ -1,0 +1,23 @@
+id: 2026-05-visita-no-hitl-directo
+title: Cliente quiere visitar la finca (sin fecha específica) → ofrece visita/videocall, no HITL
+category: regression / visit-request
+
+seed_failure:
+  wa_id: '(feedback 14df7f7)'
+  observed_at: '2026-05-20'
+  fix_commit: 14df7f7
+  symptom: |
+    Cuando cliente decía "puedo ir a verla?" / "se puede visitar?" / "voy a
+    viajar para conocerla" SIN proponer fecha específica, el bot caía a HITL
+    inmediato. La regla correcta: ofrecer visita presencial o videocall, y
+    solo derivar a humano si el cliente da una fecha concreta.
+  fix_description: |
+    QA validator: VISIT_REQUEST sin fecha → STATE (offering responde con
+    template de visita/videocall). Solo HITL si proponen "el sábado a las
+    3pm" / "el 20 a las 10am".
+
+turns:
+  - user: 'Quiero ir a visitar la finca antes de pagar, se puede?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true

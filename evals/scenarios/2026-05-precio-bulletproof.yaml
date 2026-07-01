@@ -1,0 +1,32 @@
+id: 2026-05-precio-bulletproof
+title: Cliente pregunta precio durante OFFERING → respuesta en texto, con monto, sin re-mostrar card
+category: regression / pricing / bulletproof
+
+seed_failure:
+  wa_id: '(múltiples tests pricing)'
+  observed_at: '2026-05-26'
+  fix_commit: 9305c9e
+  symptom: |
+    Cuando el cliente pregunta "cuánto sería el total" durante OFFERING, el
+    bot a veces (a) re-emitía la card completa de la finca en vez de
+    contestar en texto, o (b) calculaba mal el precio porque hacía la
+    multiplicación él mismo en vez de usar el campo `quote` precalculado.
+  fix_description: |
+    BIT precomputa `quote` por finca (per_night_total, total, deposito,
+    limpieza). El offering_agent tiene regla: "NUNCA calcules tú; copia del
+    quote del item". Y "si preguntan precio durante OFFERING, responde en
+    texto con monto exacto, NO re-mandes la card."
+
+turns:
+  - user: 'Hola, busco una finca en Anapoima para 8 personas del 15 al 17 de agosto'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Cuánto sería el total para la primera?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Respuesta debe contener un monto en pesos colombianos
+      - contains: '$'
+      # Y no debe re-emitir la card completa (header con ☀️🌴 + lista)
+      - not_contains: '🌴*ANAPOIMA'

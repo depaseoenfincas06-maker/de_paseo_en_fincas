@@ -1,0 +1,25 @@
+id: 2026-05-pago-parcial-no-hitl
+title: Pregunta de pago parcial / flexibilidad → STATE, NUNCA HITL
+category: regression / pago-parcial
+
+seed_failure:
+  wa_id: '(feedback B.4)'
+  observed_at: '2026-05-25'
+  symptom: |
+    Cuando cliente preguntaba "puedo dar menos del 50%?" / "bloqueo con un
+    millón?" / "acepta pago parcial?", el QA validator a veces lo clasificaba
+    como HITL y disparaba el handoff fijo. El agente de CONFIRMING tiene una
+    regla específica para manejar flexibilidad — esto debe ir a STATE.
+  fix_description: |
+    QA validator system prompt explícita: "PAGO PARCIAL o flexibilidad de
+    bloqueo SIEMPRE van a STATE, NUNCA a HITL."
+
+turns:
+  - user: 'Puedo bloquear la reserva con menos del 50%?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Aceptan pago parcial de un millón al inicio?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true
