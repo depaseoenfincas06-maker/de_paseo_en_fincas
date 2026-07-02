@@ -84,13 +84,23 @@ columna "activa" a TRUE:
 
 ---
 
-## 4. ✅ Regla de oro para el futuro
+## 4. ✅ Regla de oro para el futuro: las zonas se administran desde el panel
 
-Cuando se **agregue una zona nueva** al archivo (un municipio donde antes no
-había fincas), avisarnos para registrarla también en la configuración del
-asistente. Así el bot la reconoce de inmediato y nunca dice "no tenemos
-propiedades ahí" por error. *(Esto fue lo que pasó con La Mesa, Melgar y
-Arbeláez — ya quedó corregido.)*
+Las zonas de cobertura que el asistente comunica a los clientes **ya las
+pueden editar ustedes mismos**, sin depender de nadie:
+
+1. Entrar al panel: **de-paseo-en-fincas.vercel.app/settings**
+2. Buscar el campo **"Zonas que quieres comunicar como cobertura"**
+3. Editar la lista (ej: agregar el municipio nuevo) y **guardar**
+
+El cambio aplica de inmediato — el asistente usa la lista nueva desde el
+siguiente mensaje.
+
+**Cuándo usarlo:** cada vez que se agregue una **zona nueva** al archivo de
+propiedades (un municipio donde antes no había fincas), agregarla también en
+ese campo del panel. Así el bot la reconoce de inmediato y nunca dice "no
+tenemos propiedades ahí" por error. *(Esto fue lo que pasó con La Mesa,
+Melgar y Arbeláez — ya quedó corregido y la lista actual está completa.)*
 
 ---
 
