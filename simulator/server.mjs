@@ -194,7 +194,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     process.env.INVENTORY_SHEET_DOCUMENT_ID || '1AHeDsZin_U5ZzfAB50i7JZvOoJcP9uAM71RRZgnDlgo',
   inventorySheetTabName: process.env.INVENTORY_SHEET_TAB_NAME || 'fincas_inventory_ajustada_real',
   coverageZonesText:
-    'Anapoima, Villeta, La Vega, Girardot, Eje cafetero, Carmen de Apicalá, Antioquia y Villavicencio',
+    'Anapoima, La Mesa, Villeta, La Vega, Girardot, Melgar, Arbeláez, Carmen de Apicalá, Eje cafetero, Antioquia y Villavicencio',
   maxPropertiesToShow: 3,
   selectionNotificationEnabled: true,
   selectionNotificationRecipients: '',
