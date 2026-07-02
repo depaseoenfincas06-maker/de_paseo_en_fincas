@@ -1,0 +1,25 @@
+id: 2026-07-real-price-10-santafe02
+title: Precio real SANTAFE_#02 — 32 px, 25-27 ago, gran grupo con extras
+category: real-inventory / pricing
+
+# Sheet: base=$3.600.000, extra=$120.000, cap 30/70
+# Cálculo (32 px, 2 noches):
+#   extras = 32-30 = 2
+#   per_night = 3.600.000 + 120.000*2 = 3.840.000
+#   subtotal = 7.680.000
+#   TOTAL = 7.680.000 + 300.000 + 120.000 = $8.100.000
+
+turns:
+  - user: 'Busco finca en Antioquia para 32 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+
+  - user: 'Cuánto sería el total exacto de SANTAFE_#02?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'SANTAFE_#02'
+      - contains_any:
+          - '8.100'
+          - '8,100'

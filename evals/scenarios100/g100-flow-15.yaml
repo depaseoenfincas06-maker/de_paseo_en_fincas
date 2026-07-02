@@ -1,0 +1,16 @@
+id: g100-flow-15-multi-tema
+title: 'Multi-pregunta en un turno'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 8 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'De la primera: tiene piscina? cuánto queda del pueblo? y el precio por noche?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - contains_any:
+          - 'piscina'
+          - 'Piscina'

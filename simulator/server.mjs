@@ -1574,7 +1574,9 @@ function createApp() {
   // generoso para uso normal, suficiente para detectar abuso.
   const apiLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 60,
+    // SIMULATOR_RATE_LIMIT: override local para eval runs con workers>1
+    // (suite de 100 scenarios). El default 60 se mantiene en prod/Vercel.
+    max: Number(process.env.SIMULATOR_RATE_LIMIT || 60),
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many requests, please slow down.' },

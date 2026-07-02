@@ -1,0 +1,16 @@
+id: g100-flow-04-visita-con-fecha
+title: 'Visita con fecha → HITL/coordinar'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en La Mesa para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Quiero visitarla este sábado a las 3pm, se puede?'
+    assert:
+      - contains_any:
+          - 'te paso con mi compañero'
+          - 'coordinar'
+          - 'compañero'
+          - 'confirmar'

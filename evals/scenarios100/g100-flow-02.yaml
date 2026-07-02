@@ -1,0 +1,13 @@
+id: g100-flow-02-hitl-no-loop
+title: 'Después de HITL sigue respondiendo'
+category: g100 / flows
+
+turns:
+  - user: 'Quiero hablar con una persona real'
+    assert:
+      - contains: 'te paso con mi compañero'
+
+  - user: 'Bueno mientras tanto dime si tienen fincas con piscina en Anapoima'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - no_handoff_loop: true

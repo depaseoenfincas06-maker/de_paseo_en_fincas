@@ -1,0 +1,10 @@
+id: g100-avail-18-el-quindio
+title: 'Disponibilidad el Quindío (eje cafetero) — 10 px'
+category: g100 / availability
+
+turns:
+  - user: 'Hola, busco finca el Quindío para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'

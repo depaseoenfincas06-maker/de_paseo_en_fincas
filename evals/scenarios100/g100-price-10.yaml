@@ -1,0 +1,23 @@
+id: g100-price-10-carmen-de-apicala-01
+title: 'Precio exacto CARMEN_DE_APICALA_#01 — 10 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$1.100.000, extra=$110.000, cap 10/25,
+# dep=$300.000, limp=$120.000, extras=0
+# TOTAL esperado: $2.620.000
+
+turns:
+  - user: 'Hola, busco finca en Carmen de Apicalá para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De CARMEN_DE_APICALA_#01 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'CARMEN_DE_APICALA_#01'
+      - contains_any:
+          - '2.620.000'
+          - '2,620,000'

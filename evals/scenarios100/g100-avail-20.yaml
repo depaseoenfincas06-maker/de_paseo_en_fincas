@@ -1,0 +1,9 @@
+id: g100-avail-20-grupo-4
+title: 'Disponibilidad Anapoima — grupo-4'
+category: g100 / availability / capacity-edge
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 4 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - state_equals: OFFERING

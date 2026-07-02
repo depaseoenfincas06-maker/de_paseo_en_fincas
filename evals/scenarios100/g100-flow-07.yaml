@@ -1,0 +1,16 @@
+id: g100-flow-07-descuento
+title: 'Descuento → responde sin evadir'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en Villeta para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Me puedes dar un descuento? está caro'
+    assert:
+      - contains_any:
+          - 'descuento'
+          - 'precio'
+          - 'económica'
+          - 'compañero'

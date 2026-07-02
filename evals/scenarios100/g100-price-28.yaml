@@ -1,0 +1,23 @@
+id: g100-price-28-melgar03
+title: 'Precio exacto MELGAR03 — 8 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$1.600.000, extra=$110.000, cap 8/15,
+# dep=$300.000, limp=$120.000, extras=0
+# TOTAL esperado: $3.620.000
+
+turns:
+  - user: 'Hola, busco finca en Melgar para 8 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De MELGAR03 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'MELGAR03'
+      - contains_any:
+          - '3.620.000'
+          - '3,620,000'

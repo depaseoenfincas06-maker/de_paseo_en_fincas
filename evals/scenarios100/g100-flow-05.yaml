@@ -1,0 +1,17 @@
+id: g100-flow-05-cliente-desiste
+title: 'Desiste → farewell'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en Girardot para 8 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Muchas gracias pero ya reservamos con otra agencia'
+    assert:
+      - contains_any:
+          - 'abrazo'
+          - 'gracias'
+          - 'próxima'
+          - 'esperamos'
+          - 'agradezco'

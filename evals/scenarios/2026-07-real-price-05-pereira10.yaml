@@ -1,0 +1,24 @@
+id: 2026-07-real-price-05-pereira10
+title: Precio real PEREIRA_#10 — 12 px, 25-27 ago, sin extras
+category: real-inventory / pricing
+
+# Sheet: base=$1.400.000, cap 12/27
+# Cálculo (12 px = cap_min, 2 noches, sin extras):
+#   per_night = 1.400.000
+#   subtotal = 2.800.000
+#   TOTAL = 2.800.000 + 300.000 + 120.000 = $3.220.000
+
+turns:
+  - user: 'Busco finca en Pereira para 12 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+
+  - user: 'Cuánto sería el total exacto de PEREIRA_#10?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'PEREIRA_#10'
+      - contains_any:
+          - '3.220'
+          - '3,220'

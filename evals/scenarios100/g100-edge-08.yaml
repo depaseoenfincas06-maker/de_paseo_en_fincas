@@ -1,0 +1,9 @@
+id: g100-edge-08-mascotas-filtro
+title: 'Filtro pet friendly'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca pet friendly en Anapoima para 8 personas del 25 al 27 de agosto de 2026, voy con mi perro'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'

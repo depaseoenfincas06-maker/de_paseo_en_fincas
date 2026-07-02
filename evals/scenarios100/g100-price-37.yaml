@@ -1,0 +1,23 @@
+id: g100-price-37-santafe-02
+title: 'Precio exacto SANTAFE_#02 — 30 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$3.600.000, extra=$120.000, cap 30/70,
+# dep=$300.000, limp=$120.000, extras=0 (incluye 3 empleada(s) obligatoria(s): $780.000)
+# TOTAL esperado: $8.400.000
+
+turns:
+  - user: 'Hola, busco finca en Antioquia para 30 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De SANTAFE_#02 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'SANTAFE_#02'
+      - contains_any:
+          - '8.400.000'
+          - '8,400,000'

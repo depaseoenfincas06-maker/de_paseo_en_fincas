@@ -1,0 +1,17 @@
+id: g100-fact-08
+title: 'Factual: Alguna tiene servicio de empleada o cocinera?'
+category: g100 / factual
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Alguna tiene servicio de empleada o cocinera?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'empleada'
+          - 'cocinera'
+          - 'servicio'

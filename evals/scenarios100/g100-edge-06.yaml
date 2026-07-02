@@ -1,0 +1,9 @@
+id: g100-edge-06-fechas-largas
+title: 'Estadía larga 5 noches'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 24 al 29 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'

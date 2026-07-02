@@ -1,0 +1,23 @@
+id: g100-price-22-la-mesa-10
+title: 'Precio exacto LA_MESA_#10 — 15 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$3.300.000, extra=$220.000, cap 15/24,
+# dep=$300.000, limp=$120.000, extras=0 (incluye 2 empleada(s) obligatoria(s): $400.000)
+# TOTAL esperado: $7.420.000
+
+turns:
+  - user: 'Hola, busco finca en La Mesa para 15 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De LA_MESA_#10 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'LA_MESA_#10'
+      - contains_any:
+          - '7.420.000'
+          - '7,420,000'

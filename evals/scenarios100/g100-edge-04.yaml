@@ -1,0 +1,16 @@
+id: g100-edge-04-burst-mensajes
+title: 'Mensajes en ráfaga'
+category: g100 / edge
+
+turns:
+  - user: 'Hola'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Soy Pedro'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Busco finca en Girardot para 8 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING

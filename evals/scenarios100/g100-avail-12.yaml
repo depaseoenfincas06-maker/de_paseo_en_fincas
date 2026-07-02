@@ -1,0 +1,12 @@
+id: g100-avail-12-pereira-15px
+title: 'Disponibilidad Pereira — 15 personas'
+category: g100 / availability
+
+turns:
+  - user: 'Hola, busco finca en Pereira para 15 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'no encontramos'
+      - not_contains: 'no manejamos'
+      - not_contains: 'te paso con mi compañero'

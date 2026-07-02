@@ -1,0 +1,19 @@
+id: g100-fact-12
+title: 'Factual: Tienen cancha o zonas de juego para niños?'
+category: g100 / factual
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Tienen cancha o zonas de juego para niños?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'cancha'
+          - 'juego'
+          - 'parque'
+          - 'niño'
+          - 'zona'

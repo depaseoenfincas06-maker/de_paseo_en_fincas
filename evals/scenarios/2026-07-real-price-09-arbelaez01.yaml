@@ -1,0 +1,24 @@
+id: 2026-07-real-price-09-arbelaez01
+title: Precio real ARBELAEZ_#01 — 40 px, 25-27 ago, grupo grande
+category: real-inventory / pricing
+
+# Sheet: base=$4.900.000, cap 40/80
+# Cálculo (40 px = cap_min, 2 noches, sin extras):
+#   per_night = 4.900.000
+#   subtotal = 9.800.000
+#   TOTAL = 9.800.000 + 300.000 + 120.000 = $10.220.000
+
+turns:
+  - user: 'Busco finca para 40 personas cerca de Bogotá, del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+
+  - user: 'Cuánto sería el total exacto de ARBELAEZ_#01?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'ARBELAEZ_#01'
+      - contains_any:
+          - '10.220'
+          - '10,220'

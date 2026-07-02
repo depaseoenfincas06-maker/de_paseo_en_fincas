@@ -1,0 +1,23 @@
+id: g100-price-07-anapoima-16
+title: 'Precio exacto ANAPOIMA_#16 — 10 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$1.300.000, extra=$130.000, cap 10/18,
+# dep=$300.000, limp=$120.000, extras=0 (incluye 1 empleada(s) obligatoria(s): $200.000)
+# TOTAL esperado: $3.220.000
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De ANAPOIMA_#16 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'ANAPOIMA_#16'
+      - contains_any:
+          - '3.220.000'
+          - '3,220,000'

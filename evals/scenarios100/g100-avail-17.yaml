@@ -1,0 +1,10 @@
+id: g100-avail-17-cerca-de-bogota
+title: 'Disponibilidad cerca de Bogotá (zonas de Cundinamarca) — 15 px'
+category: g100 / availability
+
+turns:
+  - user: 'Hola, busco finca cerca de Bogotá para 15 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'

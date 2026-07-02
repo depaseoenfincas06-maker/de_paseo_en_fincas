@@ -1,0 +1,24 @@
+id: 2026-07-real-price-02-anapoima02
+title: Precio real ANAPOIMA_#02 — 12 px, 25-27 ago, sin extras
+category: real-inventory / pricing
+
+# Sheet: base=$1.400.000, cap 12/24 (extras=0 porque personas=cap_min)
+# Cálculo (12 px, 2 noches):
+#   per_night = 1.400.000 (sin extras)
+#   subtotal = 2.800.000
+#   TOTAL = 2.800.000 + 300.000 + 120.000 = $3.220.000
+
+turns:
+  - user: 'Busco finca en Anapoima para 12 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+
+  - user: 'Cuánto sería el total exacto de ANAPOIMA_#02 con depósito y limpieza incluidos?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'ANAPOIMA_#02'
+      - contains_any:
+          - '3.220'
+          - '3,220'

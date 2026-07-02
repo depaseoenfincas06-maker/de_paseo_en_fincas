@@ -1,0 +1,12 @@
+id: g100-flow-03-visita-sin-fecha
+title: 'Visita sin fecha → no HITL'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en La Mesa para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Puedo ir a conocer la finca antes de reservar?'
+    assert:
+      - not_contains: 'te paso con mi compañero'

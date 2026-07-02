@@ -1,0 +1,11 @@
+id: g100-edge-01-ninos-menores
+title: 'Niños <5 no cuentan'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 adultos y 3 niños de 2, 3 y 8 años del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'menores de 2'
+      - not_contains: 'de brazos'

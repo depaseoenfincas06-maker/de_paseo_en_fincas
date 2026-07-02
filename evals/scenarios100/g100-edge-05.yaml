@@ -1,0 +1,14 @@
+id: g100-edge-05-zona-inexistente
+title: 'Zona sin cobertura → honesto + alternativas'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Cartagena para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'no'
+          - 'zona'
+          - 'alternativa'
+          - 'manejamos'
+          - 'opciones'

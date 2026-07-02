@@ -1,0 +1,23 @@
+id: g100-price-26-la-vega-04
+title: 'Precio exacto LA_VEGA_#04 — 20 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$2.400.000, extra=$120.000, cap 20/50,
+# dep=$300.000, limp=$120.000, extras=0
+# TOTAL esperado: $5.220.000
+
+turns:
+  - user: 'Hola, busco finca en La Vega para 20 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De LA_VEGA_#04 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'LA_VEGA_#04'
+      - contains_any:
+          - '5.220.000'
+          - '5,220,000'

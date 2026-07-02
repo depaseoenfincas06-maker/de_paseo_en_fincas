@@ -1,0 +1,9 @@
+id: g100-avail-19-grupo-60
+title: 'Disponibilidad Antioquia — grupo-60'
+category: g100 / availability / capacity-edge
+
+turns:
+  - user: 'Hola, busco finca en Antioquia para 60 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - state_equals: OFFERING

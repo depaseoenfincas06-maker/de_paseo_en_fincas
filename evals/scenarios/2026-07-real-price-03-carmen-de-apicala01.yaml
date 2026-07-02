@@ -1,0 +1,25 @@
+id: 2026-07-real-price-03-carmen-de-apicala01
+title: Precio real CARMEN_DE_APICALA_#01 — 12 px, 25-27 ago, con 2 extras
+category: real-inventory / pricing
+
+# Sheet: base=$1.100.000, extra=$110.000, cap 10/25
+# Cálculo (12 px, 2 noches):
+#   extras = 12-10 = 2
+#   per_night = 1.100.000 + 110.000*2 = 1.320.000
+#   subtotal = 2.640.000
+#   TOTAL = 2.640.000 + 300.000 + 120.000 = $3.060.000
+
+turns:
+  - user: 'Busco finca en Carmen de Apicalá para 12 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+
+  - user: 'Cuánto sería el total exacto de CARMEN_DE_APICALA_#01?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'CARMEN_DE_APICALA_#01'
+      - contains_any:
+          - '3.060'
+          - '3,060'

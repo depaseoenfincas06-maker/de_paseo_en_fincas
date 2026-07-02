@@ -1,0 +1,8 @@
+id: g100-edge-07-una-noche
+title: '1 sola noche'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Girardot para 8 personas del 25 al 26 de agosto de 2026'
+    assert:
+      - not_contains: 'te paso con mi compañero'

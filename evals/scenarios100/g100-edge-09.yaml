@@ -1,0 +1,9 @@
+id: g100-edge-09-jacuzzi-filtro
+title: 'Filtro jacuzzi'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca con jacuzzi en Villeta para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'

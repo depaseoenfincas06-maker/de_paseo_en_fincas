@@ -1,0 +1,14 @@
+id: g100-edge-02-finca-inactiva
+title: 'Finca inactiva nombrada → honesto sin ''no existe'''
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Antioquia para 50 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Me muestras la finca Sopetrán 20?'
+    assert:
+      - not_contains: 'no existe'
+      - not_contains: 'no tenemos registrada'
+      - bot_recognized_finca: 'SOPETRAN_#20'

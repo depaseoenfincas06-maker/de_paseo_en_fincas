@@ -1,0 +1,9 @@
+id: g100-flow-10-confianza-ig
+title: 'Confianza → IG con link'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, antes de nada: ustedes son confiables? me han estafado antes'
+    assert:
+      - ig_link_present: true
+      - not_contains: 'te paso con mi compañero'

@@ -1,0 +1,12 @@
+id: g100-flow-06-pago-parcial
+title: 'Pago parcial → no HITL'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 12 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Puedo apartar la reserva con menos del 50%?'
+    assert:
+      - not_contains: 'te paso con mi compañero'

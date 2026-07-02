@@ -1,0 +1,18 @@
+id: g100-fact-03
+title: 'Factual: Aceptan mascotas? Tengo un perro pequeño'
+category: g100 / factual
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Aceptan mascotas? Tengo un perro pequeño'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'mascota'
+          - 'pet'
+          - 'perro'
+          - 'acepta'

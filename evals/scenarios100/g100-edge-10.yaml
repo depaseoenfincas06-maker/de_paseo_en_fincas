@@ -1,0 +1,13 @@
+id: g100-edge-10-mas-opciones
+title: 'Pide más opciones tras primera tanda'
+category: g100 / edge
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'Muéstrame otras opciones diferentes'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'no tenemos'

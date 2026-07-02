@@ -1,0 +1,18 @@
+id: g100-fact-04
+title: 'Factual: La primera tiene wifi?'
+category: g100 / factual
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La primera tiene wifi?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'wifi'
+          - 'Wifi'
+          - 'WiFi'
+          - 'no'

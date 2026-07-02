@@ -1,0 +1,14 @@
+id: g100-flow-11-oficinas
+title: 'Oficinas físicas'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, dónde quedan sus oficinas? quiero ir en persona'
+    assert:
+      - contains_any:
+          - 'Medellín'
+          - 'Medellin'
+          - 'Bogotá'
+          - 'Bogota'
+          - 'oficina'
+      - not_contains: 'te paso con mi compañero'

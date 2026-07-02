@@ -1,0 +1,21 @@
+id: g100-fact-09
+title: 'Factual: Se puede hacer fiesta o poner música en la primera?'
+category: g100 / factual
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Se puede hacer fiesta o poner música en la primera?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains_any:
+          - 'fiesta'
+          - 'evento'
+          - 'música'
+          - 'musica'
+          - 'ruido'
+          - 'familiar'
+          - 'vacacional'

@@ -1,0 +1,17 @@
+id: g100-flow-12-empresa-rut
+title: 'Reserva empresarial → RUT/facturación'
+category: g100 / flows
+
+turns:
+  - user: 'Hola, busco finca en Anapoima para 15 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+
+  - user: 'La reserva es a nombre de mi empresa, tienen RUT y facturan?'
+    assert:
+      - contains_any:
+          - 'RUT'
+          - 'factur'
+          - 'empresa'
+          - 'compañero'
+      - not_contains: 'no tenemos'

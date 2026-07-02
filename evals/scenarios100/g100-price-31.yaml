@@ -1,0 +1,23 @@
+id: g100-price-31-pereira-09
+title: 'Precio exacto PEREIRA_#09 — 20 px, 2 noches estándar'
+category: g100 / pricing
+
+# Sheet: base=$2.000.000, extra=$100.000, cap 20/30,
+# dep=$300.000, limp=$120.000, extras=0
+# TOTAL esperado: $4.420.000
+
+turns:
+  - user: 'Hola, busco finca en el Eje Cafetero para 20 personas del 25 al 27 de agosto de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'no tenemos'
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De PEREIRA_#09 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+      - bot_recognized_finca: 'PEREIRA_#09'
+      - contains_any:
+          - '4.420.000'
+          - '4,420,000'
