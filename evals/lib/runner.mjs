@@ -23,6 +23,13 @@ const POLL_INTERVAL_MS = 2500;
 const QUIET_WINDOW_MS = 30_000;
 const TURN_TIMEOUT_MS = 180_000;
 
+// Retry con backoff para errores transitorios (ETIMEDOUT / ECONNRESET /
+// pool exhaustion del simulador local). Un scenario de 3+ min no debe morir
+// por un fetch puntual que falló — eso contamina el pass-rate con ruido de
+// infra que no es del agente.
+const HTTP_RETRIES = 4;
+const RETRYABLE_STATUS = new Set([429, 502, 503, 504]);
+
 async function http(baseUrl, method, path, body) {
   const url = `${baseUrl.replace(/\/$/, '')}${path}`;
   const init = {
@@ -30,14 +37,25 @@ async function http(baseUrl, method, path, body) {
     headers: { 'content-type': 'application/json' },
   };
   if (body !== undefined) init.body = JSON.stringify(body);
-  const r = await fetch(url, init);
-  let data = null;
-  try { data = await r.json(); } catch {}
-  if (!r.ok) {
+
+  let lastErr = null;
+  for (let attempt = 0; attempt <= HTTP_RETRIES; attempt += 1) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 3000 * attempt));
+    let r;
+    try {
+      r = await fetch(url, { ...init, signal: AbortSignal.timeout(20_000) });
+    } catch (e) {
+      lastErr = new Error(`${method} ${path} failed: ${e.message}`);
+      continue; // network-level error → retry
+    }
+    let data = null;
+    try { data = await r.json(); } catch {}
+    if (r.ok) return data;
     const msg = data?.message || `HTTP ${r.status}`;
-    throw new Error(`${method} ${path} failed: ${msg}`);
+    lastErr = new Error(`${method} ${path} failed: ${msg}`);
+    if (!RETRYABLE_STATUS.has(r.status)) throw lastErr; // 4xx real → no retry
   }
-  return data;
+  throw lastErr;
 }
 
 async function createConversation(baseUrl) {

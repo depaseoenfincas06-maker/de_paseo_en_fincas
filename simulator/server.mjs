@@ -105,7 +105,7 @@ function createPool() {
       ssl: {
         rejectUnauthorized: false,
       },
-      max: IS_VERCEL ? 1 : 2,
+      max: IS_VERCEL ? 1 : Number(process.env.SIMULATOR_PG_POOL_MAX || 2),
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 5000,
     });
@@ -126,7 +126,7 @@ function createPool() {
       ssl: {
         rejectUnauthorized: false,
       },
-      max: IS_VERCEL ? 1 : 2,
+      max: IS_VERCEL ? 1 : Number(process.env.SIMULATOR_PG_POOL_MAX || 2),
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 5000,
     });
