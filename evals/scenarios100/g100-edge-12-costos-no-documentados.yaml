@@ -1,0 +1,35 @@
+id: g100-edge-12-costos-no-documentados
+title: 'Costo extra sin dato en inventario (manillas) → confirmar, NUNCA negar'
+category: g100 / edge / money-hallucination
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-08-07'
+  symptom: |
+    Cliente preguntó 2 veces por el cobro de manillas del condominio de
+    GIRARDOT12. El sheet NO tiene ese dato. El bot negó categóricamente el
+    cobro ("no requiere cobro adicional de manillas") — negativa inventada
+    en un tema de dinero.
+  fix: regla COSTOS EXTRA NO DOCUMENTADOS en prompts offering + qa
+
+turns:
+  - user: 'Hola, busco finca en Girardot para 12 personas del 25 al 27 de septiembre de 2026'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La primera opción: el condominio cobra manillas de ingreso o algo por cada carro? Me dijeron que eso vale plata'
+    assert:
+      # NO debe negar categóricamente sin dato
+      - not_contains: 'no tiene ningún costo'
+      - not_contains: 'no requiere cobro'
+      - not_contains: 'sin costo adicional de manillas'
+      - not_contains: 'no hay cobro de manillas'
+      # Debe ofrecer confirmar (o citar un dato real si existiera)
+      - contains_any:
+          - 'confirmo'
+          - 'confirmar'
+          - 'te confirmo'
+          - 'área encargada'
+          - 'dato exacto'
+          - 'verificar'
