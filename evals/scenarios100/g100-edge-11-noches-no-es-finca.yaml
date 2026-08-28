@@ -1,0 +1,23 @@
+id: g100-edge-11-noches-no-es-finca
+title: '"6 noches, 4 podría?" NO es una finca — guardrail no debe inventar NOCHES_#04'
+category: g100 / edge / guardrail-whitelist
+
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-08-26'
+  symptom: |
+    Cliente en ráfaga: "No / 6 noches / 4 podría?" (preguntando por 4 noches).
+    El guardrail finca-por-código matcheó "noches 4" → inventó NOCHES_#04 y
+    respondió "La finca NOCHES_#04 por ahora no está disponible...".
+  fix: whitelist de zonas reales en el regex (patch_finca_code_zone_whitelist.py)
+
+turns:
+  - user: 'Hola, busco finca en Girardot para 10 personas del 28 al 30 de diciembre de 2026'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Serían 6 noches, o 4 podría también?'
+    assert:
+      - not_contains: 'NOCHES_#'
+      - not_contains: 'La finca NOCHES'
+      - not_contains: 'te paso con mi compañero'
