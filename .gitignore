@@ -10,3 +10,6 @@ scripts/tmp-audio/
 # One-off generated reports (not source code)
 analisis_inventario*.docx
 *.tmp.mjs
+
+# Backups locales de workflows n8n (contienen tokens) — NO versionar
+backups/

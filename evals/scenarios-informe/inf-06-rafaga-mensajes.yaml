@@ -1,0 +1,22 @@
+id: inf-06-rafaga-mensajes
+title: 'Santiago 2-sep: 5 mensajes seguidos → sin stalls y sin elegir finca sobre capacidad'
+category: informe-cliente / mensajes consecutivos
+seed_failure:
+  wa_id: '573117360736'
+  observed_at: '2026-09-02 18:00'
+  symptom: '5 mensajes cortos seguidos → 2 veces "se me enredaron" → "No saben leer?" → handoff. En la repro además entró a CONFIRMING con 15 px en finca de 12.'
+turns:
+  - user: 'Hola buenas tardes. Necesito finca o casa para 14 y 16 noviembre, somos 15, puede ser anapoima o la mesa'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+  - user: 'Dice la mesa 11, te estoy respondiendo al mensaje, esa me gusta'
+    assert:
+      - bot_replied: true
+      - contains: 'LA_MESA_#11'
+  - user: ['Si esa', 'Para cuántas personas es', 'Máximo', 'Quiero empleada', 'Cuánto vale']
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains_any: ['12 personas', 'capacidad']
+      - state_equals: OFFERING

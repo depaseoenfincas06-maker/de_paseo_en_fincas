@@ -1,0 +1,23 @@
+id: inf-07-rafaga-agregada
+title: 'Santiago 2-sep (path Chatwoot): mensaje agregado multilínea → capacidad respetada'
+category: informe-cliente / integridad de cotización
+seed_failure:
+  wa_id: '573117360736'
+  observed_at: '2026-09-02'
+  symptom: 'Cotizó "Para 15 personas, 2 noches en LA_MESA_#11" cobrando 12 (capacidad máxima 12).'
+turns:
+  - user: 'Hola buenas tardes. Necesito finca o casa para 14 y 16 noviembre, somos 15, puede ser anapoima o la mesa'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+  - user: 'Dice la mesa 11, te estoy respondiendo al mensaje, esa me gusta'
+    assert:
+      - bot_replied: true
+      - contains: 'LA_MESA_#11'
+  - user: "Si esa\nPara cuántas personas es\nMáximo\nQuiero empleada\nCuánto vale"
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: 'Para 15 personas, 2 noches en LA_MESA_#11'
+      - contains_any: ['capacidad máxima', '12 personas', 'máximo 12']
+      - state_equals: OFFERING

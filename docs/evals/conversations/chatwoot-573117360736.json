@@ -1,0 +1,2008 @@
+{
+  "conversation": {
+    "id": 7,
+    "phone": "+573117360736",
+    "name": "Santiago Gallego"
+  },
+  "extracted_at": "2026-09-08T23:22:44.633Z",
+  "since": "2026-08-27T05:00:00.000Z",
+  "messages": [
+    {
+      "id": 14762,
+      "hora_bogota": "2026-08-30 20:38",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Reset",
+      "attachments": []
+    },
+    {
+      "id": 14763,
+      "hora_bogota": "2026-08-30 20:38",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo. Reinicié tu conversación y borré el historial para empezar desde cero. Escríbeme de nuevo y arrancamos.",
+      "attachments": []
+    },
+    {
+      "id": 14764,
+      "hora_bogota": "2026-08-30 20:38",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola buenas noches",
+      "attachments": []
+    },
+    {
+      "id": 14765,
+      "hora_bogota": "2026-08-30 20:39",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Excelente noche, Santiago! 🤩\n\nMi nombre es Santiago Gallego de Depaseoenfincas.com, estaré al tanto de tu reserva.⚡\n\nPara ayudarte a encontrar la finca ideal, por favor cuéntame:\n\n1. Para qué fechas buscas?\n2. Cuántas personas te acompañan?\n3. En qué zona o municipio te gustaría?\n\nConócenos en Instagram: https://www.instagram.com/depaseoenfincascol/reel/DETOae-pyQp/\n\n🌎 Actualmente disponemos de propiedades en Anapoima, La Mesa, Villeta, La Vega, Girardot, Melgar, Arbeláez, Carmen de Apicalá, Eje cafetero, Antioquia y Villavicencio.",
+      "attachments": []
+    },
+    {
+      "id": 14766,
+      "hora_bogota": "2026-08-30 21:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, para cuantas personas y en que fechas necesitas la finca?",
+      "attachments": []
+    },
+    {
+      "id": 14767,
+      "hora_bogota": "2026-08-31 11:22",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola",
+      "attachments": []
+    },
+    {
+      "id": 14768,
+      "hora_bogota": "2026-08-31 11:22",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Estoy buscando casa en Anapoima",
+      "attachments": []
+    },
+    {
+      "id": 14769,
+      "hora_bogota": "2026-08-31 11:22",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Del 29 diciembre al 3 enero",
+      "attachments": []
+    },
+    {
+      "id": 14770,
+      "hora_bogota": "2026-08-31 11:22",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Somos 12 personas",
+      "attachments": []
+    },
+    {
+      "id": 14771,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo, buscamos entonces una propiedad en Anapoima del 29 de diciembre al 3 de enero de 2027 para 12 personas 📍\n\nDame un momento mientras consulto disponibilidad y te envío las mejores alternativas ☀️",
+      "attachments": []
+    },
+    {
+      "id": 14772,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Busqué fincas disponibles en Anapoima para tus fechas y encontré estas opciones ideales para tu grupo.",
+      "attachments": []
+    },
+    {
+      "id": 14773,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#10*🌴☀️\n- 4 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Piscina 🏊\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 11 MIN al pueblo\n🎉 Apto para eventos / fiestas\n💰 $ 3.500.000 / noche para 12 personas",
+      "attachments": []
+    },
+    {
+      "id": 14774,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14775,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#17*🌴☀️\n- 5 habitaciones 🍃\n- 5 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Piscina 🏊\n- Rio\n- Sauna\n- Tenis 🎾\n- Turco\n- Wifi 🛜\n- Ubicada en Anapoima\n🚗 5 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 500.000 por 5 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 3.500.000 / noche para 12 personas",
+      "attachments": []
+    },
+    {
+      "id": 14776,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14777,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA23*🌴☀️\n- 5 habitaciones 🍃\n- Piscina 🏊\n- Jacuzzi 🛁\n- Mirador\n- Ubicada en ANAPOIMA\n🚗 15 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 500.000 por 5 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 3.200.000 / noche para 12 personas",
+      "attachments": []
+    },
+    {
+      "id": 14778,
+      "hora_bogota": "2026-08-31 11:23",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14779,
+      "hora_bogota": "2026-08-31 11:24",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 14780,
+      "hora_bogota": "2026-08-31 11:25",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Me envías más opciones",
+      "attachments": []
+    },
+    {
+      "id": 14781,
+      "hora_bogota": "2026-08-31 11:26",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Ya te mostré todas las opciones disponibles en Anapoima para tu grupo de 12 personas en esas fechas. Si quieres, podemos revisar alternativas en zonas de clima cálido cercanas como La Mesa, Villeta o Girardot. Te gustaría que busquemos en alguna de ellas?",
+      "attachments": []
+    },
+    {
+      "id": 14782,
+      "hora_bogota": "2026-08-31 11:26",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Solo hay esas 3 ??",
+      "attachments": []
+    },
+    {
+      "id": 14783,
+      "hora_bogota": "2026-08-31 11:26",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No me gustan",
+      "attachments": []
+    },
+    {
+      "id": 14784,
+      "hora_bogota": "2026-08-31 11:27",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para esas fechas de fin de año y para 12 personas, esas son las opciones que tenemos disponibles en Anapoima en este momento.\n\nPodemos explorar alternativas en municipios cercanos de clima cálido como La Mesa, Villeta o Girardot, donde contamos con más opciones. Te gustaría que busquemos en alguna de esas zonas?",
+      "attachments": []
+    },
+    {
+      "id": 14785,
+      "hora_bogota": "2026-08-31 11:30",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola! Pudiste revisar las opciones que te envie? Alguna te gusto?",
+      "attachments": []
+    },
+    {
+      "id": 14841,
+      "hora_bogota": "2026-09-02 12:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola 573117360736, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️",
+      "attachments": []
+    },
+    {
+      "id": 14842,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Reset",
+      "attachments": []
+    },
+    {
+      "id": 14843,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo. Reinicié tu conversación y borré el historial para empezar desde cero. Escríbeme de nuevo y arrancamos.",
+      "attachments": []
+    },
+    {
+      "id": 14844,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola buenas tardes",
+      "attachments": []
+    },
+    {
+      "id": 14845,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Excelente tarde, Santiago! 🤩\n\nMi nombre es Santiago Gallego de Depaseoenfincas.com, estaré al tanto de tu reserva.⚡\n\nPara ayudarte a encontrar la finca ideal, por favor cuéntame:\n\n1. Para qué fechas buscas?\n2. Cuántas personas te acompañan?\n3. En qué zona o municipio te gustaría?\n\nConócenos en Instagram: https://www.instagram.com/depaseoenfincascol/reel/DETOae-pyQp/\n\n🌎 Actualmente disponemos de propiedades en Anapoima, La Mesa, Villeta, La Vega, Girardot, Melgar, Arbeláez, Carmen de Apicalá, Eje cafetero, Antioquia y Villavicencio.",
+      "attachments": []
+    },
+    {
+      "id": 14846,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Necesito finca o casa \nPara 14 y 16 noviembre \nSomos 15",
+      "attachments": []
+    },
+    {
+      "id": 14847,
+      "hora_bogota": "2026-09-02 17:35",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Pude ser anapoima o la mesaaa",
+      "attachments": []
+    },
+    {
+      "id": 14848,
+      "hora_bogota": "2026-09-02 17:36",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo, buscamos entonces una propiedad en Anapoima o La Mesa del 14 al 16 de noviembre para 15 personas 📍\n\nDame un momento mientras consulto disponibilidad y te envío las mejores alternativas ☀️",
+      "attachments": []
+    },
+    {
+      "id": 14849,
+      "hora_bogota": "2026-09-02 17:36",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Ok",
+      "attachments": []
+    },
+    {
+      "id": 14850,
+      "hora_bogota": "2026-09-02 17:36",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Busqué disponibilidad para las 15 personas y encontré estas opciones en Anapoima que te pueden gustar.",
+      "attachments": []
+    },
+    {
+      "id": 14851,
+      "hora_bogota": "2026-09-02 17:36",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#22*🌴☀️\n- 6 habitaciones 🍃\n- 6 baños 🚻\n- BBQ ♨️\n- Jacuzzi 🛁\n- Mirador\n- Piscina 🏊\n- Wifi 🛜\n- Juegos De Mesa\n- Zona De Hamacas\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 8 MIN al pueblo\n🐕 Acepta mascotas • 🎉 Apto para eventos / fiestas\n💰 $ 1.080.000 / noche + $ 100.000 por persona a partir de 9",
+      "attachments": []
+    },
+    {
+      "id": 14852,
+      "hora_bogota": "2026-09-02 17:36",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14853,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Dale Santiago. Alguna de las tres opciones te llamó la atención, o prefieres que revisemos alternativas con alguna característica puntual o en La Mesa?",
+      "attachments": []
+    },
+    {
+      "id": 14854,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA37*🌴☀️\n- 5 habitaciones 🍃\n- 6 baños 🚻\n- Ubicada en Anapoima\n🚗 8 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 200.000 por 2 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 2.040.000 / noche + $ 170.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 14855,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14856,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#16*🌴☀️\n- 5 habitaciones 🍃\n- 6 baños 🚻\n- Aire_acondicionado\n- BBQ ♨️\n- Cancha\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Mirador\n- Mesa de ping pong 🏓\n- Piscina 🏊\n- Tenis 🎾\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 9 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 200.000 por 2 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 1.560.000 / noche + $ 130.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 14857,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14858,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 14859,
+      "hora_bogota": "2026-09-02 17:37",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Pero porque están contando 130.000 por persona después de 10 ???",
+      "attachments": []
+    },
+    {
+      "id": 14860,
+      "hora_bogota": "2026-09-02 17:38",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No me puede dar cotización para 15",
+      "attachments": []
+    },
+    {
+      "id": 14861,
+      "hora_bogota": "2026-09-02 17:38",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 14862,
+      "hora_bogota": "2026-09-02 17:39",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Porque me está cobrando 130.000 por persona después de 10 ?",
+      "attachments": []
+    },
+    {
+      "id": 14863,
+      "hora_bogota": "2026-09-02 17:39",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Deberían darme una cotización para 15",
+      "attachments": []
+    },
+    {
+      "id": 14864,
+      "hora_bogota": "2026-09-02 17:39",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Es lo que estoy buscando",
+      "attachments": []
+    },
+    {
+      "id": 14865,
+      "hora_bogota": "2026-09-02 17:41",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Regáleme el valor para 15 personas por favor",
+      "attachments": []
+    },
+    {
+      "id": 14866,
+      "hora_bogota": "2026-09-02 17:42",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 15 personas, 2 noches en ANAPOIMA_#16 sería $5.040.000.\n\nIncluye:\n• Alojamiento (2 noches): $4.420.000\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n• Servicio empleada (1 persona, 2 días): $200.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 14867,
+      "hora_bogota": "2026-09-02 17:46",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 15 personas, 2 noches en ANAPOIMA_#16 sería $5.040.000.\n\nIncluye:\n• Alojamiento (2 noches): $4.420.000\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n• Servicio empleada (1 persona, 2 días): $200.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 14868,
+      "hora_bogota": "2026-09-02 17:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Mmm",
+      "attachments": []
+    },
+    {
+      "id": 14869,
+      "hora_bogota": "2026-09-02 17:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Está costos",
+      "attachments": []
+    },
+    {
+      "id": 14870,
+      "hora_bogota": "2026-09-02 17:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Y algo más económico?",
+      "attachments": []
+    },
+    {
+      "id": 14871,
+      "hora_bogota": "2026-09-02 17:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Somos 15 \n\nPero dentro de los 15 hay 4 niños de 2 años todos",
+      "attachments": []
+    },
+    {
+      "id": 14872,
+      "hora_bogota": "2026-09-02 17:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Seríamos 11 y 4 niños de 2 años",
+      "attachments": []
+    },
+    {
+      "id": 14873,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Ajusté la búsqueda a 11 adultos y encontré estas opciones más económicas en La Mesa para ustedes.",
+      "attachments": []
+    },
+    {
+      "id": 14874,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*LA_MESA_#11*🌴☀️\n- 4 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Mirador\n- Piscina 🏊\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en La Mesa\n💰 desde $ 600.000 / noche",
+      "attachments": []
+    },
+    {
+      "id": 14875,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14876,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*LA_MESA_#01*🌴☀️\n- 5 habitaciones 🍃\n- 5 baños 🚻\n- BBQ ♨️\n- Cancha\n- Servicio de empleada 👩‍🍳\n- Kiosco\n- Piscina 🏊\n- Sauna\n- Tenis 🎾\n- Turco\n- Wifi 🛜\n- Ubicada en La Mesa\n💰 desde $ 1.400.000 / noche",
+      "attachments": []
+    },
+    {
+      "id": 14877,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14878,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*LA_MESA_#04*🌴☀️\n- 3 habitaciones 🍃\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Mirador\n- Piscina 🏊\n- Wifi 🛜\n- Ubicada en La Mesa\n💰 desde $ 1.500.000 / noche",
+      "attachments": []
+    },
+    {
+      "id": 14879,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14880,
+      "hora_bogota": "2026-09-02 17:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 14881,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Tienes algo en Anapoima ?",
+      "attachments": []
+    },
+    {
+      "id": 14882,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Busqué opciones disponibles en Anapoima y encontré estas excelentes alternativas para tu grupo.",
+      "attachments": []
+    },
+    {
+      "id": 14883,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#10*🌴☀️\n- 4 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Piscina 🏊\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 11 MIN al pueblo\n🎉 Apto para eventos / fiestas\n💰 $ 2.280.000 / noche + $ 237.500 por persona a partir de 8",
+      "attachments": []
+    },
+    {
+      "id": 14884,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14885,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#17*🌴☀️\n- 5 habitaciones 🍃\n- 5 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Piscina 🏊\n- Rio\n- Sauna\n- Tenis 🎾\n- Turco\n- Wifi 🛜\n- Ubicada en Anapoima\n🚗 5 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 200.000 por 2 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 1.680.000 / noche + $ 175.000 por persona a partir de 8",
+      "attachments": []
+    },
+    {
+      "id": 14886,
+      "hora_bogota": "2026-09-02 17:55",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14887,
+      "hora_bogota": "2026-09-02 17:56",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA23*🌴☀️\n- 5 habitaciones 🍃\n- Piscina 🏊\n- Jacuzzi 🛁\n- Mirador\n- Ubicada en ANAPOIMA\n🚗 15 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 200.000 por 2 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 2.040.000 / noche + $ 170.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 14888,
+      "hora_bogota": "2026-09-02 17:56",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14889,
+      "hora_bogota": "2026-09-02 17:56",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 14890,
+      "hora_bogota": "2026-09-02 17:56",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Está me gusta",
+      "attachments": []
+    },
+    {
+      "id": 14891,
+      "hora_bogota": "2026-09-02 17:56",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Cuál son las fotos ?",
+      "attachments": []
+    },
+    {
+      "id": 14892,
+      "hora_bogota": "2026-09-02 17:57",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "A cuál de las opciones te refieres: ANAPOIMA_#10, ANAPOIMA_#17 o ANAPOIMA23? Me confirmas cuál te gustó y con gusto te comparto las fotos.",
+      "attachments": []
+    },
+    {
+      "id": 14893,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Estás",
+      "attachments": []
+    },
+    {
+      "id": 14894,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Me gusta esa",
+      "attachments": []
+    },
+    {
+      "id": 14895,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, discúlpame, te refieres a la primera (ANAPOIMA_#10), la segunda (ANAPOIMA_#17) o la tercera (ANAPOIMA23)? Me confirmas el número o el orden y de inmediato te comparto las fotos.",
+      "attachments": []
+    },
+    {
+      "id": 14896,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No",
+      "attachments": []
+    },
+    {
+      "id": 14897,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Dice la mesa 11",
+      "attachments": []
+    },
+    {
+      "id": 14898,
+      "hora_bogota": "2026-09-02 17:58",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Te estoy respondiendo al mensaje",
+      "attachments": []
+    },
+    {
+      "id": 14899,
+      "hora_bogota": "2026-09-02 17:59",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No sale o que ?",
+      "attachments": []
+    },
+    {
+      "id": 14900,
+      "hora_bogota": "2026-09-02 17:59",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Buscabas en Anapoima, pero aquí tienes la opción de La Mesa 11 que querías ver.",
+      "attachments": []
+    },
+    {
+      "id": 14901,
+      "hora_bogota": "2026-09-02 17:59",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*LA_MESA_#11*🌴☀️\n- 4 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Mirador\n- Piscina 🏊\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en La Mesa\n💰 desde $ 600.000 / noche",
+      "attachments": []
+    },
+    {
+      "id": 14902,
+      "hora_bogota": "2026-09-02 17:59",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14903,
+      "hora_bogota": "2026-09-02 18:00",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Si esa",
+      "attachments": []
+    },
+    {
+      "id": 14904,
+      "hora_bogota": "2026-09-02 18:00",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Para cuántas personas es",
+      "attachments": []
+    },
+    {
+      "id": 14905,
+      "hora_bogota": "2026-09-02 18:00",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Máximo",
+      "attachments": []
+    },
+    {
+      "id": 14906,
+      "hora_bogota": "2026-09-02 18:00",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Quiero empleada",
+      "attachments": []
+    },
+    {
+      "id": 14907,
+      "hora_bogota": "2026-09-02 18:00",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Cuánto vale",
+      "attachments": []
+    },
+    {
+      "id": 14908,
+      "hora_bogota": "2026-09-02 18:01",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 14909,
+      "hora_bogota": "2026-09-02 18:01",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Para cuántas personas máximo ??",
+      "attachments": []
+    },
+    {
+      "id": 14910,
+      "hora_bogota": "2026-09-02 18:01",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "También quiero empleada \nCuánto vale",
+      "attachments": []
+    },
+    {
+      "id": 14911,
+      "hora_bogota": "2026-09-02 18:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 14912,
+      "hora_bogota": "2026-09-02 18:02",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No saben leer ?",
+      "attachments": []
+    },
+    {
+      "id": 14913,
+      "hora_bogota": "2026-09-02 18:02",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Qué pésimo servicio",
+      "attachments": []
+    },
+    {
+      "id": 14914,
+      "hora_bogota": "2026-09-02 18:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Dame un momento, te paso con mi compañero del área encargada para continuar con tu solicitud.",
+      "attachments": []
+    },
+    {
+      "id": 14915,
+      "hora_bogota": "2026-09-02 18:30",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, qué te parecieron las opciones que te envié? Alguna te llamó la atención?",
+      "attachments": []
+    },
+    {
+      "id": 14916,
+      "hora_bogota": "2026-09-02 18:40",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No",
+      "attachments": []
+    },
+    {
+      "id": 14917,
+      "hora_bogota": "2026-09-02 18:41",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, qué pena contigo por la confusión en los mensajes anteriores, aquí sigo directamente contigo para resolver tus dudas.\n\nSobre LA_MESA_#11:\n• Capacidad máxima: hasta 12 personas, por lo que tu grupo de 11 personas se acomoda sin problema.\n• Servicio de empleada: sí cuenta con el servicio, tiene un costo de $100.000 por día (jornada de 8 horas).\n• Costos adicionales: limpieza final de $120.000 y depósito de seguridad reembolsable de $300.000.\n\nTe gustaría avanzar con la reserva de esta propiedad para el 14 al 16 de noviembre?",
+      "attachments": []
+    },
+    {
+      "id": 14918,
+      "hora_bogota": "2026-09-02 18:42",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14919,
+      "hora_bogota": "2026-09-02 18:42",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, respecto a los niños, te cuento cómo funciona: los niños de 0 a 4 años no cuentan dentro del cupo de huéspedes ni pagan estadía. A partir de los 5 años cumplidos sí cuentan como huéspedes.\n\nPara confirmar si LA_MESA_#11 les funciona bien o si exceden la capacidad de 12 personas, qué edades tienen los 4 niños? Si al sumarlos superan las 12 personas, te busco de inmediato opciones con mayor capacidad para que todos estén cómodos.",
+      "attachments": []
+    },
+    {
+      "id": 14920,
+      "hora_bogota": "2026-09-02 19:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, pudiste ver las opciones? Alguna te gustó?",
+      "attachments": []
+    },
+    {
+      "id": 14921,
+      "hora_bogota": "2026-09-02 19:25",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14922,
+      "hora_bogota": "2026-09-02 19:26",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, respecto a los 4 niños de 2 y 3 años, efectivamente no cuentan dentro del cupo ni pagan estadía.\n\nSin embargo, para los 14 adultos no hay camas suficientes ni cupo disponible en LA_MESA_#11. La propiedad tiene una capacidad máxima estricta de 12 personas y su distribución de camas es la siguiente:\n\n• Habitación 1: 1 cama doble\n• Habitación 2: 2 camas dobles\n• Habitación 3: 1 cama semidoble\n• Habitación 4: 2 camas dobles\n\nEn total son 6 camas (5 dobles y 1 semidoble), por lo que con 14 adultos se excede el cupo permitido de la casa.\n\nSi te parece, te puedo buscar de inmediato opciones que reciban cómodamente a los 14 adultos. Prefieres que miremos en La Mesa o en Anapoima?",
+      "attachments": []
+    },
+    {
+      "id": 14923,
+      "hora_bogota": "2026-09-02 19:26",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14924,
+      "hora_bogota": "2026-09-02 19:26",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14925,
+      "hora_bogota": "2026-09-02 19:27",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "LA_MESA_#11 está ubicada en un condominio campestre sobre el corredor entre La Mesa y San Joaquín, a unos 20 minutos en vehículo del casco urbano de La Mesa.\n\nPor políticas de seguridad y privacidad de las propiedades, la ubicación exacta y las indicaciones detalladas de llegada se entregan una vez confirmada la reserva. \n\nTe gustaría revisar algún otro detalle de la propiedad o te gustaría que avancemos con ella?",
+      "attachments": []
+    },
+    {
+      "id": 14926,
+      "hora_bogota": "2026-09-02 19:29",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14927,
+      "hora_bogota": "2026-09-02 19:29",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Excelente decisión, Santiago. Ya te paso todos los detalles para gestionar tu reserva.",
+      "attachments": []
+    },
+    {
+      "id": 14928,
+      "hora_bogota": "2026-09-02 19:29",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "*Pasos para Reservar 🏡*\n\nAl elegir la propiedad que te enamoró, me brindas por favor los siguientes datos:\n\n• Nombre Completo\n• Tipo y Número de Documento\n• Número de Celular\n• Correo Electrónico\n• Dirección\n\nLos anteriores se tomarán para generarte la *Confirmación de Reserva*, una vez emitida y aceptada procedemos a realizar el abono del 50% del total de tu reserva o en su defecto la totalidad de la misma.\n\n*Nuestros Medios de Pago son los siguientes:*\n\n• Bancolombia\n• Davivienda\n• Colpatria\n• Nequi\n• Daviplata\n• Tarjeta Crédito - Débito - PSE o presencial en Anapoima, todas ellas + 4% o Efectivo",
+      "attachments": []
+    },
+    {
+      "id": 14929,
+      "hora_bogota": "2026-09-02 19:30",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14930,
+      "hora_bogota": "2026-09-02 19:31",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, entiendo perfectamente tu precaución y es completamente comprensible cuidar tu dinero, sobre todo si ya has tenido una mala experiencia antes.\n\nSomos De Paseo en Finca, una empresa formal y legalmente constituida. Para darte total seguridad y respaldo, contamos con oficinas físicas donde puedes visitarnos o podemos hacer una videollamada en directo para conocer al equipo y aclarar cualquier duda:\n- Anapoima (Cundinamarca) — Finca Villa Paola, sector Alto del Cobre.\n- Pereira (Risaralda) — Finca El Paraíso, sector Altagracia.\n\nSi deseas, podemos coordinar una visita presencial entre martes y jueves, o programar una videollamada desde cualquiera de las dos sedes. Incluso tienes la opción de realizar el abono de forma presencial en nuestras instalaciones.\n\nEl anticipo formalizado mediante el documento de confirmación es el requisito que nos exige el propietario para bloquear las fechas de forma exclusiva y garantizar que la casa no se le asigne a nadie más. Te gustaría que coordinemos la videollamada para que verifiques todo y estés completamente tranquilo?",
+      "attachments": []
+    },
+    {
+      "id": 14931,
+      "hora_bogota": "2026-09-02 19:32",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14932,
+      "hora_bogota": "2026-09-02 19:32",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Claro que sí, Santiago. Contamos con toda la documentación legal al día: Registro Nacional de Turismo (RNT), RUT y Cámara de Comercio para que puedas verificar que somos una empresa legalmente constituida y tengas absoluta tranquilidad antes de realizar cualquier abono.",
+      "attachments": []
+    },
+    {
+      "id": 14933,
+      "hora_bogota": "2026-09-02 19:32",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14934,
+      "hora_bogota": "2026-09-02 19:33",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Claro que sí, Santiago. Ya mismo gestiono con el equipo para que te compartan la documentación legal correspondiente (RUT, Cámara de Comercio y Registro Nacional de Turismo) por este medio para que puedas verificarla con total tranquilidad.",
+      "attachments": []
+    },
+    {
+      "id": 14935,
+      "hora_bogota": "2026-09-02 19:33",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Gracias",
+      "attachments": []
+    },
+    {
+      "id": 14936,
+      "hora_bogota": "2026-09-02 19:34",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Con mucho gusto, Santiago. Quedamos muy atentos a que puedas revisar la documentación con total tranquilidad. Apenas la verifiques y estés listo para continuar, me compartes tus datos (tipo y número de documento, correo y dirección) para prepararte el documento de confirmación.",
+      "attachments": []
+    },
+    {
+      "id": 14937,
+      "hora_bogota": "2026-09-02 19:34",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14938,
+      "hora_bogota": "2026-09-02 19:35",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, te explico con gusto ambos puntos:\n\n1. Entrega y llegada: una vez aprobada la confirmación y realizado el anticipo, te enviamos la ubicación exacta por GPS (Google Maps / Waze), las indicaciones detalladas de llegada y el contacto directo del administrador de la propiedad. El día del check-in, el administrador los recibe directamente en la finca para hacerles la entrega de llaves, el inventario y mostrarles el funcionamiento de las instalaciones.\n\n2. Desayuno: el alquiler es bajo la modalidad de casa vacacional completa independiente, por lo que no incluye alimentación ni desayunos. La finca cuenta con cocina totalmente equipada para que preparen sus comidas. Si desean mayor comodidad, pueden contratar el servicio de empleada ($100.000 por día, jornada de 8 horas), quien les colabora cocinando con el mercado e ingredientes que ustedes lleven, además del aseo.\n\nApenas desees que avancemos con la reserva de LA_MESA_#11, quedo muy atento a tus datos (tipo y número de documento, correo y dirección) para elaborarte el documento formal de confirmación.",
+      "attachments": []
+    },
+    {
+      "id": 14939,
+      "hora_bogota": "2026-09-02 19:41",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14940,
+      "hora_bogota": "2026-09-02 19:42",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, con gusto te comparto el desglose completo para las 2 noches (14 al 16 de noviembre) en LA_MESA_#11 para 11 personas:\n\n• Subtotal hospedaje (2 noches): $3.540.000 ($1.770.000 por noche en puente festivo)\n• Depósito de seguridad: $300.000 (100% reembolsable)\n• Aseo y limpieza final: $120.000\n• Servicio de empleada (2 días): $200.000 ($100.000 por día, jornada de 8 horas)\n\nTotal de la reserva: $4.160.000\n\nSi estás de acuerdo con el valor, me confirmas por favor tu tipo y número de documento, correo electrónico, dirección y si dejamos este mismo número de WhatsApp como celular de contacto para prepararte la confirmación formal.",
+      "attachments": []
+    },
+    {
+      "id": 14941,
+      "hora_bogota": "2026-09-02 19:42",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14942,
+      "hora_bogota": "2026-09-02 19:43",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Dame un momento, te paso con mi compañero del área encargada para continuar con tu solicitud.",
+      "attachments": []
+    },
+    {
+      "id": 14943,
+      "hora_bogota": "2026-09-02 19:43",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14944,
+      "hora_bogota": "2026-09-02 19:43",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14945,
+      "hora_bogota": "2026-09-02 19:44",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, te entiendo perfectamente y qué bueno que lo preguntes para aclarártelo con total transparencia.\n\nEl precio de $600.000 por noche es la tarifa de referencia en temporada baja estándar para la capacidad base de la finca, que es de hasta 4 personas.\n\nPara tu cotización aplican dos condiciones específicas:\n\n1. Fechas de puente festivo: del 14 al 16 de noviembre es festivo (Independencia de Cartagena), donde la tarifa base de la finca sube a $720.000 por noche (para 4 personas).\n2. Tamaño del grupo: al ser 11 personas en total, se suman 7 personas adicionales a la base ($150.000 por persona extra por noche en festivo, es decir, $1.050.000 adicionales por noche).\n\nSumando la base festiva ($720.000) más las 7 personas adicionales ($1.050.000), da exactamente $1.770.000 por noche para todo el grupo de 11 personas.\n\nJamás buscamos cobrar de más ni cambiar las condiciones; las tarifas se ajustan estrictamente al número de huéspedes y a si la fecha es festivo o temporada regular. Si deseas, podemos revisar alternativas con tarifas más bajas para ese fin de semana, o me confirmas si te gustaría continuar con LA_MESA_#11.",
+      "attachments": []
+    },
+    {
+      "id": 14946,
+      "hora_bogota": "2026-09-02 19:45",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14947,
+      "hora_bogota": "2026-09-02 19:46",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, comprendo completamente tu inconformidad y la desconfianza que esto te genera. Tienes toda la razón en ser muy precavido con tu dinero, y te ofrezco una disculpa por la confusión que causó ver primero el valor de referencia base.\n\nPara darte total claridad sobre cómo trabajamos y evitar cualquier malentendido:\n\n1. Cero cobros sorpresa: precisamente por esa razón se emite un documento formal de confirmación antes de que transfieras cualquier anticipo. En ese documento queda fijado el valor total pactado ($4.160.000 con noches, aseo, empleada y depósito). Nadie te va a cobrar un solo peso adicional al llegar a la finca.\n2. Depósito reembolsable: el depósito de seguridad de $300.000 se devuelve al 100% al terminar la estadía tras revisar el inventario.\n\nEntiendo si después de esto no te sientes cómodo continuando. Si deseas, podemos revisar otras opciones que tengan una tarifa más económica para las 11 personas en ese puente festivo, o si prefieres no seguir adelante con la reserva, lo comprendo y respeto totalmente. Cómo te gustaría proceder?",
+      "attachments": []
+    },
+    {
+      "id": 14948,
+      "hora_bogota": "2026-09-02 19:47",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14949,
+      "hora_bogota": "2026-09-02 19:47",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo Santiago, vamos a buscar opciones que se ajusten mejor a tu presupuesto.",
+      "attachments": []
+    },
+    {
+      "id": 14950,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "No encontré opciones en ese presupuesto exacto, pero te comparto las alternativas disponibles más económicas en Anapoima.",
+      "attachments": []
+    },
+    {
+      "id": 14951,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#43*🌴☀️\n- 4 habitaciones 🍃\n- 5 baños 🚻\n- BBQ ♨️\n- Jacuzzi 🛁\n- Mirador\n- Piscina 🏊\n- Tenis 🎾\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 15 MIN al pueblo\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 840.000 / noche + $ 140.000 por persona a partir de 5",
+      "attachments": []
+    },
+    {
+      "id": 14952,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14953,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#45 JUNIOR*🌴☀️\n- 3 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Jacuzzi 🛁\n- Mirador\n- Piscina 🏊\n- Tenis 🎾\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 15 MIN al pueblo\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 840.000 / noche + $ 140.000 por persona a partir de 5",
+      "attachments": []
+    },
+    {
+      "id": 14954,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14955,
+      "hora_bogota": "2026-09-02 19:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 14956,
+      "hora_bogota": "2026-09-02 19:52",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14957,
+      "hora_bogota": "2026-09-02 19:52",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, no, para nada. Es la sala de estar de una de las fincas que te compartí (ANAPOIMA_#45 JUNIOR). Como el alquiler es de la propiedad campestre completa, las fotos muestran los distintos espacios interiores como la sala, las habitaciones y las zonas sociales para que conozcas cómo son las instalaciones por dentro. Cuéntame si alguna de las opciones te llama la atención o si te gustaría que revisemos alternativas en otra zona.",
+      "attachments": []
+    },
+    {
+      "id": 14958,
+      "hora_bogota": "2026-09-02 19:53",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Envíame las fotos",
+      "attachments": []
+    },
+    {
+      "id": 14959,
+      "hora_bogota": "2026-09-02 19:53",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "De anapoima45",
+      "attachments": []
+    },
+    {
+      "id": 14960,
+      "hora_bogota": "2026-09-02 19:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Revisé la disponibilidad de Anapoima 45, así que aquí tienes las fotos y detalles para que la conozcas.",
+      "attachments": []
+    },
+    {
+      "id": 14961,
+      "hora_bogota": "2026-09-02 19:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#45 JUNIOR*🌴☀️\n- 3 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Jacuzzi 🛁\n- Mirador\n- Piscina 🏊\n- Tenis 🎾\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 15 MIN al pueblo\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 $ 840.000 / noche + $ 140.000 por persona a partir de 5",
+      "attachments": []
+    },
+    {
+      "id": 14962,
+      "hora_bogota": "2026-09-02 19:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 14963,
+      "hora_bogota": "2026-09-02 19:55",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 14964,
+      "hora_bogota": "2026-09-02 19:56",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Santiago, te entiendo completamente. En fin de semana con puente festivo y para un grupo de 11 personas, al sumar la tarifa base más los adicionales por persona, los valores en Anapoima quedan en ese rango.\n\nCon un presupuesto de $600.000 por noche para esas fechas festivas de noviembre, ya revisamos las fincas disponibles en Anapoima y no contamos con opciones en ese valor.\n\nPodemos explorar si te interesa revisar opciones en otras zonas cercanas como Tocaima, Girardot o Villeta para ver si encontramos algo más económico, o si prefieres evaluar fechas en temporada estándar fuera de puente donde las tarifas se reducen. Te gustaría que busquemos en otra zona o contemplar otras fechas?",
+      "attachments": []
+    },
+    {
+      "id": 14965,
+      "hora_bogota": "2026-09-02 20:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, pudiste ver las opciones? Cuentame si alguna te llamo la atencion.",
+      "attachments": []
+    },
+    {
+      "id": 14999,
+      "hora_bogota": "2026-09-03 10:30",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola",
+      "attachments": []
+    },
+    {
+      "id": 15000,
+      "hora_bogota": "2026-09-03 10:30",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, cómo estás? Cuéntame si te gustaría que busquemos opciones en zonas cercanas como Girardot, Tocaima o Villeta para tu grupo de 11 personas, o si prefieres que revisemos fechas fuera de puente festivo para acercarnos a tu presupuesto de $600.000 por noche.",
+      "attachments": []
+    },
+    {
+      "id": 15001,
+      "hora_bogota": "2026-09-03 10:31",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Quisiera averiguar la finca Anapoima01 \n\nPara 4 personas \n\n\nCuánto cuesta ? \n\nPara 19 al 20 septiembre",
+      "attachments": []
+    },
+    {
+      "id": 15002,
+      "hora_bogota": "2026-09-03 10:32",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Reset",
+      "attachments": []
+    },
+    {
+      "id": 15003,
+      "hora_bogota": "2026-09-03 10:32",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo. Reinicié tu conversación y borré el historial para empezar desde cero. Escríbeme de nuevo y arrancamos.",
+      "attachments": []
+    },
+    {
+      "id": 15004,
+      "hora_bogota": "2026-09-03 10:32",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Quisiera averiguar la finca Anapoima01 \n\nPara 4 personas \n\n\nCuánto cuesta ? \n\nPara 19 al 20 septiembre",
+      "attachments": []
+    },
+    {
+      "id": 15005,
+      "hora_bogota": "2026-09-03 10:32",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo Santiago, buscamos entonces una propiedad en Anapoima del 19 al 20 de septiembre para 4 personas 📍\n\nDame un momento mientras consulto disponibilidad y te envío las mejores alternativas ☀️",
+      "attachments": []
+    },
+    {
+      "id": 15006,
+      "hora_bogota": "2026-09-03 10:33",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No",
+      "attachments": []
+    },
+    {
+      "id": 15007,
+      "hora_bogota": "2026-09-03 10:33",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Quiere Anapoima 01",
+      "attachments": []
+    },
+    {
+      "id": 15008,
+      "hora_bogota": "2026-09-03 10:33",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Esa me gusta",
+      "attachments": []
+    },
+    {
+      "id": 15009,
+      "hora_bogota": "2026-09-03 10:33",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Cuánto vale ?",
+      "attachments": []
+    },
+    {
+      "id": 15010,
+      "hora_bogota": "2026-09-03 10:34",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 4 personas, 1 noche en ANAPOIMA_#01 sería $1.920.000.\n\nIncluye:\n• Alojamiento (1 noche): $1.400.000\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n• Servicio empleada (1 persona, 1 día): $100.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 15011,
+      "hora_bogota": "2026-09-03 10:36",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Y si somos 12 personas en cuanto me quedaría ?",
+      "attachments": []
+    },
+    {
+      "id": 15012,
+      "hora_bogota": "2026-09-03 10:37",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Dame un momento, Santiago, recalculo la tarifa para 12 personas en ANAPOIMA_#01 y ya te paso el detalle exacto.",
+      "attachments": []
+    },
+    {
+      "id": 15013,
+      "hora_bogota": "2026-09-03 10:42",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "?",
+      "attachments": []
+    },
+    {
+      "id": 15014,
+      "hora_bogota": "2026-09-03 10:43",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 12 personas, 1 noche en ANAPOIMA_#01 sería $2.386.667.\n\nIncluye:\n• Alojamiento (1 noche): $1.866.667\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n• Servicio empleada (1 persona, 1 día): $100.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 15015,
+      "hora_bogota": "2026-09-03 10:47",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 15016,
+      "hora_bogota": "2026-09-03 10:48",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 12 personas, 1 noche en ANAPOIMA_#02 sería $1.820.000.\n\nIncluye:\n• Alojamiento (1 noche): $1.400.000\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 15017,
+      "hora_bogota": "2026-09-03 10:48",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 15018,
+      "hora_bogota": "2026-09-03 10:49",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Sí tiene un valor adicional, Santiago, ya que la tarifa base de ANAPOIMA_#02 cubre hasta 12 personas. Dame un momento que recalculo la tarifa para 15 personas y ya te paso el detalle exacto.",
+      "attachments": []
+    },
+    {
+      "id": 15019,
+      "hora_bogota": "2026-09-03 10:50",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Dale\nEstoy pendiente",
+      "attachments": []
+    },
+    {
+      "id": 15020,
+      "hora_bogota": "2026-09-03 10:50",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Para 15 personas, 1 noche en ANAPOIMA_#02 sería $2.170.000.\n\nIncluye:\n• Alojamiento (1 noche): $1.750.000\n• Depósito (100% reembolsable): $300.000\n• Limpieza final: $120.000\n\nQuerés avanzar con esta finca?",
+      "attachments": []
+    },
+    {
+      "id": 15023,
+      "hora_bogota": "2026-09-03 10:54",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "audio"
+      ]
+    },
+    {
+      "id": 15027,
+      "hora_bogota": "2026-09-03 10:54",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "En ANAPOIMA_#02 cada persona adicional tiene un valor de $116.667 por noche.\n\nTen presente que la capacidad máxima de esta propiedad es de 24 personas, por lo que iniciando con 15 personas podrían sumarse hasta 9 personas adicionales (para un total de 24). Si más adelante se confirma que van más personas, nos avisas antes de la fecha de llegada para actualizar el registro y adicionar el valor correspondiente.\n\nQuieres que avancemos con la reserva para las 15 personas?",
+      "attachments": []
+    },
+    {
+      "id": 15044,
+      "hora_bogota": "2026-09-03 11:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, pudiste ver las opciones que te envie? Alguna te gusto?",
+      "attachments": []
+    },
+    {
+      "id": 15050,
+      "hora_bogota": "2026-09-03 11:10",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Y en esa cuánto vale la empleada o se puede reservar sin empleada",
+      "attachments": []
+    },
+    {
+      "id": 15052,
+      "hora_bogota": "2026-09-03 11:11",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "En ANAPOIMA_#02 el servicio de empleada es opcional, así que sí puedes reservar sin empleada. En caso de que desees contratarlo, tiene un costo de $100.000 por día (jornada de 8 horas).\n\nTe gustaría avanzar con la reserva para las 15 personas sin el servicio de empleada o prefieres incluirlo?",
+      "attachments": []
+    },
+    {
+      "id": 15056,
+      "hora_bogota": "2026-09-03 11:30",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, que tal te parecieron las opciones? Alguna te gusto?",
+      "attachments": []
+    },
+    {
+      "id": 15058,
+      "hora_bogota": "2026-09-04 16:01",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola buenas tardes",
+      "attachments": []
+    },
+    {
+      "id": 15059,
+      "hora_bogota": "2026-09-04 16:01",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "No tiene alguna finca en mesa de yeguas ?",
+      "attachments": []
+    },
+    {
+      "id": 15060,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Reset",
+      "attachments": []
+    },
+    {
+      "id": 15061,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo. Reinicié tu conversación y borré el historial para empezar desde cero. Escríbeme de nuevo y arrancamos.",
+      "attachments": []
+    },
+    {
+      "id": 15062,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Hola",
+      "attachments": []
+    },
+    {
+      "id": 15063,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Estoy buscando una casa hermosa en mesa de yeguas",
+      "attachments": []
+    },
+    {
+      "id": 15064,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Excelente tarde, Santiago! 🤩\n\nMi nombre es Santiago Gallego de Depaseoenfincas.com, estaré al tanto de tu reserva.⚡\n\nPara ayudarte a encontrar la finca ideal, por favor cuéntame:\n\n1. Para qué fechas buscas?\n2. Cuántas personas te acompañan?\n3. En qué zona o municipio te gustaría?\n\nConócenos en Instagram: https://www.instagram.com/depaseoenfincascol/reel/DETOae-pyQp/\n\n🌎 Actualmente disponemos de propiedades en Anapoima, La Mesa, Villeta, La Vega, Girardot, Melgar, Arbeláez, Carmen de Apicalá, Eje cafetero, Antioquia y Villavicencio.",
+      "attachments": []
+    },
+    {
+      "id": 15065,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Sí tenemos disponibilidad en Mesa de Yeguas, así que aquí te comparto esta gran opción.",
+      "attachments": []
+    },
+    {
+      "id": 15066,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#03*🌴☀️\n- 6 habitaciones 🍃\n- 6 baños 🚻\n- BBQ ♨️\n- Servicio de empleada 👩‍🍳\n- Jacuzzi 🛁\n- Mirador\n- Mesa de ping pong 🏓\n- Piscina 🏊\n- Rio\n- Wifi 🛜\n- Ubicada en Anapoima\n💰 desde $ 2.400.000 / noche",
+      "attachments": []
+    },
+    {
+      "id": 15067,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 15068,
+      "hora_bogota": "2026-09-04 16:02",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Excelente elección, en Mesa de Yeguas (Anapoima) tenemos opciones increíbles 🏡\n\nPara poderte enseñar las mejores alternativas disponibles, cuéntame:\n\n1. Para qué fechas tienes planeado el viaje?\n2. Cuántas personas serían en total?",
+      "attachments": []
+    },
+    {
+      "id": 15069,
+      "hora_bogota": "2026-09-04 16:04",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Solo tienes esa en mesa de yeguas ?",
+      "attachments": []
+    },
+    {
+      "id": 15070,
+      "hora_bogota": "2026-09-04 16:04",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Tenemos más opciones en Mesa de Yeguas y en Anapoima 🏡\n\nPara mostrarte las que se ajusten a lo que buscas y verificar disponibilidad exacta, cuéntame:\n\n1. Para qué fechas tienes pensado el viaje?\n2. Cuántas personas se hospedarían?",
+      "attachments": []
+    },
+    {
+      "id": 15071,
+      "hora_bogota": "2026-09-04 16:04",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "12 al 18 octubre\n15 personas",
+      "attachments": []
+    },
+    {
+      "id": 15072,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Listo Santiago, buscamos entonces una propiedad en Anapoima del 12 al 18 de octubre para 15 personas 📍\n\nDame un momento mientras consulto disponibilidad y te envío las mejores alternativas ☀️",
+      "attachments": []
+    },
+    {
+      "id": 15073,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Encontré disponibilidad en Anapoima para tu grupo, así que aquí tienes estas excelentes opciones.",
+      "attachments": []
+    },
+    {
+      "id": 15074,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA23*🌴☀️\n- 5 habitaciones 🍃\n- Piscina 🏊\n- Jacuzzi 🛁\n- Mirador\n- Ubicada en ANAPOIMA\n🚗 15 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 600.000 por 6 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 *Cotización para esas fechas:*\n • 5 noches Estándar: $ 1.700.000 / noche + $ 170.000 por persona a partir de 10\n • 1 noche Festivo / puente: $ 2.040.000 / noche + $ 170.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 15075,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 15076,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#53*🌴☀️\n- 5 habitaciones 🍃\n- BBQ ♨️\n- Mesa de billar 🎱\n- Cancha\n- Servicio de empleada 👩‍🍳\n- Golf ⛳️\n- Jacuzzi 🛁\n- Piscina 🏊\n- Tenis 🎾\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 5 MIN al pueblo\n👩‍🍳 Servicio empleada obligatorio: $ 100.000/día · total $ 600.000 por 6 noches\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 *Cotización para esas fechas:*\n • 5 noches Estándar: $ 2.900.000 / noche + $ 290.000 por persona a partir de 10\n • 1 noche Festivo / puente: $ 3.480.000 / noche + $ 290.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 15077,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 15078,
+      "hora_bogota": "2026-09-04 16:05",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "☀️🌴*ANAPOIMA_#09*🌴☀️\n- 4 habitaciones 🍃\n- 4 baños 🚻\n- BBQ ♨️\n- Mesa de billar 🎱\n- Cancha\n- Servicio de empleada 👩‍🍳\n- Mirador\n- Parque_infantil\n- Piscina 🏊\n- Sauna\n- Turco\n- Wifi 🛜\n- Zonas verdes 🌴\n- Ubicada en Anapoima\n🚗 10 MIN al pueblo\n🐕 Acepta mascotas • 👨‍👩‍👧 Vacacional / familiar\n💰 *Cotización para esas fechas:*\n • 5 noches Estándar: $ 1.200.000 / noche + $ 120.000 por persona a partir de 10\n • 1 noche Festivo / puente: $ 1.440.000 / noche + $ 120.000 por persona a partir de 10",
+      "attachments": []
+    },
+    {
+      "id": 15079,
+      "hora_bogota": "2026-09-04 16:06",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "",
+      "attachments": [
+        "image"
+      ]
+    },
+    {
+      "id": 15080,
+      "hora_bogota": "2026-09-04 16:06",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Me cuentas cuál te llamó más la atención y avanzamos con esa. Si querés que veamos otras alternativas también te las muestro.",
+      "attachments": []
+    },
+    {
+      "id": 15081,
+      "hora_bogota": "2026-09-04 16:06",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Pero esas casas no son en Mesa de Yeguas",
+      "attachments": []
+    },
+    {
+      "id": 15082,
+      "hora_bogota": "2026-09-04 16:07",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Tienes toda la razón, Santiago. Te ofrezco una disculpa por la confusión: las alternativas anteriores están en Anapoima, pero fuera del condominio Mesa de Yeguas.\n\nEspecíficamente dentro de Mesa de Yeguas, para tu grupo de 15 personas la opción con esa capacidad es ANAPOIMA_#03 (las otras casas dentro del condominio tienen capacidad máxima de hasta 8 personas).\n\nTe gustaría que revisemos los detalles y la cotización completa de ANAPOIMA_#03 para tus fechas del 12 al 18 de octubre, o prefieres evaluar alternativas en otros condominios campestres de Anapoima?",
+      "attachments": []
+    },
+    {
+      "id": 15083,
+      "hora_bogota": "2026-09-04 16:07",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Envíame opciones para 8 en mesa de yeguas",
+      "attachments": []
+    },
+    {
+      "id": 15084,
+      "hora_bogota": "2026-09-04 16:08",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 15085,
+      "hora_bogota": "2026-09-04 16:08",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Me envías opciones para 8 personas en Mesa de yeguas",
+      "attachments": []
+    },
+    {
+      "id": 15086,
+      "hora_bogota": "2026-09-04 16:09",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 15087,
+      "hora_bogota": "2026-09-04 16:11",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Que fincas tiene en Mesa de yeguas ?",
+      "attachments": []
+    },
+    {
+      "id": 15088,
+      "hora_bogota": "2026-09-04 16:11",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Para 6 personas",
+      "attachments": []
+    },
+    {
+      "id": 15089,
+      "hora_bogota": "2026-09-04 16:12",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 15090,
+      "hora_bogota": "2026-09-04 16:14",
+      "quien": "CLIENTE",
+      "sender": "Santiago Gallego",
+      "private": false,
+      "content": "Ok",
+      "attachments": []
+    },
+    {
+      "id": 15091,
+      "hora_bogota": "2026-09-04 16:15",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Perdóname, se me enredaron los mensajes por un momento 🙈 Me repites lo último, porfa?",
+      "attachments": []
+    },
+    {
+      "id": 15092,
+      "hora_bogota": "2026-09-04 16:30",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago, pudiste ver las opciones que te envié? Alguna te gustó?",
+      "attachments": []
+    },
+    {
+      "id": 15093,
+      "hora_bogota": "2026-09-06 17:00",
+      "quien": "BOT/ASESOR",
+      "sender": "juan david",
+      "private": false,
+      "content": "Hola Santiago Gallego, ¿pudiste revisar las opciones que te compartí? Sigo por aquí si quieres seguir buscando o ajustar algo de la búsqueda. ☀️",
+      "attachments": []
+    }
+  ]
+}

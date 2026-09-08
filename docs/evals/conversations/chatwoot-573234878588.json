@@ -1,0 +1,29 @@
+{
+  "conversation": {
+    "id": 10,
+    "phone": "+573234878588",
+    "name": "Javier Plata 😎😁"
+  },
+  "extracted_at": "2026-09-08T23:22:45.820Z",
+  "since": "2026-08-27T05:00:00.000Z",
+  "messages": [
+    {
+      "id": 15054,
+      "hora_bogota": "2026-09-03 11:16",
+      "quien": "CLIENTE",
+      "sender": "Javier Plata 😎😁",
+      "private": false,
+      "content": "Hola buenas tardes",
+      "attachments": []
+    },
+    {
+      "id": 15055,
+      "hora_bogota": "2026-09-03 11:17",
+      "quien": "CLIENTE",
+      "sender": "Javier Plata 😎😁",
+      "private": false,
+      "content": "?",
+      "attachments": []
+    }
+  ]
+}

@@ -134,7 +134,53 @@ export const assertions = {
     const ok = IG_LINK_RE.test(ctx.bot_text);
     return { ok, detail: ok ? '' : 'IG handle mentioned without instagram.com/depaseoenfincascol link' };
   },
+
+  // === Aserciones del informe del cliente (8-sep-2026) ===
+
+  // El bot respondió algo en este turno (un turno en silencio = timeout del runner).
+  bot_replied(ctx) {
+    const n = (ctx.bot_messages || []).filter((m) => String(m.content || '').trim() || m.mediaUrl || m.media_url).length;
+    const ok = n > 0 && !ctx.timed_out;
+    return { ok, detail: ok ? '' : (ctx.timed_out ? 'turno en TIMEOUT: el bot no respondió' : 'sin mensajes del bot en este turno') };
+  },
+
+  // No se disparó el STALL-FALLBACK de CodeJS1 ("se me enredaron los mensajes").
+  no_stall_fallback(ctx) {
+    const ok = !STALL_RE.test(ctx.bot_text || '');
+    return { ok, detail: ok ? '' : 'el bot cayó en el stall-fallback ("se me enredaron los mensajes")' };
+  },
+
+  // conversations.search_criteria contiene exactamente estos campos (subset).
+  criteria_equals(ctx, arg) {
+    const expected = arg && typeof arg === 'object' ? arg : {};
+    const actual = ctx.conversation?.search_criteria || {};
+    const diffs = [];
+    for (const [k, v] of Object.entries(expected)) {
+      const got = actual[k];
+      const same = typeof v === 'number' ? Number(got) === v : String(got ?? '') === String(v);
+      if (!same) diffs.push(`${k}: esperado ${JSON.stringify(v)}, actual ${JSON.stringify(got ?? null)}`);
+    }
+    return { ok: diffs.length === 0, detail: diffs.join('; ') };
+  },
+
+  // El ÚLTIMO documento de confirmación enviado en este turno trae estos campos
+  // (payload decodificado de la URL reservation-confirmation.*?payload=…).
+  docx_payload(ctx, arg) {
+    const expected = arg && typeof arg === 'object' ? arg : {};
+    const docs = ctx.docx_payloads || [];
+    if (!docs.length) return { ok: false, detail: 'no se envió ningún documento de confirmación en este turno' };
+    const doc = docs[docs.length - 1];
+    const diffs = [];
+    for (const [k, v] of Object.entries(expected)) {
+      const got = doc[k];
+      const same = typeof v === 'number' ? Math.abs(Number(got) - v) <= 1 : String(got ?? '') === String(v);
+      if (!same) diffs.push(`${k}: esperado ${JSON.stringify(v)}, docx ${JSON.stringify(got ?? null)}`);
+    }
+    return { ok: diffs.length === 0, detail: diffs.join('; ') };
+  },
 };
+
+const STALL_RE = /se me enredaron los mensajes|me repites lo [úu]ltimo/i;
 
 export function runAssertion(name, ctx, arg) {
   const fn = assertions[name];

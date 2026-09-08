@@ -1,0 +1,31 @@
+id: inf-02-mesa-de-yeguas
+title: 'Santiago 4-sep: Mesa de Yeguas (municipio): orden, conocimiento, sin stalls'
+category: informe-cliente / inventario
+seed_failure:
+  wa_id: '573117360736'
+  observed_at: '2026-09-04'
+  symptom: |
+    Card antes de pedir fechas; "las otras casas son de máximo 8" (falso, hay 4 para 15);
+    4 veces "se me enredaron los mensajes" seguidas.
+turns:
+  - user: 'Hola, estoy buscando una casa hermosa en mesa de yeguas'
+    assert:
+      - bot_replied: true
+      - not_contains: '💰'
+      - contains_any: ['fechas', 'personas']
+  - user: '12 al 18 octubre, 15 personas'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - state_equals: OFFERING
+      - contains_any: ['MESA DE YEGUAS', 'Mesa de Yeguas', 'ANAPOIMA_#03']
+  - user: 'Envíame opciones para 8 en mesa de yeguas'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains_any: ['MESA DE YEGUAS', 'Mesa de Yeguas']
+  - user: 'Que fincas tiene en Mesa de yeguas? Para 6 personas'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains_any: ['MESA DE YEGUAS', 'Mesa de Yeguas']

@@ -1,0 +1,48 @@
+id: inf-01-min-noches-cambio-criterios-docx
+title: 'Luis 28/30-ago: mínimo 5 noches, cambio a 12 px / 23-26 dic, docx correcto'
+category: informe-cliente / integridad de reserva
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-08-28 / 2026-08-30'
+  symptom: |
+    Dijo "mínimo 5 noches" y luego cotizó 2 noches. El cambio a 12 personas /
+    23-26 dic nunca se persistió y el documento salió 3 veces con 22 px y 31 dic–2 ene.
+turns:
+  - user: 'Buenos días, quería preguntar por una finca para año nuevo'
+    assert:
+      - bot_replied: true
+  - user: 'Sería para las fechas 31 dic-2 ene, 22 personas cercano a Bogotá'
+    assert:
+      - bot_replied: true
+      - contains_any: ['5 noches', 'cinco noches', 'mínimo']
+      - not_contains: '💰'
+  - user: 'No me ha llegado ninguna, si podríamos las cinco noches'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: '2 noches'
+  - user: 'Del 30 de diciembre al 4 de enero entonces'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - criteria_equals: { fecha_inicio: '2026-12-30', fecha_fin: '2027-01-04', personas: 22 }
+  - user: 'La mesa 07 me gusta, dame el precio'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: '2 noches'
+      - contains: '5 noches'
+  - user: 'Cambiamos de opinion. Queremos una finca para 23-26 dic, para 12 personas, finalmente unos familiares se bajaron del bus'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - criteria_equals: { fecha_inicio: '2026-12-23', fecha_fin: '2026-12-26', personas: 12 }
+  - user: 'Lm04 me gustó, si continuemos'
+    assert:
+      - bot_replied: true
+      - not_contains: '22 personas'
+      - state_equals: CONFIRMING_RESERVATION
+  - user: 'Luis fajardo, CC 79628410, 3112407139, andretti210@hotmail.com, Car 31#84-20'
+    assert:
+      - bot_replied: true
+      - docx_payload: { property_code: 'LA_MESA_#04', huespedes: 12, fecha_inicio: '2026-12-23', fecha_fin: '2026-12-26', noches: 3 }

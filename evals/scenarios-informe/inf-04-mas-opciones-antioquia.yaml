@@ -1,0 +1,19 @@
+id: inf-04-mas-opciones-antioquia
+title: 'Luis 2-sep: Antioquia 25 px → "enséñame otras cercanas a Medellín"'
+category: informe-cliente / más opciones
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-09-02'
+  symptom: '"Ya te mostré todas las opciones disponibles en Antioquia" tras 3 fincas; luego mostró 3 más.'
+turns:
+  - user: 'Buenas tardes, busco finca barata, 10-12 oct, 25 px, me gustaría cerca de medellin, en occidente estaría bien'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+      - contains: '💰'
+  - user: 'Tienes algo más? Enséñame otras cercanas a Medellín'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: 'Ya te mostré todas'
+      - contains: '💰'

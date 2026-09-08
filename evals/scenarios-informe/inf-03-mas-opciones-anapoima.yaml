@@ -1,0 +1,25 @@
+id: inf-03-mas-opciones-anapoima
+title: 'Santiago 31-ago: Anapoima año nuevo 12 px → "me envías más opciones"'
+category: informe-cliente / más opciones
+seed_failure:
+  wa_id: '573117360736'
+  observed_at: '2026-08-31'
+  symptom: '"Ya te mostré todas las opciones disponibles en Anapoima" con 49 fincas activas ≥ 12 px.'
+turns:
+  - user: 'Hola, estoy buscando casa en Anapoima del 29 diciembre al 3 enero, somos 12 personas'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+      - contains: '💰'
+  - user: 'Me envías más opciones'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: 'Ya te mostré todas'
+      - contains: '💰'
+  - user: 'Solo hay esas ?? No me gustan, muéstrame otras'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - not_contains: 'Ya te mostré todas'
+      - contains: '💰'

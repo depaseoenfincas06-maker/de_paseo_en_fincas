@@ -187,6 +187,37 @@ async function waitForTurnResponse(baseUrl, id, userText, baselineMsgCount) {
   };
 }
 
+const BURST_GAP_MS = 1500;
+
+// Documentos de confirmación enviados en este turno, decodificados desde la
+// URL `reservation-confirmation.(pdf|docx)?payload=<base64>` que el sender
+// guarda en messages.media_url. Best-effort: sin DB devuelve [].
+async function fetchDocxPayloads(conversationId, botMessages) {
+  const ids = (botMessages || []).map((m) => m.id).filter((v) => v != null);
+  if (!ids.length) return [];
+  try {
+    const { query } = await import('./db.mjs');
+    const res = await query(
+      `select media_url from public.messages
+        where conversation_id = $1 and id = any($2::uuid[]) and media_url ilike '%reservation-confirmation%'
+        order by created_at asc`,
+      [String(conversationId), ids.map(String)],
+    );
+    return res.rows
+      .map((r) => {
+        const m = String(r.media_url || '').match(/payload=([A-Za-z0-9_\-%=+/]+)/);
+        if (!m) return null;
+        try {
+          const raw = decodeURIComponent(m[1]).replace(/-/g, '+').replace(/_/g, '/');
+          return JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+        } catch { return null; }
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export async function runScenario(scenario, { baseUrl }) {
   if (!scenario || !Array.isArray(scenario.turns) || scenario.turns.length === 0) {
     throw new Error(`scenario ${scenario?.id || '(unknown)'} has no turns`);
@@ -202,10 +233,22 @@ export async function runScenario(scenario, { baseUrl }) {
 
   for (let i = 0; i < scenario.turns.length; i += 1) {
     const turn = scenario.turns[i];
-    const userText = String(turn.user || '');
+    // Ráfaga: `user` puede ser una lista → se envían todos con 1.5 s de
+    // separación (como un cliente que manda varios mensajes seguidos) y el
+    // turno se ancla en el ÚLTIMO mensaje de la ráfaga.
+    const burst = Array.isArray(turn.user) ? turn.user.map((t) => String(t || '')) : null;
+    const userText = burst ? burst[burst.length - 1] : String(turn.user || '');
     const turnStarted = Date.now();
+    const burstFirstIdx = baselineMsgCount;
 
-    await sendMessage(baseUrl, conversationId, userText);
+    if (burst) {
+      for (const t of burst) {
+        await sendMessage(baseUrl, conversationId, t);
+        await new Promise((r) => setTimeout(r, BURST_GAP_MS));
+      }
+    } else {
+      await sendMessage(baseUrl, conversationId, userText);
+    }
     const { snapshot, timedOut, outboundBaseline } = await waitForTurnResponse(
       baseUrl,
       conversationId,
@@ -216,10 +259,14 @@ export async function runScenario(scenario, { baseUrl }) {
     const ctx = buildAssertionContext({
       snapshot,
       turnIndex: i,
-      userText,
-      baselineMsgCount: outboundBaseline,  // <- anchor on THIS turn's inbound
+      userText: burst ? burst.join('\n') : userText,
+      // En ráfaga, las respuestas a los primeros mensajes llegan antes del
+      // INBOUND del último: se cuentan todas desde el primer envío.
+      baselineMsgCount: burst ? burstFirstIdx : outboundBaseline,  // <- anchor on THIS turn's inbound
       allBotTextSoFar,
     });
+    ctx.timed_out = timedOut;
+    ctx.docx_payloads = await fetchDocxPayloads(conversationId, ctx.bot_messages);
     allBotTextSoFar = ctx.all_bot_text;
     baselineMsgCount = (snapshot.messages || []).length;
 

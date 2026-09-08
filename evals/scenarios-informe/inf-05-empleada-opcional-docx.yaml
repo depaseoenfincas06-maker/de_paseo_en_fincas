@@ -1,0 +1,29 @@
+id: inf-05-empleada-opcional-docx
+title: 'Luis 2-sep: empleada opcional pedida en chat debe llegar al docx'
+category: informe-cliente / integridad de reserva
+seed_failure:
+  wa_id: '573112407139'
+  observed_at: '2026-09-02'
+  symptom: 'El bot cotizó 2 empleadas ($520.000) en chat, dijo "ya lo dejo anotado" y reenvió 4 veces el mismo documento sin empleada.'
+turns:
+  - user: 'Hola, busco finca en Santa Fe de Antioquia del 10 al 12 de octubre para 25 personas'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+  - user: 'Me gusta SANTAFE_#20, quiero reservarla'
+    assert:
+      - bot_replied: true
+      - state_equals: CONFIRMING_RESERVATION
+  - user: 'Luis Bernal, CC 798089679, 3112407139, andrebernal@gmail.com, Cra 31#84-20'
+    assert:
+      - bot_replied: true
+      - docx_payload: { property_code: 'SANTAFE_#20', huespedes: 25, noches: 2, servicio_empleada_count: 0, total: 6020000 }
+  - user: 'Pregunta, quiero dos señoras de servicio los dos días, inclúyelas por favor'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains_any: ['520.000', '6.540.000']
+  - user: 'Ok adelante, genera la confirmación con las dos empleadas'
+    assert:
+      - bot_replied: true
+      - docx_payload: { property_code: 'SANTAFE_#20', huespedes: 25, servicio_empleada_count: 2, servicio_empleada_total: 520000, total: 6540000 }
