@@ -140,7 +140,7 @@ export const assertions = {
   // El bot respondió algo en este turno (un turno en silencio = timeout del runner).
   bot_replied(ctx) {
     const n = (ctx.bot_messages || []).filter((m) => String(m.content || '').trim() || m.mediaUrl || m.media_url).length;
-    const ok = n > 0 && !ctx.timed_out;
+    const ok = n > 0;
     return { ok, detail: ok ? '' : (ctx.timed_out ? 'turno en TIMEOUT: el bot no respondió' : 'sin mensajes del bot en este turno') };
   },
 

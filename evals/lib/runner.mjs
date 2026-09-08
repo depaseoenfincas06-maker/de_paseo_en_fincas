@@ -171,7 +171,9 @@ async function waitForTurnResponse(baseUrl, id, userText, baselineMsgCount) {
       const latestTs = new Date(newOutbound.at(-1).createdAt).getTime();
       if (latestTs > lastOutboundTs) lastOutboundTs = latestTs;
     }
-    const waitingForClient = String(snap.waitingFor || '').toUpperCase() === 'CLIENT';
+    // CLIENT_APPROVAL = el bot envió el documento y espera el OK del cliente: también es
+    // "esperando al cliente" (antes el runner esperaba 180 s y marcaba TIMEOUT).
+    const waitingForClient = ['CLIENT', 'CLIENT_APPROVAL'].includes(String(snap.waitingFor || '').toUpperCase());
     // Suprimir el "quiet done" si el último outbound sigue siendo un bridge:
     // significa que el bot marcó waitingFor=CLIENT prematuramente y el
     // offering async aún no ha llegado.

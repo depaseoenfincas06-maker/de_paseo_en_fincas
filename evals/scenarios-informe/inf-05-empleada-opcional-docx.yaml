@@ -22,8 +22,9 @@ turns:
     assert:
       - bot_replied: true
       - no_stall_fallback: true
-      - contains_any: ['520.000', '6.540.000']
-  - user: 'Ok adelante, genera la confirmación con las dos empleadas'
+      # el documento se regenera con las 2 empleadas (130.000 × 2 × 2 días = 520.000)
+      - docx_payload: { property_code: 'SANTAFE_#20', huespedes: 25, servicio_empleada_count: 2, servicio_empleada_total: 520000, total: 6540000 }
+  - user: 'Sí, con las dos empleadas está bien. OK'
     assert:
       - bot_replied: true
-      - docx_payload: { property_code: 'SANTAFE_#20', huespedes: 25, servicio_empleada_count: 2, servicio_empleada_total: 520000, total: 6540000 }
+      - state_equals: HITL

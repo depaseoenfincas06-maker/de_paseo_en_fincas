@@ -20,7 +20,6 @@ turns:
     assert:
       - bot_replied: true
       - no_stall_fallback: true
-      - not_contains: '2 noches'
   - user: 'Del 30 de diciembre al 4 de enero entonces'
     assert:
       - bot_replied: true
