@@ -86,6 +86,27 @@ if (m) {
   // (p.ej. la vio en una búsqueda anterior de otra zona). La salida del LLM se respeta.
   mode = 'hydrate';
   input = { operation: 'get_finca_details', finca_id: to.finca_elegida_id || (to.selected_finca && to.selected_finca.finca_id) || '' };
+} else {
+  // rev 5: el cliente nombró una finca por código que NO está entre las cards del LLM
+  // ("dice la mesa 11, esa me gusta") → hidratar el cache con esa finca (BIT resuelve el
+  // sufijo) para que el guardrail de Finalize pueda hablar de ella con datos reales.
+  let _msg = '';
+  try { _msg = String($('Merge Sets1').first().json['last-message'] || '').normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { _msg = ''; }
+  const _cm = _msg.match(/\b([A-ZÑ_]{3,})[\s_#-]{0,3}(\d{1,3})\b/i);
+  if (_cm) {
+    const _zt = _cm[1].toUpperCase().replace(/_$/, '').replace(/\s+/g, '_');
+    const _ZONES = ['ANAPOIMA','VILLETA','GIRARDOT','MELGAR','SANTAFE','SOPETRAN','PEREIRA','QUINDIO','MESA','LA_MESA','VEGA','LA_VEGA','VILLAVICENCIO','CARMEN','APICALA','CARMEN_DE_APICALA','JERONIMO','SAN_JERONIMO','ARBELAEZ','GUATAPE','YEGUAS','MESITAS','RICAURTE'];
+    if (_ZONES.some((t) => _zt === t || _zt.endsWith('_' + t))) {
+      const _num = String(parseInt(_cm[2], 10));
+      const _key = (_zt + _num).replace(/[^A-Z0-9]/g, '');
+      const _shown = (Array.isArray(to.fincas_mostradas) ? to.fincas_mostradas : []).map((f) => String((f && (f.finca_id || f.codigo_original)) || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
+      const _isShown = _shown.some((id) => { const k = id.replace(/[^A-Z0-9]/g, '').replace(/([A-Z]+)0+(\d)/, '$1$2'); return k === _key || k.endsWith(_key); });
+      if (!_isShown) {
+        mode = 'hydrate';
+        input = { operation: 'get_finca_details', finca_id: _zt + '_#' + String(_cm[2]).padStart(2, '0'), query: _cm[0] };
+      }
+    }
+  }
 }
 // rev 3: si el LLM nombró una finca concreta, la operación correcta es get_finca_details
 // (una lista con finca_id la excluye por capacidad y termina en "no disponible").
@@ -116,6 +137,10 @@ for (const k of ALLOWED) {
   if (v === undefined || v === null || String(v).trim() === '') continue;
   item[k] = v;
 }
+if (mode === 'narrated' && !Object.keys(input).length) {
+  // rev 5: el IF disparó por código nombrado pero Build no construyó input → passthrough.
+  return [{ json: { wa_id: waId, _deterministic_tool_call: true, _mode: 'skip', _wrap_output: wrap.output, _tool_chosen: parsed.tool_chosen || 'offering_agent', _narrated_input: {}, operation: 'get_finca_details', finca_id: '__SKIP__' } }];
+}
 if (!item.operation) item.operation = 'list_matching_fincas';
 if (!item.shown_fincas_json && item.operation === 'list_matching_fincas') item.shown_fincas_json = JSON.stringify(shown);
 if (!item.context_fecha_inicio && sc.fecha_inicio) item.context_fecha_inicio = sc.fecha_inicio;
@@ -132,7 +157,7 @@ SYNTH_CODE = r"""// P1.2 (8-sep-2026): convierte la respuesta del tool (ejecutad
 const resp = $json || {};
 let meta = {};
 try { meta = $('Build deterministic tool input').first().json || {}; } catch (e) { meta = {}; }
-if (meta._mode === 'hydrate') {
+if (meta._mode === 'hydrate' || meta._mode === 'skip') {
   // rev 3: solo hidratamos el cache; la salida original del LLM sigue intacta.
   console.log('[P1.2] hydrate: cache actualizado para ' + String((meta._narrated_input || {}).finca_id || ''));
   return [{ json: { output: meta._wrap_output || '{}' } }];
@@ -252,7 +277,15 @@ return [{
 IF_EXPR = ("={{ (function(){ try { var o = JSON.parse($json.output || '{}'); var t = (o && o.tool_output && typeof o.tool_output === 'object') ? o.tool_output : {}; "
            "if (/^\\s*Calling\\s+inventory_reader_tool\\s+with\\s+input:/i.test(String(t._raw || ''))) return true; "
            "if (t.intent === 'CLIENT_CHOSE' && (t.finca_elegida_id || (t.selected_finca && t.selected_finca.finca_id))) return true; "
-           "return t.operation !== undefined && t.intent === undefined && t.respuesta === undefined; } "
+           "if (t.operation !== undefined && t.intent === undefined && t.respuesta === undefined) return true; "
+           "var msg = ''; try { msg = String($('Merge Sets1').first().json['last-message'] || '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { msg = ''; } "
+           "var cm = msg.match(/\\b([A-ZÑ_]{3,})[\\s_#-]{0,3}(\\d{1,3})\\b/i); if (!cm) return false; "
+           "var zt = cm[1].toUpperCase().replace(/_$/, '').replace(/\\s+/g, '_'); "
+           "var Z = ['ANAPOIMA','VILLETA','GIRARDOT','MELGAR','SANTAFE','SOPETRAN','PEREIRA','QUINDIO','MESA','LA_MESA','VEGA','LA_VEGA','VILLAVICENCIO','CARMEN','APICALA','CARMEN_DE_APICALA','JERONIMO','SAN_JERONIMO','ARBELAEZ','GUATAPE','YEGUAS','MESITAS','RICAURTE']; "
+           "if (!Z.some(function (x) { return zt === x || zt.slice(-x.length - 1) === '_' + x; })) return false; "
+           "var key = (zt + String(parseInt(cm[2], 10))).replace(/[^A-Z0-9]/g, ''); "
+           "var shown = (Array.isArray(t.fincas_mostradas) ? t.fincas_mostradas : []).map(function (f) { return String((f && (f.finca_id || f.codigo_original)) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/([A-Z]+)0+(\\d)/, '$1$2'); }); "
+           "return !shown.some(function (k) { return k === key || k.slice(-key.length) === key; }); } "
            "catch (e) { return false; } })() }}")
 
 if IF_NAME in names:
@@ -260,7 +293,7 @@ if IF_NAME in names:
     node(wf, IF_NAME)['parameters']['conditions']['conditions'][0]['leftValue'] = IF_EXPR
     node(wf, BUILD_NAME)['parameters']['jsCode'] = BUILD_CODE
     node(wf, SYNTH_NAME)['parameters']['jsCode'] = SYNTH_CODE
-    applied.append('P1.2: nodos existentes actualizados (rev 3: input parseado + hydrate en CLIENT_CHOSE + finca_id→details)')
+    applied.append('P1.2: nodos existentes actualizados (rev 5: + hydrate por código nombrado en el mensaje)')
 else:
     wrap_off = node(wf, 'Wrap offering result')
     wrap_qa = node(wf, 'Wrap qa result')
