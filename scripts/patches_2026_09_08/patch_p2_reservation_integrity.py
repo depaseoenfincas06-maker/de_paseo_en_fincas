@@ -292,6 +292,48 @@ P22_BLOCK = r"""// === /P1.3 ===
         }
       }
     }
+    // (c) rev 4: el cliente pide el precio/total de una finca por código y el LLM no dio
+    // ningún total (p.ej. respondió con cards) → desglose determinístico desde el quote.
+    var _msgN = _stripAccentsLower(_lastClientMessage());
+    var _asksPrice = /(total|precio|vale|cuesta|cotiza|tarifa|cuanto)/.test(_msgN);
+    if (_asksPrice && !/ser[íi]a\s*\$/i.test(String(toolOutputParsed.respuesta || ''))) {
+      var _codeRe = /\b([a-zñ]{3,}(?:[\s_]+(?:de|del)[\s_]+[a-zñ]{3,})?)[\s_#-]{0,3}(\d{1,3})\b/g;
+      var _cm; var _hit = null;
+      while ((_cm = _codeRe.exec(_msgN)) !== null && !_hit) {
+        var _tok = _cm[1].replace(/[\s_]+/g, ''); var _num = String(Number(_cm[2]));
+        if (/^(personas?|noches?|px|pax|adultos?|dias?|habitaciones?)$/.test(_tok)) continue;
+        var _keys = Object.keys(_idx);
+        for (var _ki = 0; _ki < _keys.length; _ki++) {
+          var _kn = _stripAccentsLower(_keys[_ki]).replace(/[\s_#-]+/g, '');
+          var _kNum = (_kn.match(/(\d{1,3})$/) || [])[1];
+          if (_kNum && String(Number(_kNum)) === _num && _kn.indexOf(_tok) >= 0) { _hit = _idx[_keys[_ki]]; break; }
+        }
+      }
+      if (_hit && _hit.quote && Number(_hit.quote.total) > 0) {
+        var _hq = _hit.quote; var _hcode = _hit.codigo_original || _hit.finca_id; var _hcap = Number(_hit.capacidad_max) || 0;
+        var _hp = Number(_hq.personas) || _personas || 0;
+        var _fmt2 = function (v) { return '$' + Math.round(Number(v || 0)).toLocaleString('es-CO'); };
+        var _txt;
+        if (_hcap > 0 && _hp > _hcap) {
+          _txt = _hcode + ' tiene capacidad máxima para ' + _hcap + ' personas, así que no alcanza para ' + _hp + '. Quieres que te busque opciones con cupo para ' + _hp + ' o ajustamos el grupo?';
+        } else if (_hq.below_minimum && Number(_hq.effective_min_noches) > 0) {
+          _txt = 'Para esas fechas el mínimo de estadía en ' + _hcode + ' es ' + _hq.effective_min_noches + ' noches. Si me confirmas fechas con al menos ' + _hq.effective_min_noches + ' noches te paso el valor exacto.';
+        } else {
+          var _hn = Number(_hq.total_nights) || 0; var _hnoches = _hn === 1 ? 'noche' : 'noches';
+          var _hl = ['Para ' + _hp + ' personas, ' + _hn + ' ' + _hnoches + ' en ' + _hcode + ' sería ' + _fmt2(_hq.total) + '.', '', 'Incluye:',
+            '• Alojamiento (' + _hn + ' ' + _hnoches + '): ' + _fmt2(_hq.subtotal_noches),
+            '• Depósito (100% reembolsable): ' + _fmt2(_hq.deposito_seguridad),
+            '• Limpieza final: ' + _fmt2(_hq.limpieza_final)];
+          if (Number(_hq.servicio_empleada_total) > 0) { var _hc = Number(_hq.servicio_empleada_count) || 1; _hl.push('• Servicio empleada (' + _hc + (_hc > 1 ? ' personas, ' : ' persona, ') + _hn + (_hn === 1 ? ' día' : ' días') + '): ' + _fmt2(_hq.servicio_empleada_total)); }
+          _hl.push('', 'Querés avanzar con esta finca?');
+          _txt = _hl.join('\n');
+        }
+        toolOutputParsed.respuesta = _txt;
+        if (toolOutputParsed.intent === 'SHOW_OPTIONS') { toolOutputParsed.intent = 'QUESTION'; toolOutputParsed.fincas_mostradas = []; }
+        if (parsed && typeof parsed === 'object') parsed.final_whatsapp_text = _txt;
+        console.log('[P2.2] total determinístico para finca nombrada: ' + _hcode);
+      }
+    }
   } catch (e) { console.error('[P2.2] ' + (e && e.message)); }
 })();
 // === /P2.2 ===
@@ -302,7 +344,7 @@ if '[P2.2] CLIENT_CHOSE bloqueado' in code:
     if not _pat2.search(code): raise SystemExit('!! bloque P2.2 no encontrado para actualizar')
     _body = P22_BLOCK[P22_BLOCK.index('// === P2.2 (8-sep-2026)'): P22_BLOCK.index('// === /P2.2 ===') + len('// === /P2.2 ===\n')]
     code = _pat2.sub(lambda _m: _body, code, count=1)
-    applied.append('P2.2 guard: actualizado (rev 3: total del LLM = quote)')
+    applied.append('P2.2 guard: actualizado (rev 4: total del LLM = quote; total determinístico para finca nombrada)')
 else:
     code = replace_once(code, P22_ANCHOR, P22_BLOCK, 'P2.2 guard')
     applied.append('P2.2 CJS1: guard capacidad / mínimo de noches')
