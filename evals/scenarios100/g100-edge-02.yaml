@@ -3,7 +3,7 @@ title: 'Finca inactiva nombrada → honesto sin ''no existe'''
 category: g100 / edge
 
 turns:
-  - user: 'Hola, busco finca en Antioquia para 50 personas del 25 al 27 de agosto de 2026'
+  - user: 'Hola, busco finca en Antioquia para 50 personas del 27 al 29 de octubre de 2026'
     assert:
       - state_equals: OFFERING
 

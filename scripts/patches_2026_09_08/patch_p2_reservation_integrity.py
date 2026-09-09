@@ -74,6 +74,8 @@ function _extractCriteriaFromMessage(text) {
     var endYear = mon2 < mon1 ? year + 1 : year;
     var end = endYear + '-' + pad(mon2) + '-' + pad(d2);
     if (!m[5] && start < today) { start = (year + 1) + start.slice(4); end = (endYear + 1) + end.slice(4); }
+    // rev 2: con año explícito en el pasado NO se persiste (el LLM pedirá fechas nuevas).
+    if (start < today) continue;
     var nights = daysBetweenIsoDates(start, end);
     if (!Number.isFinite(nights) || nights < 1 || nights > 30) continue;
     best = { fecha_inicio: start, fecha_fin: end };
@@ -124,7 +126,13 @@ function _resolveFincaForExtras(raw, toolOutput) {
 
 function normalizePostActions(parsed, toolOutput) {"""
 if '_extractCriteriaFromMessage' in code:
-    applied.append('P2 helpers: already')
+    # rev 2: reemplazar el bloque de helpers completo por la versión actual (marcadores === P2 helpers ... === /P2 helpers ===)
+    import re as _re
+    _pat = _re.compile(r"// === P2 helpers \(8-sep-2026\).*?// === /P2 helpers ===\n\n", _re.S)
+    if not _pat.search(code): raise SystemExit('!! bloque P2 helpers no encontrado para actualizar')
+    _new_helpers = HELPERS[: HELPERS.index('function normalizePostActions(parsed, toolOutput) {')]
+    code = _pat.sub(lambda _m: _new_helpers, code, count=1)
+    applied.append('P2 helpers: actualizados (rev 2: fechas pasadas no se persisten)')
 else:
     code = replace_once(code, HELPERS_ANCHOR, HELPERS, 'P2 helpers')
     applied.append('P2 helpers: extractor fechas/personas + empleada')

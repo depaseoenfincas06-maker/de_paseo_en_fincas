@@ -1,23 +1,23 @@
-id: g100-price-27-la-vega-01
-title: 'Precio exacto LA_VEGA_#_01 — 10 px, 2 noches estándar'
+id: g100-price-27-melgar03
+title: 'Precio exacto MELGAR03 — 8 px, 2 noches estándar'
 category: g100 / pricing
 
-# Sheet: base=$1.600.000, extra=$160.000, cap 10/20,
+# Sheet: base=$1.600.000, extra=$110.000, cap 8/15,
 # dep=$300.000, limp=$120.000, extras=0
 # TOTAL esperado: $3.620.000
 
 turns:
-  - user: 'Hola, busco finca en La Vega para 10 personas del 25 al 27 de agosto de 2026'
+  - user: 'Hola, busco finca en Melgar para 8 personas del 27 al 29 de octubre de 2026'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'De LA_VEGA_#_01 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+  - user: 'De MELGAR03 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
     assert:
       - not_contains: 'te paso con mi compañero'
       - contains: '$'
-      - bot_recognized_finca: 'LA_VEGA_#_01'
+      - bot_recognized_finca: 'MELGAR03'
       - contains_any:
           - '3.620.000'
           - '3,620,000'

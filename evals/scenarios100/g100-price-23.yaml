@@ -1,23 +1,23 @@
-id: g100-price-23-la-mesa-11
-title: 'Precio exacto LA_MESA_#11 — 4 px, 2 noches estándar'
+id: g100-price-23-la-vega-02
+title: 'Precio exacto LA_VEGA_#02 — 8 px, 2 noches estándar'
 category: g100 / pricing
 
-# Sheet: base=$600.000, extra=$150.000, cap 4/12,
+# Sheet: base=$1.600.000, extra=$200.000, cap 8/14,
 # dep=$300.000, limp=$120.000, extras=0
-# TOTAL esperado: $1.620.000
+# TOTAL esperado: $3.620.000
 
 turns:
-  - user: 'Hola, busco finca en La Mesa para 4 personas del 25 al 27 de agosto de 2026'
+  - user: 'Hola, busco finca en La Vega para 8 personas del 27 al 29 de octubre de 2026'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'De LA_MESA_#11 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+  - user: 'De LA_VEGA_#02 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
     assert:
       - not_contains: 'te paso con mi compañero'
       - contains: '$'
-      - bot_recognized_finca: 'LA_MESA_#11'
+      - bot_recognized_finca: 'LA_VEGA_#02'
       - contains_any:
-          - '1.620.000'
-          - '1,620,000'
+          - '3.620.000'
+          - '3,620,000'

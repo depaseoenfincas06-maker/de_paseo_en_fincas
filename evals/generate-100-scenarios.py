@@ -22,8 +22,8 @@ CSV = '/tmp/fincas.csv'
 OUT = os.path.join(os.path.dirname(__file__), 'scenarios100')
 os.makedirs(OUT, exist_ok=True)
 
-# Fechas de test: 25-27 ago 2026 (mar→jue, 2 noches estándar, sin festivo/puente)
-FECHA_TXT = 'del 25 al 27 de agosto de 2026'
+# Fechas de test: 27-29 oct 2026 (mar→jue, 2 noches estándar, sin festivo/puente). Sep-2026: las de agosto quedaron en el pasado.
+FECHA_TXT = 'del 27 al 29 de octubre de 2026'
 NIGHTS = 2
 
 def strip_accents(s):
@@ -417,11 +417,11 @@ edges.append(("zona-inexistente", "Zona sin cobertura → honesto + alternativas
      ["- not_contains: 'te paso con mi compañero'", "- contains_any:\n          - 'no'\n          - 'zona'\n          - 'alternativa'\n          - 'manejamos'\n          - 'opciones'"]),
 ]))
 edges.append(("fechas-largas", "Estadía larga 5 noches", [
-    ("Hola, busco finca en Anapoima para 10 personas del 24 al 29 de agosto de 2026",
+    ("Hola, busco finca en Anapoima para 10 personas del 26 al 31 de octubre de 2026",
      ["- state_equals: OFFERING", "- not_contains: 'te paso con mi compañero'"]),
 ]))
 edges.append(("una-noche", "1 sola noche", [
-    ("Hola, busco finca en Girardot para 8 personas del 25 al 26 de agosto de 2026",
+    ("Hola, busco finca en Girardot para 8 personas del 27 al 28 de octubre de 2026",
      ["- not_contains: 'te paso con mi compañero'"]),
 ]))
 edges.append(("mascotas-filtro", "Filtro pet friendly", [

@@ -1,23 +1,23 @@
-id: g100-price-36-pereira-28
-title: 'Precio exacto PEREIRA_#28 — 20 px, 2 noches estándar'
+id: g100-price-36-santafe-02
+title: 'Precio exacto SANTAFE_#02 — 30 px, 2 noches estándar'
 category: g100 / pricing
 
-# Sheet: base=$2.000.000, extra=$100.000, cap 20/45,
-# dep=$300.000, limp=$120.000, extras=0
-# TOTAL esperado: $4.420.000
+# Sheet: base=$3.600.000, extra=$120.000, cap 30/70,
+# dep=$300.000, limp=$120.000, extras=0 (incluye 3 empleada(s) obligatoria(s): $780.000)
+# TOTAL esperado: $8.400.000
 
 turns:
-  - user: 'Hola, busco finca en el Eje Cafetero para 20 personas del 25 al 27 de agosto de 2026'
+  - user: 'Hola, busco finca en Antioquia para 30 personas del 27 al 29 de octubre de 2026'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'De PEREIRA_#28 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
+  - user: 'De SANTAFE_#02 dame el total ya sumado con todo incluido (las 2 noches, depósito y limpieza), no me des solo el desglose'
     assert:
       - not_contains: 'te paso con mi compañero'
       - contains: '$'
-      - bot_recognized_finca: 'PEREIRA_#28'
+      - bot_recognized_finca: 'SANTAFE_#02'
       - contains_any:
-          - '4.420.000'
-          - '4,420,000'
+          - '8.400.000'
+          - '8,400,000'

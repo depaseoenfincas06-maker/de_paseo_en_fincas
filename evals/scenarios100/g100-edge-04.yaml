@@ -11,6 +11,6 @@ turns:
     assert:
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'Busco finca en Girardot para 8 personas del 25 al 27 de agosto de 2026'
+  - user: 'Busco finca en Girardot para 8 personas del 27 al 29 de octubre de 2026'
     assert:
       - state_equals: OFFERING
