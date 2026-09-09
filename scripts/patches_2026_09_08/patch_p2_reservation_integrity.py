@@ -381,6 +381,61 @@ else:
     code = replace_once(code, DOC_HASH_ANCHOR, DOC_HASH_BLOCK, 'P2.4 docx hash')
     applied.append('P2.4 docx: sin reenvío idéntico (hash)')
 
+# ------------------------------------------------------------------ rev 2 (F3/F4)
+# F3: la finca elegida se persiste HIDRATADA desde el cache (ficha completa con quote), y el
+#     docx cae al selected_finca persistido si el LLM no lo repite en el turno.
+CHOSE_OLD = "      raw.selected_finca_id ||= toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id || '__IGNORE__';\n      raw.selected_finca ||= toolOutput.selected_finca || '__IGNORE__';"
+CHOSE_NEW = """      raw.selected_finca_id ||= toolOutput.finca_elegida_id || toolOutput.selected_finca?.finca_id || '__IGNORE__';
+      // P2 rev 2 (8-sep-2026): persistir la ficha COMPLETA desde el cache (el LLM emite un objeto parcial).
+      raw.selected_finca ||= (function () {
+        try {
+          var _partial = (toolOutput.selected_finca && typeof toolOutput.selected_finca === 'object') ? toolOutput.selected_finca : { finca_id: toolOutput.finca_elegida_id };
+          var _full = _rehydrateFinca(_partial, _bitFincaIndex());
+          return (_full && typeof _full === 'object' && _full.finca_id) ? _full : (toolOutput.selected_finca || '__IGNORE__');
+        } catch (e) { return toolOutput.selected_finca || '__IGNORE__'; }
+      })();"""
+if 'P2 rev 2 (8-sep-2026): persistir la ficha COMPLETA' in code:
+    applied.append('P2 rev2 selected_finca hidratada: already')
+else:
+    code = replace_once(code, CHOSE_OLD, CHOSE_NEW, 'P2 rev2 selected_finca')
+    applied.append('P2 rev2: selected_finca persistida hidratada')
+
+SEL_OLD = """  const selectedFinca = (function() {
+    var sf = (toolOutputParsed && toolOutputParsed.selected_finca && typeof toolOutputParsed.selected_finca === 'object') ? toolOutputParsed.selected_finca : null;
+    return sf ? _rehydrateFinca(sf, _bitIndex) : null;
+  })();"""
+SEL_NEW = """  const selectedFinca = (function() {
+    var sf = (toolOutputParsed && toolOutputParsed.selected_finca && typeof toolOutputParsed.selected_finca === 'object') ? toolOutputParsed.selected_finca : null;
+    if (sf) return _rehydrateFinca(sf, _bitIndex);
+    // P2 rev 2 (8-sep-2026): si el LLM no repite la finca en este turno, usar la persistida.
+    try {
+      var _ctx = $('Get Context-conversations1').first().json || {};
+      var _psf = (_ctx.selected_finca && typeof _ctx.selected_finca === 'object') ? _ctx.selected_finca : (_ctx.selected_finca_id ? { finca_id: _ctx.selected_finca_id } : null);
+      return _psf ? _rehydrateFinca(_psf, _bitIndex) : null;
+    } catch (e) { return null; }
+  })();"""
+if 'P2 rev 2 (8-sep-2026): si el LLM no repite la finca' in code:
+    applied.append('P2 rev2 selectedFinca fallback: already')
+else:
+    code = replace_once(code, SEL_OLD, SEL_NEW, 'P2 rev2 selectedFinca fallback')
+    applied.append('P2 rev2: docx usa selected_finca persistida como fallback')
+
+# F4: confirmation_data_update con nulls del LLM no borra los datos ya recogidos.
+CD_OLD = "  var confirmData = toolOutputParsed.confirmation_data_update || {};"
+CD_NEW = """  var confirmData = (function () {
+    // P2 rev 2 (8-sep-2026): el LLM a veces emite {nombre_completo: null, ...}; los null NO
+    // deben pisar los datos ya recogidos (antes: "necesito nombre, documento, correo…" en loop).
+    var src = toolOutputParsed.confirmation_data_update || {};
+    var o = {};
+    for (var k in src) { var v = src[k]; if (v != null && String(v).trim() !== '') o[k] = v; }
+    return o;
+  })();"""
+if 'P2 rev 2 (8-sep-2026): el LLM a veces emite {nombre_completo: null' in code:
+    applied.append('P2 rev2 confirmData compact: already')
+else:
+    code = replace_once(code, CD_OLD, CD_NEW, 'P2 rev2 confirmData')
+    applied.append('P2 rev2: confirmation_data_update sin nulls')
+
 cjs['parameters']['jsCode'] = code
 
 # ------------------------------------------------------------------ prompts

@@ -13,12 +13,41 @@ import path from 'node:path';
 import { query, close } from './lib/db.mjs';
 
 const waId = String(process.argv[2] || '').trim();
+const ARCHIVED = process.argv.includes('--archived');
 if (!waId) {
-  console.error('usage: node evals/extract-conversation.mjs <wa_id>');
+  console.error('usage: node evals/extract-conversation.mjs <wa_id> [--archived]');
+  console.error('  --archived: lista/dump de los snapshots guardados por el comando RESET (public.conversations_archive)');
   process.exit(1);
 }
 
+// --archived: los Reset del bot ya no pierden la conversación; cada snapshot
+// (conversación + mensajes + follow_on) queda en conversations_archive.
+async function dumpArchived() {
+  const res = await query(
+    `select id, archived_at, reason, conversation, messages, follow_on
+       from public.conversations_archive where wa_id = $1 order by archived_at asc`,
+    [waId],
+  );
+  const outDir = path.resolve('docs/evals/conversations');
+  fs.mkdirSync(outDir, { recursive: true });
+  if (!res.rows.length) { console.log(`sin snapshots archivados para ${waId}`); return; }
+  const md = [`# Snapshots archivados (RESET) — ${waId}`, ''];
+  for (const r of res.rows) {
+    const msgs = Array.isArray(r.messages) ? r.messages : [];
+    md.push(`## Snapshot ${r.id} — archivado ${new Date(r.archived_at).toLocaleString('sv-SE', { timeZone: 'America/Bogota' })} (${r.reason}) — estado ${r.conversation?.current_state || '?'} — ${msgs.length} mensajes`, '');
+    for (const m of msgs) {
+      const t = m.created_at ? new Date(m.created_at).toLocaleString('sv-SE', { timeZone: 'America/Bogota' }).slice(0, 16) : '';
+      md.push(`- **${t}** ${m.direction === 'INBOUND' ? '◀ CLIENTE' : '▶ BOT'}${m.agent_used ? ' (' + m.agent_used + ')' : ''}: ${String(m.content || '').replace(/\n/g, ' | ')}${m.media_url ? ' [media]' : ''}`);
+    }
+    md.push('');
+  }
+  fs.writeFileSync(path.join(outDir, `${waId}.archived.json`), JSON.stringify(res.rows, null, 2));
+  fs.writeFileSync(path.join(outDir, `${waId}.archived.md`), md.join('\n'));
+  console.log(`ok: ${res.rows.length} snapshot(s) → docs/evals/conversations/${waId}.archived.{json,md}`);
+}
+
 async function main() {
+  if (ARCHIVED) { await dumpArchived(); return; }
   const convRes = await query(
     `select * from public.conversations where wa_id = $1`,
     [waId],

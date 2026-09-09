@@ -75,10 +75,22 @@ const to = (parsed.tool_output && typeof parsed.tool_output === 'object') ? pars
 const raw = String(to._raw || '');
 const m = raw.match(/Calling\s+inventory_reader_tool\s+with\s+input:\s*(\{[\s\S]*\})\s*$/i);
 let input = {};
+let mode = 'narrated';
 if (m) {
   try { input = JSON.parse(m[1]); } catch (e) { input = {}; }
 } else if (to.operation !== undefined && to.intent === undefined && to.respuesta === undefined) {
   input = Object.assign({}, to);
+} else if (to.intent === 'CLIENT_CHOSE') {
+  // Modo HYDRATE (rev 3): el cliente eligió una finca; nos aseguramos de que su ficha
+  // COMPLETA (con quote) quede en el cache aunque no estuviera en la última búsqueda
+  // (p.ej. la vio en una búsqueda anterior de otra zona). La salida del LLM se respeta.
+  mode = 'hydrate';
+  input = { operation: 'get_finca_details', finca_id: to.finca_elegida_id || (to.selected_finca && to.selected_finca.finca_id) || '' };
+}
+// rev 3: si el LLM nombró una finca concreta, la operación correcta es get_finca_details
+// (una lista con finca_id la excluye por capacidad y termina en "no disponible").
+if (mode === 'narrated' && input.finca_id && String(input.finca_id).trim() && String(input.operation || '') !== 'get_owner_contact') {
+  input.operation = 'get_finca_details';
 }
 
 let ctx = {};
@@ -94,6 +106,8 @@ const ALLOWED = ['operation', 'finca_id', 'nombre', 'query', 'zona', 'personas',
 const item = {
   wa_id: waId,
   _deterministic_tool_call: true,
+  _mode: mode,
+  _wrap_output: wrap.output,
   _tool_chosen: parsed.tool_chosen || 'offering_agent',
   _narrated_input: input,
 };
@@ -118,6 +132,11 @@ SYNTH_CODE = r"""// P1.2 (8-sep-2026): convierte la respuesta del tool (ejecutad
 const resp = $json || {};
 let meta = {};
 try { meta = $('Build deterministic tool input').first().json || {}; } catch (e) { meta = {}; }
+if (meta._mode === 'hydrate') {
+  // rev 3: solo hidratamos el cache; la salida original del LLM sigue intacta.
+  console.log('[P1.2] hydrate: cache actualizado para ' + String((meta._narrated_input || {}).finca_id || ''));
+  return [{ json: { output: meta._wrap_output || '{}' } }];
+}
 const narrated = meta._narrated_input || {};
 let toolChosen = meta._tool_chosen || 'offering_agent';
 let ctxSC = {};
@@ -222,6 +241,7 @@ return [{
 
 IF_EXPR = ("={{ (function(){ try { var o = JSON.parse($json.output || '{}'); var t = (o && o.tool_output && typeof o.tool_output === 'object') ? o.tool_output : {}; "
            "if (/^\\s*Calling\\s+inventory_reader_tool\\s+with\\s+input:/i.test(String(t._raw || ''))) return true; "
+           "if (t.intent === 'CLIENT_CHOSE' && (t.finca_elegida_id || (t.selected_finca && t.selected_finca.finca_id))) return true; "
            "return t.operation !== undefined && t.intent === undefined && t.respuesta === undefined; } "
            "catch (e) { return false; } })() }}")
 
@@ -230,7 +250,7 @@ if IF_NAME in names:
     node(wf, IF_NAME)['parameters']['conditions']['conditions'][0]['leftValue'] = IF_EXPR
     node(wf, BUILD_NAME)['parameters']['jsCode'] = BUILD_CODE
     node(wf, SYNTH_NAME)['parameters']['jsCode'] = SYNTH_CODE
-    applied.append('P1.2: nodos existentes actualizados (rev 2: detecta input parseado)')
+    applied.append('P1.2: nodos existentes actualizados (rev 3: input parseado + hydrate en CLIENT_CHOSE + finca_id→details)')
 else:
     wrap_off = node(wf, 'Wrap offering result')
     wrap_qa = node(wf, 'Wrap qa result')
