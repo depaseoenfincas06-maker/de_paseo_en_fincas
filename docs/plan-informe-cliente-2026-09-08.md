@@ -41,74 +41,73 @@ Aserciones nuevas en `evals/lib/assertions.mjs`: `no_stall_fallback`, `criteria_
 ### Fase 0 — Forense y red de seguridad (sin tocar el agente)
 - [x] Tag + rama + backups + `scripts/n8n_backup.py` / `scripts/n8n_restore.py`.
 - [x] `evals/extract-chatwoot.mjs`: historial completo desde Chatwoot (sobrevive al Reset).
-- [ ] **Reset archiva en vez de borrar**: migración `conversations_archive` (snapshot jsonb de
+- [x] **Reset archiva en vez de borrar**: migración `conversations_archive` (snapshot jsonb de
       conversación + mensajes + follow_on) y nodo `Archive RESET conversation` antes de los
       DELETE. `extract-conversation.mjs --archived <wa_id>` lista los snapshots.
 - [ ] **Retención de ejecuciones n8n**: hoy ~48 h. Subir a 30 días
       (`EXECUTIONS_DATA_MAX_AGE=720`, `EXECUTIONS_DATA_PRUNE_MAX_COUNT=50000`) en el
       container de Coolify. **Requiere tu OK (cambio de infra + restart).**
-- [ ] Suite `evals/scenarios-informe/` + aserciones nuevas.
+- [x] Suite `evals/scenarios-informe/` + aserciones nuevas.
 
 ### Fase 1 — El tool de inventario nunca falla en silencio (19 % de los turnos hoy)
-- [ ] **P1.1** `inventory_reader_tool`: todos los `$fromAI` con default (`operation` →
+- [x] **P1.1** `inventory_reader_tool`: todos los `$fromAI` con default (`operation` →
       `list_matching_fincas`), elimina el error duro "Required at operation" (= bot mudo).
-- [ ] **P1.2** Ruta determinística para la "llamada narrada": si la salida del agente es
+- [x] **P1.2** Ruta determinística para la "llamada narrada": si la salida del agente es
       `Calling inventory_reader_tool with input: {...}`, `Wrap offering result` lo detecta,
       un nodo `Execute Workflow` ejecuta el tool con esos parámetros y `Synthesize offering
       from tool` arma SHOW_OPTIONS (cards + intro) sin volver al LLM. Mismo tratamiento en
       `Wrap qa result`. Cableado: la rama vuelve a entrar por `Refetch last_inventory_items`
       (respeta el invariante §1.8.6: Refetch en serie con passthrough).
-- [ ] **P1.3** "Más opciones" determinístico: si el mensaje pide más opciones y el LLM no
+- [x] **P1.3** "Más opciones" determinístico: si el mensaje pide más opciones y el LLM no
       emite `fincas_mostradas`, se sirven las 3 siguientes desde `cache_extra` (misma zona) o
       vía P1.2. BIT devuelve `remaining_count`; el prompt prohíbe "ya te mostré todas" si
       `remaining_count > 0` y, en código, se reemplaza esa frase cuando hay más.
 - Prueba: `inf-02/03/04/06` sin stalls.
 
 ### Fase 2 — Objeto de reserva único y validado (fechas, personas, extras, capacidad)
-- [ ] **P2.1** Extractor determinístico de fechas/personas en CodeJS1 (regex conservadoras:
+- [x] **P2.1** Extractor determinístico de fechas/personas en CodeJS1 (regex conservadoras:
       "23-26 dic", "del 12 al 18 de octubre", "12 personas / px / somos 12"). Si detecta un
       cambio, se persiste en `search_criteria` **aunque el LLM no emita
       `search_criteria_update`**, y se marca `criteria_changed_at`.
-- [ ] **P2.2** Invariantes antes de cotizar / elegir / generar docx (código, no prompt):
+- [x] **P2.2** Invariantes antes de cotizar / elegir / generar docx (código, no prompt):
       `personas ≤ capacidad_max` (si no: texto fijo con la capacidad y opciones, no entra a
       CONFIRMING), `noches ≥ mínimo de temporada` (si no: texto fijo pidiendo fechas, nunca
       un total), y el docx se arma desde `raw.search_criteria` ya actualizado (hoy usa el
       contexto viejo del inicio de la ejecución).
-- [ ] **P2.3** Extras opcionales como estado: `extras.servicio_empleada = {cantidad, dias,
+- [x] **P2.3** Extras opcionales como estado: `extras.servicio_empleada = {cantidad, dias,
       costo_dia, subtotal, solicitado}`; el LLM propone (`extras_update`), el código valida
       contra `servicio_empleada_valor_8h` del sheet y calcula; cotización y docx lo incluyen.
-- [ ] **P2.4** No reenviar el mismo documento: si el payload del docx no cambió, responde
+- [x] **P2.4** No reenviar el mismo documento: si el payload del docx no cambió, responde
       "el documento no cambió, dime qué ajusto" en vez de mandarlo otra vez; si cambió,
       `confirmacion_version++`.
 - Prueba: `inf-01`, `inf-05`, `inf-07`.
 
 ### Fase 3 — Follow-ups, handoff, leads perdidos, Mesa de Yeguas, orden, tarjeta
-- [ ] **P3.1** Follow-up: `followup_first_offset_minutes` 2 → 180 (**UPDATE en
+- [~] **P3.1** Follow-up (guardas desplegadas; falta el UPDATE del offset): `followup_first_offset_minutes` 2 → 180 (**UPDATE en
       `agent_settings`, requiere tu OK**) + guardas en `Select due follow-ups`: no enviar si
       el cliente escribió hace < 10 min, ni con menos de 30 min desde el último outbound, ni
       en HITL. Nombre de cliente que parece teléfono → template sin nombre.
-- [ ] **P3.2** Handoff real: al pasar a HITL o aprobar reserva, nota privada en Chatwoot con
+- [x] **P3.2** Handoff real: al pasar a HITL o aprobar reserva, nota privada en Chatwoot con
       resumen estructurado (finca, fechas, personas, total, extras, datos del cliente, último
       mensaje, motivo) + etiqueta `handoff`. En HITL el texto "te paso con mi compañero" se
       envía una sola vez; después "ya avisé a mi compañero, te escribe en breve" y sigue
       respondiendo preguntas factuales.
-- [ ] **P3.3** Notificación al asesor: `owner_test_mode_enabled` → false y
+- [ ] **P3.3** (pendiente de tu OK + número) Notificación al asesor: `owner_test_mode_enabled` → false y
       `selection_notification_recipients` → número del asesor (**necesito el número; UPDATE
       requiere tu OK**). El sender de propietarios (401, cuenta 1) queda como ítem aparte.
-- [ ] **P3.4** `Resolve thread policy`: si el `chatwoot_id` guardado no coincide y esa
+- [x] **P3.4** `Resolve thread policy`: si el `chatwoot_id` guardado no coincide y esa
       conversación lleva > 7 días sin actividad, adopta el nuevo id en vez de ignorar al
       cliente. Corrección puntual del lead Javier Plata (`chatwoot_id` 19 → 10, **UPDATE
       requiere tu OK**).
-- [ ] **P3.5** Mesa de Yeguas (municipio): alias de zona `mesa de yeguas` → target
+- [x] **P3.5** Mesa de Yeguas (municipio): alias de zona `mesa de yeguas` → target
       `mesa de yeguas`; el matcher compara también contra `nombre`/`finca_id` cuando el
       sheet aún no tiene `municipio = Mesa de Yeguas`; `Normalize Inventory` descarta
       amenidades con texto largo (basura en las 8 filas `MESA DE YEGUAS CASA APxx`).
       Recomendación de datos para el cliente: `municipio = Mesa de Yeguas` y IDs canónicos.
-- [ ] **P3.6** Orden: no se envían cards antes de tener fechas + personas (gate en código
+- [x] **P3.6** Orden: no se envían cards antes de tener fechas + personas (gate en código
       sobre la transición QUALIFYING → OFFERING), salvo que el cliente pregunte por una finca
       concreta por código.
-- [ ] **P3.7** Tarjeta de crédito 5 %: en `payment_methods_text` (settings, **tu OK**), en
-      el prompt de QA/confirming y en el texto del docx.
+- [x] **P3.7** Tarjeta de crédito 5 %: ya estaba en `payment_methods_text` ("Tarjeta Crédito/Débito/PSE (+5%)"); agregada la regla explícita en los prompts de QA y confirming.
 - Prueba: `inf-*` completa + `g100` completa + verificación manual de follow_on en DB
   (`scheduled_for - created_at ≥ 170 min`).
 
@@ -126,3 +125,18 @@ Aserciones nuevas en `evals/lib/assertions.mjs`: `no_stall_fallback`, `criteria_
 2. Número de WhatsApp del asesor que debe recibir "cliente eligió finca / aprobó reserva /
    pidió humano".
 3. OK para subir la retención de ejecuciones en Coolify (implica restart del container).
+
+## 4. Estado (9-sep-2026, madrugada)
+
+| Commit | Contenido |
+|---|---|
+| `c923177` | Fase 0: plan, backups/restore n8n, extractor Chatwoot, suite, migración reset-archive |
+| `4875dcf` | Fases 1+2: tool determinístico, más opciones desde cache, integridad de reserva |
+| `18e4992` | Fase 3: handoff con nota privada, follow-ups con guardas, chatwoot_id viejo, Mesa de Yeguas, orden, tarjeta 5 % |
+| `2a6c89b` | Fixes rev2/rev3 (hydrate en CLIENT_CHOSE, finca_id→details, selected_finca hidratada, confirmation_data sin nulls) |
+
+Desplegado en n8n (customer agent `2NV08zRFKENUsQVC` y follow-up sender `xxK2FfX6QMPxKaZw`);
+backups pre-cambio en `backups/n8n/*-20260908-18*.json`. Migración `conversations_archive` aplicada.
+
+Pendiente de JD: `node scripts/patches_2026_09_08/apply_settings_updates.mjs --apply --recipients=<número asesor>`
+(S1 offset 180, S2 test mode off, S3 destinatarios, S5 Javier Plata) y retención de ejecuciones en Coolify.
