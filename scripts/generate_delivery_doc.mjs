@@ -162,7 +162,10 @@ function bullet(text, ref = 'bullets') {
     : text.map((t) => new TextRun({ size: 20, color: C.dark, font: 'Arial', ...t }));
   return new Paragraph({ numbering: { reference: ref, level: 0 }, spacing: { after: 60 }, children: runs });
 }
-const step = (text) => bullet(text, 'steps');
+let _stepsRef = 0;
+function nextSteps() { _stepsRef += 1; return `steps${_stepsRef}`; }
+let _curSteps = nextSteps();
+const step = (text) => bullet(text, _curSteps);
 function pageBreak() { return new Paragraph({ children: [new PageBreak()] }); }
 
 // --- Build Document ---
@@ -195,15 +198,33 @@ sections.push({
 
 const content = [];
 
-// --- 1. Requisitos para operar en producción ---
-content.push(heading('1. Requisitos para operar en producción'));
-content.push(para('Antes del detalle técnico, lo que De Paseo en Fincas debe tener al día para que el asistente siga funcionando. El primer punto es urgente.'));
+// --- 1. Cuentas, tarjetas y responsables ---
+content.push(heading('1. Cuentas, tarjetas y responsables'));
+content.push(para('El asistente usa varios servicios de terceros. Algunos son gratuitos (software instalado en servidor propio); otros cobran por uso y necesitan una tarjeta vigente. Esta página resume dónde está cada cosa, a nombre de quién está hoy y qué debe hacer De Paseo en Fincas para que la operación quede a su nombre y no se detenga.'));
 content.push(spacer(100));
-content.push(infoBox('⚠️ Acción requerida esta semana: método de pago en Meta (WhatsApp Business)',
-  'En WhatsApp Manager, la cuenta "De Paseo En Fincas raaamp" muestra la alerta "Se requiere un método de pago válido: tu método de pago caducó o no es válido". Meta regala 1.000 conversaciones de servicio al mes; al agotarse, bloquea el envío y el asistente deja de responder. Además, los mensajes con plantilla (seguimientos después de 24 horas y avisos al asesor) se cobran por conversación y no salen sin un método de pago válido. Este mes van 163 mensajes, todos dentro de la cuota gratuita.',
-  C.bgOrange));
+content.push(infoBox('⚠️ Urgente', 'Meta (WhatsApp Business) muestra "método de pago vencido o no válido" en la cuenta "De Paseo En Fincas raaamp". Al agotar las 1.000 conversaciones gratuitas del mes el asistente deja de responder. Es el primer punto de la tabla y del paso a paso de la sección 2.', C.bgOrange));
 content.push(spacer(120));
-content.push(heading('Dónde agregar el método de pago', HeadingLevel.HEADING_2));
+content.push(table(['Servicio', 'Para qué', 'Cuenta hoy', 'Qué debe hacer De Paseo en Fincas', 'Costo aprox.'], [
+  ['Meta · WhatsApp Business (Cloud API)', 'La línea +1 201-701-8810 con la que el asistente habla con los clientes', 'Cuenta "De Paseo En Fincas raaamp" en Meta Business', 'Poner tarjeta vigente en WhatsApp Manager → Configuración de pagos (sección 2.1). Si el negocio en Meta está bajo raaamp, pedir a raaamp acceso de administrador o la transferencia de la cuenta', '1.000 conversaciones/mes gratis; después centavos de dólar por conversación (tarifas Meta Colombia)'],
+  ['Google Gemini (IA)', 'El modelo que redacta las respuestas', 'Clave de API creada por raaamp', 'Crear su propia clave en Google AI Studio con facturación de Google Cloud y su tarjeta (sección 2.2); raaamp la instala en n8n', 'Por uso: US$10 a 30/mes con el tráfico actual'],
+  ['OpenAI (transcripción de audios)', 'Convierte las notas de voz de los clientes en texto', 'Clave de API de raaamp', 'Crear cuenta en platform.openai.com, poner tarjeta y generar clave (sección 2.3); raaamp la instala', 'Menos de US$5/mes'],
+  ['Servidor Hetzner (n8n + Chatwoot)', 'Aloja n8n (automatización), Chatwoot (bandeja de WhatsApp) y el conversor de PDF. Servidor "n8n-depaseoenfincas-hetzner", 4 CPU / 8 GB / 75 GB', 'Cuenta Hetzner de raaamp', 'Opción A: raaamp lo factura mensualmente. Opción B: abrir cuenta propia en Hetzner con su tarjeta y raaamp transfiere el proyecto (sección 2.4)', 'Aprox. US$18/mes (plan CPX31)'],
+  ['n8n y Chatwoot (software)', 'Automatización y bandeja de mensajes, instalados en el servidor anterior', 'Instalación propia (versión gratuita)', 'Nada; no tienen licencia ni cobro', 'US$0'],
+  ['Supabase (base de datos)', 'Conversaciones, mensajes, configuración, archivo', 'Proyecto en cuenta de raaamp, plan gratuito (se pausa tras días sin uso)', 'Recomendado: plan Pro con su tarjeta, o transferir el proyecto a una organización propia (sección 2.5)', 'US$25/mes en Pro; US$0 en gratuito con riesgo de pausa'],
+  ['Vercel (panel de administración)', 'Panel web y generación del documento de confirmación', 'Proyecto conectado al GitHub de De Paseo en Fincas', 'Mantener el proyecto activo; si Vercel exige plan Pro por uso comercial, ponerle tarjeta (sección 2.6)', 'US$0 (Hobby) o US$20/mes (Pro)'],
+  ['Google Sheets / Drive', 'Inventario de fincas y fotos', 'Cuenta Google de De Paseo en Fincas', 'Nada; mantener el archivo al día', 'US$0'],
+  ['Dominio raaamp.co', 'Direcciones n8n.depaseoenfincas.raaamp.co y chat.depaseoenfincas.raaamp.co', 'Dominio de raaamp', 'Opcional: mover a subdominios de depaseoenfincas.com (raaamp configura DNS)', 'US$0'],
+], [1900, 2100, 1700, 2560, 1100]));
+content.push(spacer(100));
+content.push(para('Las cifras son estimaciones con el tráfico de hoy (163 mensajes de WhatsApp en el mes) y deben verificarse en cada proveedor. Ninguno de estos servicios se paga a raaamp salvo el servidor si se elige la opción A.', { color: C.mid, size: 20 }));
+
+// --- 2. Paso a paso ---
+content.push(pageBreak());
+content.push(heading('2. Paso a paso para poner la tarjeta en cada servicio'));
+content.push(para('Guía para el administrador de De Paseo en Fincas. En los servicios que hoy están a nombre de raaamp, el paso final es enviar la clave o el acceso a raaamp para que lo instale; nada se apaga durante el cambio.'));
+
+content.push(heading('2.1 Meta · WhatsApp Business (urgente)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
 content.push(para([{ text: 'Lo hace un administrador del negocio en Meta. ', bold: true }, { text: 'raaamp no tiene acceso a la facturación de la cuenta de De Paseo en Fincas.' }]));
 content.push(step([{ text: 'Entrar a ' }, { text: 'business.facebook.com', bold: true }, { text: ' con el usuario administrador del negocio "De Paseo En Fincas raaamp".' }]));
 content.push(step([{ text: 'Menú (☰) → Todas las herramientas → ' }, { text: 'WhatsApp Manager', bold: true }, { text: '. Alternativa: Configuración del negocio → Cuentas → Cuentas de WhatsApp.' }]));
@@ -212,20 +233,54 @@ content.push(step([{ text: 'Agregar método de pago', bold: true }, { text: ': t
 content.push(step('Verificar que la alerta desaparezca en "Información general". Al día siguiente, escribir "hola" a la línea del asistente y confirmar que responde.'));
 content.push(para([{ text: 'Ruta alternativa: ' }, { text: 'Configuración del negocio → Facturación y pagos → Métodos de pago', bold: true }, { text: ' (business.facebook.com/billing_hub).' }], { before: 80 }));
 content.push(para([{ text: 'Líneas de la cuenta: ', bold: true }, { text: 'la que atiende a los clientes es ' }, { text: '+1 201-701-8810', bold: true }, { text: '. La línea +57 310 5639334 está en la misma cuenta y depende del mismo método de pago.' }]));
+content.push(para([{ text: 'Ruta alternativa: ' }, { text: 'Configuración del negocio → Facturación y pagos → Métodos de pago', bold: true }, { text: ' (business.facebook.com/billing_hub).' }], { before: 80 }));
+content.push(para([{ text: 'Líneas de la cuenta: ', bold: true }, { text: 'la que atiende a los clientes es ' }, { text: '+1 201-701-8810', bold: true }, { text: '. La línea +57 310 5639334 está en la misma cuenta y depende del mismo método de pago.' }]));
+
+content.push(heading('2.2 Google Gemini (inteligencia artificial)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(step([{ text: 'Con la cuenta de Google de la empresa entrar a ' }, { text: 'aistudio.google.com/apikey', bold: true }, { text: ' y crear una clave de API ("Create API key") en un proyecto nuevo, por ejemplo "De Paseo en Fincas".' }]));
+content.push(step([{ text: 'Activar facturación en ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ': crear una cuenta de facturación con la tarjeta de la empresa y asociarla al proyecto. Sin facturación la clave queda en el nivel gratuito, con límites que el asistente supera en horas de tráfico.' }]));
+content.push(step('Enviar la clave a raaamp por un canal seguro (no por WhatsApp del cliente). raaamp la reemplaza en n8n y verifica con la suite de pruebas.'));
+content.push(step([{ text: 'Opcional: en ' }, { text: 'console.cloud.google.com/billing → Presupuestos y alertas', bold: true }, { text: ' poner un presupuesto mensual (por ejemplo US$50) para recibir aviso por correo.' }]));
+
+content.push(heading('2.3 OpenAI (transcripción de audios)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(step([{ text: 'Crear cuenta en ' }, { text: 'platform.openai.com', bold: true }, { text: ' con el correo de la empresa.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Settings → Billing → Payment methods', bold: true }, { text: ' agregar la tarjeta y cargar un saldo inicial (US$10 alcanza varios meses).' }]));
+content.push(step([{ text: 'En ' }, { text: 'API keys → Create new secret key', bold: true }, { text: ' generar la clave y enviarla a raaamp por un canal seguro; raaamp la instala en n8n.' }]));
+
+content.push(heading('2.4 Servidor Hetzner (n8n + Chatwoot)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(para([{ text: 'Opción A (más simple): ', bold: true }, { text: 'raaamp mantiene el servidor a su nombre y lo factura mensualmente a De Paseo en Fincas. No hay que hacer nada más.' }]));
+content.push(para([{ text: 'Opción B (a nombre del cliente):', bold: true }]));
+content.push(step([{ text: 'Crear cuenta en ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' con los datos de la empresa y poner la tarjeta en ' }, { text: 'Payment methods', bold: true }, { text: '.' }]));
+content.push(step('Avisar a raaamp el correo de la cuenta. raaamp transfiere el proyecto de Hetzner Cloud (servidor e IP incluidos) a esa cuenta; el servicio no se interrumpe.'));
+content.push(step('Desde ese momento la factura mensual llega a De Paseo en Fincas. raaamp conserva el acceso técnico para operar n8n y Chatwoot.'));
+
+content.push(heading('2.5 Supabase (base de datos)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(step([{ text: 'Crear cuenta en ' }, { text: 'supabase.com', bold: true }, { text: ' con el correo de la empresa y crear una organización "De Paseo en Fincas".' }]));
+content.push(step([{ text: 'En ' }, { text: 'Organization settings → Billing', bold: true }, { text: ' elegir el plan Pro (US$25/mes) y agregar la tarjeta. Con el plan gratuito el proyecto se pausa tras una semana sin actividad y el asistente deja de responder hasta reactivarlo a mano (ya ocurrió en junio).' }]));
+content.push(step('Avisar a raaamp: transfiere el proyecto actual (qoeigqytlyjnpvxacrht) a la organización nueva desde Project settings → General → Transfer project, sin pérdida de datos ni cambio de credenciales.'));
+
+content.push(heading('2.6 Vercel (panel de administración)', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(step([{ text: 'El proyecto está conectado al GitHub de De Paseo en Fincas (organización depaseoenfincas06-maker). En ' }, { text: 'vercel.com → Settings → Billing', bold: true }, { text: ' se agrega la tarjeta solo si Vercel exige el plan Pro; el uso actual cabe en el plan gratuito.' }]));
+
 content.push(spacer(120));
-content.push(heading('Checklist de operación', HeadingLevel.HEADING_2));
+content.push(heading('3. Checklist de operación'));
 content.push(table(['Qué', 'Quién', 'Dónde / cómo'], [
-  ['Método de pago de Meta vigente', 'De Paseo en Fincas', 'WhatsApp Manager → Configuración de pagos (ver arriba)'],
+  ['Método de pago de Meta vigente', 'De Paseo en Fincas', 'WhatsApp Manager → Configuración de pagos (sección 2.1)'],
   ['Plantillas de WhatsApp aprobadas (seguimientos fuera de 24 h, avisos al asesor)', 'De Paseo en Fincas', 'WhatsApp Manager → Plantillas de mensajes'],
   ['Número del asesor que recibe alertas', 'De Paseo en Fincas entrega, raaamp configura', 'Panel → Ajustes → números que reciben el aviso. Hasta tenerlo, las alertas por WhatsApp no llegan a nadie; la nota en Chatwoot sí queda'],
-  ['Inventario de fincas (Google Sheet) limpio y actualizado', 'De Paseo en Fincas', 'Ver sección 10: campos, reglas y ajustes pendientes'],
+  ['Inventario de fincas (Google Sheet) limpio y actualizado', 'De Paseo en Fincas', 'Ver sección 11: campos, reglas y ajustes pendientes'],
   ['Servidor, n8n, Chatwoot, base de datos y panel', 'raaamp', 'Coolify/Hetzner, Supabase y Vercel; incluye vigilancia automática y respaldo diario de errores'],
   ['Comando "Reset" en WhatsApp', 'Solo para pruebas', 'Reinicia la conversación del número que lo envía; el historial queda archivado'],
 ], [3000, 2300, 4060]));
 
 // --- 2. Resumen ejecutivo ---
 content.push(pageBreak());
-content.push(heading('2. Resumen Ejecutivo'));
+content.push(heading('4. Resumen Ejecutivo'));
 content.push(para('El asistente virtual atiende a los clientes de De Paseo en Fincas por WhatsApp las 24 horas: saluda, recoge fechas, número de personas y zona, busca en el inventario, muestra hasta 3 fincas con ficha y fotos, cotiza con precios calculados por el sistema según la temporada, captura la elección del cliente, recoge sus datos, genera el documento de confirmación de reserva y, cuando el cliente aprueba o pide hablar con una persona, deja el caso listo para el asesor humano en Chatwoot.'));
 content.push(spacer(100));
 content.push(para([
@@ -246,7 +301,7 @@ content.push(para('n8n y Chatwoot corren en un servidor propio (Coolify sobre He
 
 // --- 3. Customer journey ---
 content.push(spacer(200));
-content.push(heading('3. Customer Journey'));
+content.push(heading('5. Customer Journey'));
 content.push(para('Recorrido de un cliente desde el primer mensaje hasta que un asesor toma la reserva aprobada:'));
 content.push(spacer(80));
 content.push(flowDiagram([
@@ -260,7 +315,7 @@ content.push(flowDiagram([
 
 // --- 4. Etapas ---
 content.push(spacer(200));
-content.push(heading('4. Etapas del Pipeline'));
+content.push(heading('6. Etapas del Pipeline'));
 content.push(table(['Etapa', 'Qué hace el bot', 'Qué necesita del cliente', 'Resultado'], [
   ['QUALIFYING', 'Saluda y pide los datos mínimos. No muestra fincas sin fechas y personas.', 'Fechas, número de personas, zona', 'Criterios de búsqueda completos'],
   ['OFFERING', 'Busca en el inventario y muestra hasta 3 opciones con ficha, fotos y precio para las fechas. Ofrece más opciones, responde preguntas y cotiza.', 'Elegir una finca, pedir más opciones o ajustar criterios', 'Finca seleccionada'],
@@ -270,7 +325,7 @@ content.push(table(['Etapa', 'Qué hace el bot', 'Qué necesita del cliente', 'R
 
 // --- 5. Validación y reglas ---
 content.push(spacer(200));
-content.push(heading('5. Validación de mensajes y reglas garantizadas'));
+content.push(heading('7. Validación de mensajes y reglas garantizadas'));
 content.push(para('Cada mensaje pasa por un clasificador que decide cómo responder, y después por un conjunto de reglas en código que la IA no puede saltarse:'));
 content.push(spacer(80));
 content.push(table(['Clasificación', 'Cuándo se activa', 'Qué pasa'], [
@@ -293,7 +348,7 @@ content.push(table(['Regla', 'Qué garantiza'], [
 
 // --- 6. Precios ---
 content.push(pageBreak());
-content.push(heading('6. Cotización y precios'));
+content.push(heading('8. Cotización y precios'));
 content.push(para('El precio de cada finca se calcula noche por noche a partir del inventario y del calendario de temporadas configurado en el panel:'));
 content.push(spacer(80));
 content.push(table(['Componente', 'Cómo se calcula'], [
@@ -310,7 +365,7 @@ content.push(infoBox('📅 Temporadas y mínimos', 'Festivos y puentes: 2 noches
 
 // --- 7. Confirmación ---
 content.push(spacer(200));
-content.push(heading('7. Confirmación de reserva'));
+content.push(heading('9. Confirmación de reserva'));
 content.push(para('Cuando el cliente elige una finca, el asistente pide nombre completo, tipo y número de documento, celular, correo y dirección. Con los datos completos genera el documento de confirmación (PDF, con plantilla Word editable por el equipo) con la finca, las fechas, el número de personas, el desglose del precio, los extras y el anticipo del 50 %.'));
 content.push(spacer(80));
 content.push(flowDiagram([
@@ -325,14 +380,14 @@ content.push(para('Si el cliente cambia fechas, personas o extras antes de aprob
 
 // --- 8. Bienvenida ---
 content.push(spacer(200));
-content.push(heading('8. Mensaje inicial de bienvenida'));
+content.push(heading('10. Mensaje inicial de bienvenida'));
 content.push(para('Cuando un cliente escribe por primera vez, el asistente se presenta y pide los tres datos. El texto es editable desde el panel (Ajustes → "Primer mensaje de bienvenida"); las zonas de cobertura se agregan automáticamente al final.'));
 content.push(spacer(80));
 content.push(infoBox('📨 Mensaje de bienvenida actual', 'Mi nombre es Santiago Gallego de Depaseoenfincas.com, estaré al tanto de tu reserva.⚡  Para ayudarte a encontrar la finca ideal, por favor cuéntame: 1. Para qué fechas buscas? 2. Cuántas personas te acompañan? 3. En qué zona o municipio te gustaría?  Conócenos en Instagram: instagram.com/depaseoenfincascol', C.bgGreen));
 
 // --- 9. Inventario ---
 content.push(pageBreak());
-content.push(heading('9. Inventario de fincas (Google Sheet)'));
+content.push(heading('11. Inventario de fincas (Google Sheet)'));
 content.push(para('El asistente consulta el inventario en tiempo real. Solo entran las filas con activa = TRUE. Campos que usa:'));
 content.push(spacer(80));
 content.push(table(['Campo', 'Uso', 'Ejemplo'], [
@@ -353,7 +408,7 @@ content.push(infoBox('🧹 Ajustes de datos pendientes (los hace De Paseo en Fin
 
 // --- 10. Asesor ---
 content.push(spacer(200));
-content.push(heading('10. Aviso al equipo y paso al asesor'));
+content.push(heading('12. Aviso al equipo y paso al asesor'));
 content.push(para('El asistente pasa el caso a una persona cuando el cliente aprueba la confirmación, pide expresamente un humano, propone fecha de visita o muestra frustración. En ese momento:'));
 content.push(bullet('Deja una nota privada en la conversación de Chatwoot con el resumen: cliente y teléfono, finca, fechas, personas, total cotizado, extras, datos personales, último mensaje y motivo.'));
 content.push(bullet('Etiqueta la conversación como "handoff" o "reserva-aprobada" para filtrarla en la bandeja.'));
@@ -362,7 +417,7 @@ content.push(bullet('Dice al cliente una sola vez que lo pasa con un compañero 
 
 // --- 11. Follow-ups ---
 content.push(spacer(200));
-content.push(heading('11. Recordatorios automáticos (seguimientos)'));
+content.push(heading('13. Recordatorios automáticos (seguimientos)'));
 content.push(para('Si el cliente deja de responder, el sistema le escribe hasta 3 veces. El texto lo redacta la IA según la etapa dentro de las 24 horas de WhatsApp; después usa plantillas aprobadas por Meta.'));
 content.push(spacer(80));
 content.push(table(['Regla', 'Valor'], [
@@ -374,7 +429,7 @@ content.push(table(['Regla', 'Valor'], [
 
 // --- 12. Panel ---
 content.push(pageBreak());
-content.push(heading('12. Panel de administración'));
+content.push(heading('14. Panel de administración'));
 content.push(table(['Vista', 'Descripción', 'Uso principal'], [
   ['Simulador', 'Chat de prueba contra el bot real', 'Probar cambios antes de que los vea un cliente'],
   ['Monitoreo', 'Conversaciones con filtros, métricas y búsqueda', 'Seguimiento operativo diario'],
@@ -386,7 +441,7 @@ content.push(para('El panel está en Vercel y se abre desde cualquier navegador.
 
 // --- 13. Datos ---
 content.push(spacer(200));
-content.push(heading('13. Datos almacenados'));
+content.push(heading('15. Datos almacenados'));
 content.push(table(['Dónde', 'Qué guarda'], [
   ['conversations', 'Estado y contexto de cada lead: etapa, criterios, finca elegida, datos del cliente, extras, documento'],
   ['messages', 'Historial de mensajes con la etapa y el agente que respondió'],
@@ -398,7 +453,7 @@ content.push(table(['Dónde', 'Qué guarda'], [
 
 // --- 14. Zonas ---
 content.push(spacer(200));
-content.push(heading('14. Zonas de cobertura'));
+content.push(heading('16. Zonas de cobertura'));
 content.push(para('Editables desde el panel (Ajustes → Zonas de cobertura). Hoy:'));
 const zonas = ['Anapoima', 'Mesa de Yeguas', 'La Mesa', 'Villeta', 'La Vega', 'Girardot', 'Melgar', 'Arbeláez', 'Carmen de Apicalá', 'Eje Cafetero', 'Antioquia', 'Villavicencio'];
 const zonaRows = [];
@@ -409,7 +464,7 @@ content.push(para('"Cerca a Bogotá" y "cerca a Medellín" se entienden como gru
 
 // --- 15. Calidad ---
 content.push(spacer(200));
-content.push(heading('15. Calidad y vigilancia'));
+content.push(heading('17. Calidad y vigilancia'));
 content.push(table(['Mecanismo', 'Qué hace', 'Estado'], [
   ['Suite de 102 escenarios', 'Precios exactos por finca, zonas, flujos completos y casos límite contra el bot real', '101 de 102 en la última corrida completa; el restante corregido y verificado'],
   ['Suite del informe de fallas', '7 escenarios que reproducen los casos reportados en septiembre', '7 de 7'],
@@ -420,11 +475,11 @@ content.push(table(['Mecanismo', 'Qué hace', 'Estado'], [
 
 // --- 16. Próximos pasos ---
 content.push(spacer(200));
-content.push(heading('16. Recomendaciones y próximos pasos'));
+content.push(heading('18. Recomendaciones y próximos pasos'));
 const recos = [
-  ['Método de pago Meta', 'Agregarlo esta semana (sección 1). Sin él el asistente se detiene al agotar la cuota gratuita.'],
+  ['Método de pago Meta', 'Agregarlo esta semana (sección 2.1). Sin él el asistente se detiene al agotar la cuota gratuita.'],
   ['Número del asesor', 'Entregarlo a raaamp para activar las alertas por WhatsApp y salir del modo de prueba de notificaciones.'],
-  ['Inventario', 'Aplicar los ajustes de datos de la sección 9 y mantener fotos, precios y disponibilidad al día.'],
+  ['Inventario', 'Aplicar los ajustes de datos de la sección 11 y mantener fotos, precios y disponibilidad al día.'],
   ['Consulta al propietario', 'La solicitud automática de disponibilidad al propietario está pendiente de reconfigurar; hoy la verificación la hace el asesor.'],
   ['Modelo de IA', 'Evaluar un modelo más capaz con la misma suite de pruebas; las reglas en código no dependen del modelo.'],
   ['Revisión periódica', 'Correr la suite después de cualquier cambio y revisar en Chatwoot las conversaciones etiquetadas como handoff.'],
@@ -451,7 +506,7 @@ sections.push({
 const doc = new Document({
   numbering: { config: [
     { reference: 'bullets', levels: [{ level: 0, format: LevelFormat.BULLET, text: '•', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 270 } } } }] },
-    { reference: 'steps', levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] },
+    ...Array.from({ length: 12 }, (_, i) => ({ reference: `steps${i + 1}`, levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 540, hanging: 300 } } } }] })),
   ] },
   styles: {
     default: { document: { run: { font: 'Arial', size: 22 } } },
