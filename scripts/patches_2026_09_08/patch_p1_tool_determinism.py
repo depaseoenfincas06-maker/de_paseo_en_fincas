@@ -108,6 +108,22 @@ if (m) {
     }
   }
 }
+// rev 6: llamada narrada de LISTA pero el cliente nombró una finca por código en su mensaje
+// ("dice la mesa 11, esa me gusta") → la intención es ESA finca: details sobre ella.
+if (mode === 'narrated' && !(input.finca_id && String(input.finca_id).trim())) {
+  let _msg2 = '';
+  try { _msg2 = String($('Merge Sets1').first().json['last-message'] || '').normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { _msg2 = ''; }
+  const _cm2 = _msg2.match(/\b([A-ZÑ_]{3,})[\s_#-]{0,3}(\d{1,3})\b/i);
+  if (_cm2) {
+    const _zt2 = _cm2[1].toUpperCase().replace(/_$/, '').replace(/\s+/g, '_');
+    const _Z2 = ['ANAPOIMA','VILLETA','GIRARDOT','MELGAR','SANTAFE','SOPETRAN','PEREIRA','QUINDIO','MESA','LA_MESA','VEGA','LA_VEGA','VILLAVICENCIO','CARMEN','APICALA','CARMEN_DE_APICALA','JERONIMO','SAN_JERONIMO','ARBELAEZ','GUATAPE','YEGUAS','MESITAS','RICAURTE'];
+    if (_Z2.some((t) => _zt2 === t || _zt2.endsWith('_' + t))) {
+      input.finca_id = _zt2 + '_#' + String(_cm2[2]).padStart(2, '0');
+      input.query = _cm2[0];
+      console.log('[P1.2] rev6: lista narrada + finca nombrada en el mensaje → details de ' + input.finca_id);
+    }
+  }
+}
 // rev 3: si el LLM nombró una finca concreta, la operación correcta es get_finca_details
 // (una lista con finca_id la excluye por capacidad y termina en "no disponible").
 if (mode === 'narrated' && input.finca_id && String(input.finca_id).trim() && String(input.operation || '') !== 'get_owner_contact') {
@@ -293,7 +309,7 @@ if IF_NAME in names:
     node(wf, IF_NAME)['parameters']['conditions']['conditions'][0]['leftValue'] = IF_EXPR
     node(wf, BUILD_NAME)['parameters']['jsCode'] = BUILD_CODE
     node(wf, SYNTH_NAME)['parameters']['jsCode'] = SYNTH_CODE
-    applied.append('P1.2: nodos existentes actualizados (rev 5: + hydrate por código nombrado en el mensaje)')
+    applied.append('P1.2: nodos existentes actualizados (rev 6: lista narrada + código en mensaje → details)')
 else:
     wrap_off = node(wf, 'Wrap offering result')
     wrap_qa = node(wf, 'Wrap qa result')

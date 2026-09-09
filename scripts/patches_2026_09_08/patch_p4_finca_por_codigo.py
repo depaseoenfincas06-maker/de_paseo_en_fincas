@@ -59,6 +59,22 @@ else:
 # ------------------------------------------------------------------ P4.2 Finalize guardrail
 fin = node(wf, 'Finalize offering outbound')
 fc = fin['parameters']['jsCode']
+# P4.3: el lookup del cache también mira selected_finca y similar_items (el hydrate por
+# get_finca_details persiste la finca en selected_finca, no en items).
+LK_OLD = """      const _cachedList = _cache && Array.isArray(_cache.items) ? _cache.items : [];"""
+LK_NEW = """      // P4.3 (9-sep-2026): incluir selected_finca (hydrate por get_finca_details) y similar_items
+      const _cachedList = []
+        .concat(_cache && Array.isArray(_cache.items) ? _cache.items : [])
+        .concat(_cache && Array.isArray(_cache.similar_items) ? _cache.similar_items : [])
+        .concat(_cache && _cache.selected_finca && typeof _cache.selected_finca === 'object' ? [_cache.selected_finca] : []);"""
+if 'P4.3 (9-sep-2026): incluir selected_finca' in fc:
+    applied.append('P4.3 Finalize lookup: already')
+else:
+    fc = replace_once(fc, LK_OLD, LK_NEW, 'P4.3 Finalize lookup')
+    fin['parameters']['jsCode'] = fc
+    applied.append('P4.3 Finalize lookup: selected_finca + similar_items')
+    fc = fin['parameters']['jsCode']
+
 G_OLD = """    if (_cachedItem && _cachedItem.quote && _cachedItem.quote.human_summary) {
       // Precio determinístico desde el quote precalculado — cero LLM math.
       contextMessage = `Sobre la finca ${targetFincaId}, para tus fechas queda así: ${_cachedItem.quote.human_summary}. Y estas otras opciones también están disponibles:`;
