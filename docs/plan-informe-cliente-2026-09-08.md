@@ -86,8 +86,7 @@ Aserciones nuevas en `evals/lib/assertions.mjs`: `no_stall_fallback`, `criteria_
 - Prueba: `inf-01`, `inf-05`, `inf-07`.
 
 ### Fase 3 — Follow-ups, handoff, leads perdidos, Mesa de Yeguas, orden, tarjeta
-- [~] **P3.1** Follow-up (guardas desplegadas; falta el UPDATE del offset): `followup_first_offset_minutes` 2 → 180 (**UPDATE en
-      `agent_settings`, requiere tu OK**) + guardas en `Select due follow-ups`: no enviar si
+- [x] **P3.1** Follow-up: `followup_first_offset_minutes` 2 → 180 (aplicado 9-sep con OK de JD) + guardas en `Select due follow-ups`: no enviar si
       el cliente escribió hace < 10 min, ni con menos de 30 min desde el último outbound, ni
       en HITL. Nombre de cliente que parece teléfono → template sin nombre.
 - [x] **P3.2** Handoff real: al pasar a HITL o aprobar reserva, nota privada en Chatwoot con
@@ -141,5 +140,4 @@ Aserciones nuevas en `evals/lib/assertions.mjs`: `no_stall_fallback`, `criteria_
 Desplegado en n8n (customer agent `2NV08zRFKENUsQVC` y follow-up sender `xxK2FfX6QMPxKaZw`);
 backups pre-cambio en `backups/n8n/*-20260908-18*.json`. Migración `conversations_archive` aplicada.
 
-Pendiente de JD: `node scripts/patches_2026_09_08/apply_settings_updates.mjs --apply --recipients=<número asesor>`
-(S1 offset 180, S2 test mode off, S3 destinatarios, S5 Javier Plata).
+Pendiente (cuando JD tenga el número del asesor): `node scripts/patches_2026_09_08/apply_settings_updates.mjs --apply --only=S2,S3 --recipients=<número asesor>`. S1 (offset 180) ya aplicado. S5 (Javier Plata) descartado: JD no lo conoce; la política nueva de chatwoot_id lo atiende sola si vuelve a escribir.

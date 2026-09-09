@@ -16,6 +16,9 @@ import { getPool, close } from '../../evals/lib/db.mjs';
 
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
+// --only=S1,S2 limita el plan a esos pasos (p.ej. aplicar el offset sin tocar notificaciones)
+const onlyArg = args.find((a) => a.startsWith('--only='));
+const ONLY = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',').map((s) => s.trim().toUpperCase())) : null;
 const recArg = args.find((a) => a.startsWith('--recipients='));
 const RECIPIENTS = recArg ? recArg.slice('--recipients='.length).split(',').map((s) => s.replace(/\D+/g, '')).filter(Boolean).join(',') : null;
 const TARJETA = 'Pago con tarjeta de crédito: aplica un recargo del 5% sobre el valor pagado con tarjeta.';
@@ -36,6 +39,8 @@ else console.log('S3: sin --recipients=… no se toca selection_notification_rec
 if (!String(before.payment_methods_text || '').includes('5%')) plan.push({ id: 'S4', sql: `update agent_settings set payment_methods_text = trim(coalesce(payment_methods_text, '') || E'\\n' || $1), updated_at = now() where id = 1`, params: [TARJETA], desc: 'payment_methods_text += regla tarjeta 5%' });
 if (javier && String(javier.chatwoot_id) !== '10') plan.push({ id: 'S5', sql: `update conversations set chatwoot_id = 10, updated_at = now() where wa_id = '573234878588'`, desc: `Javier Plata chatwoot_id ${javier.chatwoot_id} → 10` });
 
+const planFiltered = ONLY ? plan.filter((p) => ONLY.has(p.id)) : plan;
+plan.length = 0; plan.push(...planFiltered);
 console.log('\nPLAN:'); for (const p of plan) console.log(`  ${p.id}: ${p.desc}`);
 if (!plan.length) console.log('  (nada que cambiar)');
 if (!APPLY) { console.log('\nDRY-RUN: no se escribió nada. Agrega --apply para ejecutar.'); await close(); process.exit(0); }
