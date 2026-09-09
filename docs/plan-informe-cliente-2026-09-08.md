@@ -44,9 +44,12 @@ Aserciones nuevas en `evals/lib/assertions.mjs`: `no_stall_fallback`, `criteria_
 - [x] **Reset archiva en vez de borrar**: migración `conversations_archive` (snapshot jsonb de
       conversación + mensajes + follow_on) y nodo `Archive RESET conversation` antes de los
       DELETE. `extract-conversation.mjs --archived <wa_id>` lista los snapshots.
-- [ ] **Retención de ejecuciones n8n**: hoy ~48 h. Subir a 30 días
-      (`EXECUTIONS_DATA_MAX_AGE=720`, `EXECUTIONS_DATA_PRUNE_MAX_COUNT=50000`) en el
-      container de Coolify. **Requiere tu OK (cambio de infra + restart).**
+- [x] **Retención de ejecuciones n8n**: era 48 h → ahora **14 días** (`EXECUTIONS_DATA_MAX_AGE=336`,
+      `EXECUTIONS_DATA_PRUNE_MAX_COUNT=20000`). Aplicado el 9-sep 03:57 UTC en la fuente de verdad de
+      Coolify (`services.docker_compose_raw` / `docker_compose` en `coolify-db`), en el compose en disco
+      y recreando solo `n8n-main` (~25 s). Backups en `/root/dpf-backups/20260909-035737/`.
+      Nota: 2 días de ejecuciones pesan ~580 MB (los sub-execs guardan el CSV del inventario);
+      14 días ≈ 4 GB, disco con 54 GB libres. 30 días sería ~9 GB: subir cuando se reduzca el payload.
 - [x] Suite `evals/scenarios-informe/` + aserciones nuevas.
 
 ### Fase 1 — El tool de inventario nunca falla en silencio (19 % de los turnos hoy)
@@ -139,4 +142,4 @@ Desplegado en n8n (customer agent `2NV08zRFKENUsQVC` y follow-up sender `xxK2FfX
 backups pre-cambio en `backups/n8n/*-20260908-18*.json`. Migración `conversations_archive` aplicada.
 
 Pendiente de JD: `node scripts/patches_2026_09_08/apply_settings_updates.mjs --apply --recipients=<número asesor>`
-(S1 offset 180, S2 test mode off, S3 destinatarios, S5 Javier Plata) y retención de ejecuciones en Coolify.
+(S1 offset 180, S2 test mode off, S3 destinatarios, S5 Javier Plata).
