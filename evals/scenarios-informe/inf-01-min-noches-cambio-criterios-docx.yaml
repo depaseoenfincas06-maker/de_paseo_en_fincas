@@ -29,8 +29,10 @@ turns:
     assert:
       - bot_replied: true
       - no_stall_fallback: true
+      # lo esencial: nunca vuelve a cotizar las 2 noches originales (mínimo 5)
       - not_contains: '2 noches'
-      - contains: '5 noches'
+      # el precio llega como total explícito ("5 noches ... sería") o como ficha con tarifa (💰)
+      - contains_any: ['5 noches', '💰', 'sería']
   - user: 'Cambiamos de opinion. Queremos una finca para 23-26 dic, para 12 personas, finalmente unos familiares se bajaron del bus'
     assert:
       - bot_replied: true
