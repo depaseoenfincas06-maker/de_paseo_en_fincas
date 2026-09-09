@@ -175,7 +175,17 @@ if (op === 'list_matching_fincas') {
   const it = resp.selected_finca || (Array.isArray(resp.items) && resp.items[0]) || null;
   const q = it && it.quote;
   const id = it && (it.codigo_original || it.finca_id);
-  if (it && q && Number(q.total) > 0) {
+  // rev 4: solo cotizamos si el cliente preguntó por precio/total. Si preguntó otra cosa
+  // (amenidades, distribución, distancia…) le mostramos la ficha completa de la finca.
+  let clientMsg = '';
+  try { clientMsg = String($('Merge Sets1').first().json['last-message'] || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); } catch (e) { clientMsg = ''; }
+  const asksPrice = /(precio|vale|cuesta|cuanto|total|cotiz|tarifa|valor|costo|presupuesto|noche)/.test(clientMsg) || /^\s*$/.test(clientMsg);
+  if (it && !asksPrice) {
+    intent = 'SHOW_OPTIONS';
+    fincas = [it];
+    toolChosen = 'offering_agent';
+    respuesta = 'Te comparto la ficha completa de ' + id + ' con sus espacios y amenidades para que revises lo que preguntas:';
+  } else if (it && q && Number(q.total) > 0) {
     const capMax = Number(it.capacidad_max) || null;
     if (personasReq && capMax && personasReq > capMax) {
       respuesta = id + ' tiene capacidad máxima para ' + capMax + ' personas, así que no alcanza para ' + personasReq +

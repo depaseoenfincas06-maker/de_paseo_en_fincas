@@ -270,6 +270,25 @@ P22_BLOCK = r"""// === /P1.3 ===
           toolOutputParsed.respuesta = 'Para esas fechas el mínimo de estadía en ' + _codeq + ' es ' + _q.effective_min_noches + ' noches, así que no puedo cotizarte ' + Number(_q.total_nights || _m[2]) + '. Si me confirmas fechas con al menos ' + _q.effective_min_noches + ' noches te paso el valor exacto.';
           if (parsed && typeof parsed === 'object') parsed.final_whatsapp_text = toolOutputParsed.respuesta;
           console.log('[P2.2] cotización bloqueada por mínimo de noches: ' + _codeq);
+        } else if (Number(_q.total) > 0 && Number(_q.personas) === _n && Number(_q.total_nights) === Number(_m[2])) {
+          // rev 3: el total que dice el LLM debe ser EXACTAMENTE el del quote precalculado.
+          // Si difiere (p.ej. omitió la empleada obligatoria), se reemplaza por el desglose
+          // determinístico completo.
+          var _tm = _resp.match(/ser[íi]a\s*\$?\s*([\d.,]+)/i);
+          var _llmTotal = _tm ? Number(String(_tm[1]).replace(/[.,]/g, '')) : NaN;
+          if (!Number.isFinite(_llmTotal) || Math.abs(_llmTotal - Number(_q.total)) > 1) {
+            var _fmt = function (v) { return '$' + Math.round(Number(v || 0)).toLocaleString('es-CO'); };
+            var _nn = Number(_q.total_nights) || 0; var _noches = _nn === 1 ? 'noche' : 'noches';
+            var _lines = ['Para ' + _q.personas + ' personas, ' + _nn + ' ' + _noches + ' en ' + _codeq + ' sería ' + _fmt(_q.total) + '.', '', 'Incluye:',
+              '• Alojamiento (' + _nn + ' ' + _noches + '): ' + _fmt(_q.subtotal_noches),
+              '• Depósito (100% reembolsable): ' + _fmt(_q.deposito_seguridad),
+              '• Limpieza final: ' + _fmt(_q.limpieza_final)];
+            if (Number(_q.servicio_empleada_total) > 0) { var _c = Number(_q.servicio_empleada_count) || 1; _lines.push('• Servicio empleada (' + _c + (_c > 1 ? ' personas, ' : ' persona, ') + _nn + (_nn === 1 ? ' día' : ' días') + '): ' + _fmt(_q.servicio_empleada_total)); }
+            _lines.push('', 'Querés avanzar con esta finca?');
+            toolOutputParsed.respuesta = _lines.join('\n');
+            if (parsed && typeof parsed === 'object') parsed.final_whatsapp_text = toolOutputParsed.respuesta;
+            console.log('[P2.2] total del LLM (' + _llmTotal + ') ≠ quote (' + _q.total + ') → desglose determinístico: ' + _codeq);
+          }
         }
       }
     }
@@ -278,7 +297,12 @@ P22_BLOCK = r"""// === /P1.3 ===
 // === /P2.2 ===
 const normalizedPostActions = normalizePostActions(parsed, toolOutputParsed);"""
 if '[P2.2] CLIENT_CHOSE bloqueado' in code:
-    applied.append('P2.2 guard: already')
+    import re as _re2
+    _pat2 = _re2.compile(r"// === P2\.2 \(8-sep-2026\): invariantes.*?// === /P2\.2 ===\n", _re2.S)
+    if not _pat2.search(code): raise SystemExit('!! bloque P2.2 no encontrado para actualizar')
+    _body = P22_BLOCK[P22_BLOCK.index('// === P2.2 (8-sep-2026)'): P22_BLOCK.index('// === /P2.2 ===') + len('// === /P2.2 ===\n')]
+    code = _pat2.sub(lambda _m: _body, code, count=1)
+    applied.append('P2.2 guard: actualizado (rev 3: total del LLM = quote)')
 else:
     code = replace_once(code, P22_ANCHOR, P22_BLOCK, 'P2.2 guard')
     applied.append('P2.2 CJS1: guard capacidad / mínimo de noches')
