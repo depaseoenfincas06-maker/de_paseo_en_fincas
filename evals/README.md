@@ -85,6 +85,38 @@ node evals/run.mjs --workers 2
 Reports land in `evals/runs/<UTC-timestamp>/{report.json,report.md}` and are
 gitignored (regenerable). Exit code = 0 iff all scenarios pass — CI-friendly.
 
+## Suite del informe del cliente (sep-2026)
+
+`evals/scenarios-informe/` reproduce los 7 casos del "Informe de fallas" del cliente (8-sep-2026)
+y es la definición de "resuelto": debe pasar 7/7 después de cualquier cambio al customer agent,
+y la `g100` no puede bajar.
+
+```bash
+node evals/run.mjs evals/scenarios-informe/*.yaml --workers 3
+node evals/run.mjs evals/scenarios100/*.yaml --workers 3     # regresión (fechas: oct-2026; regenerar con generate-100-scenarios.py cuando pasen)
+```
+
+Aserciones agregadas (`evals/lib/assertions.mjs`):
+
+| Aserción | Qué verifica |
+|---|---|
+| `bot_replied: true` | hubo al menos un mensaje del bot en el turno |
+| `no_stall_fallback: true` | no apareció "se me enredaron los mensajes" (stall del LLM) |
+| `criteria_equals: {fecha_inicio, fecha_fin, personas}` | `conversations.search_criteria` tiene esos valores |
+| `docx_payload: {property_code, huespedes, noches, total, servicio_empleada_count, …}` | el ÚLTIMO documento de confirmación enviado en el turno (decodificado del `payload=` de `media_url`) trae esos campos |
+
+Turnos en ráfaga: `user: ['Si esa', 'Para cuántas personas es', 'Cuánto vale']` envía los mensajes
+con 1,5 s de separación y ancla el turno en el último. Ojo: el simulador NO pasa por
+`Is latest inbound?` (agregación de Chatwoot), así que la ráfaga real de WhatsApp se prueba
+además con un solo mensaje multilínea (`inf-07`).
+
+Historias completas aunque el bot haya recibido "Reset":
+
+```bash
+node evals/extract-chatwoot.mjs +573112407139 --since 2026-08-27   # Chatwoot conserva todo
+node evals/extract-conversation.mjs 573112407139 --archived         # snapshots de public.conversations_archive
+```
+
 ## Gotchas
 
 - **`SIMULATOR_WEBHOOK_PATH` in `.env` must be `customer-agent-direct/de-paseo-en-fincas/inbound`**, not the chatwoot one. The Chatwoot relay workflow (`oLikVnoYAIw2qReE`) expects the Chatwoot payload shape (nested `body.account`, `body.conversation`, etc); the simulator sends `{wa_id, text, ...}` which only the customer agent direct webhook understands. If you see "Workflow was started" from the webhook but no execution appears in the customer agent (`2NV08zRFKENUsQVC`), you're hitting the wrong workflow.
