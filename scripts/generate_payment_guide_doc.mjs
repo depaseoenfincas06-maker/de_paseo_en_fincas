@@ -213,7 +213,7 @@ content.push(heading('2. Servicios que usa el asistente'));
 content.push(para('Estos son los servicios que hacen funcionar al asistente. Tres de ellos cobran por uso y necesitan una tarjeta vigente de De Paseo en Fincas (sección 3). El asistente ya está conectado a las cuentas de Gemini y OpenAI de la empresa: hasta que tengan facturación y saldo, el asistente permanece en espera y no responde a los clientes.'));
 content.push(spacer(100));
 content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Tarjeta', 'Costo aproximado'], [
-  ['Meta · WhatsApp Business', 'La línea +1 201-701-8810 con la que el asistente atiende a los clientes', 'business.facebook.com, con el correo de la cuenta de Google', 'Sí (sección 3.1)', '1.000 conversaciones gratis al mes; después centavos de dólar por conversación'],
+  ['Meta · WhatsApp Business', 'La línea con la que el asistente atiende a los clientes: hoy +1 201-701-8810, que pasará a +57 310 5639334 (sección 5)', 'business.facebook.com, con el correo de la cuenta de Google', 'Sí (sección 3.1)', '1.000 conversaciones gratis al mes; después centavos de dólar por conversación'],
   ['Google Cloud · Gemini', 'La inteligencia artificial que redacta cada respuesta', 'console.cloud.google.com, con la cuenta de Google', 'Sí (sección 3.2)', 'US$10 a 30 al mes'],
   ['OpenAI', 'Convierte las notas de voz de los clientes en texto', 'platform.openai.com, con la cuenta de Google', 'Sí (sección 3.3)', 'Menos de US$5 al mes'],
   ['Hetzner', 'El servidor donde corren la automatización (n8n) y la bandeja de WhatsApp (Chatwoot)', 'accounts.hetzner.com, con el correo de la cuenta de Google', 'Sí (sección 3.4)', 'US$18 al mes'],
@@ -238,7 +238,7 @@ content.push(step([{ text: 'Abra el menú (☰) → Todas las herramientas → '
 content.push(step([{ text: 'En "Cuentas de WhatsApp" elija ' }, { text: 'De Paseo En Fincas raaamp', bold: true }, { text: ' y haga clic en ' }, { text: 'Ir a configuración', bold: true }, { text: ' dentro de la alerta amarilla.' }]));
 content.push(step([{ text: 'En ' }, { text: 'Configuración de pagos', bold: true }, { text: ' haga clic en ' }, { text: 'Agregar método de pago', bold: true }, { text: ': tarjeta de crédito o débito vigente a nombre de la empresa, moneda y datos de facturación. Guarde.' }]));
 content.push(step('Vuelva a "Información general" y compruebe que la alerta amarilla desapareció.'));
-content.push(step('Al día siguiente, escriba "hola" a la línea +1 201-701-8810 y confirme que el asistente responde.'));
+content.push(step('Al día siguiente, escriba "hola" a la línea del asistente (hoy +1 201-701-8810) y confirme que responde.'));
 
 content.push(heading('3.2 Google Cloud · facturación para Gemini', HeadingLevel.HEADING_2));
 content.push(para('La clave de Gemini ya está creada con la cuenta de Google de la empresa (proyecto 193383790061, "Gemini API Key - Support Agent") y ya está instalada en el asistente. Falta activar la facturación del proyecto; sin ella Google limita las respuestas y el asistente no puede atender.'));
@@ -282,6 +282,26 @@ content.push(table(['Servicio', 'Sin pago', 'Con pago activo'], [
   ['OpenAI', 'Los audios no se transcriben; el asistente pide el mensaje por escrito', 'Los audios se entienden'],
   ['Hetzner', 'Nada cambia mientras esté en la cuenta de raaamp', 'La factura llega a la empresa'],
 ], [2000, 3700, 3660]));
+
+// 5. Cambio de línea
+content.push(pageBreak());
+content.push(heading('5. Cambio de la línea de WhatsApp del asistente'));
+content.push(infoBox('📱 Número confirmado', 'El asistente pasará a atender a los clientes desde la línea colombiana de De Paseo en Fincas: +57 310 5639334. Hoy atiende desde +1 201-701-8810. Ambas líneas están en la misma cuenta de WhatsApp Business (De Paseo En Fincas raaamp), así que el método de pago de Meta de la sección 3.1 cubre las dos.', C.bgGreen));
+content.push(spacer(100));
+content.push(table(['Línea', 'Estado', 'Uso'], [
+  ['+1 201-701-8810', 'Operando hoy', 'Línea con la que el asistente atiende mientras se hace el cambio'],
+  ['+57 310 5639334', 'Confirmada como línea definitiva', 'Línea desde la que atenderá el asistente una vez De Paseo en Fincas dé el OK'],
+], [2200, 3000, 4160]));
+content.push(spacer(120));
+content.push(heading('Cómo se hace el cambio', HeadingLevel.HEADING_2));
+_curSteps = nextSteps();
+content.push(step('De Paseo en Fincas confirma por escrito a raaamp el OK para hacer el cambio y la fecha en que quiere que ocurra.'));
+content.push(step('raaamp conecta el asistente a la línea +57 310 5639334, revisa las plantillas de mensajes y hace las pruebas completas. El cambio toma unas horas y no requiere nada del lado de De Paseo en Fincas.'));
+content.push(step('raaamp confirma por escrito que el asistente ya responde desde +57 310 5639334.'));
+content.push(step('A partir de ese momento De Paseo en Fincas publica el número +57 310 5639334 en su página, redes e Instagram como línea de atención. La línea +1 201-701-8810 se mantiene respondiendo unas semanas más para los clientes que la tengan guardada, y luego se retira.'));
+content.push(spacer(80));
+content.push(para('Importante: la línea +57 310 5639334 quedará dedicada al asistente en la plataforma de WhatsApp Business; no debe usarse al mismo tiempo en la aplicación WhatsApp de un celular.', { color: C.mid, size: 20 }));
+
 content.push(spacer(120));
 content.push(heading('Lista de verificación', HeadingLevel.HEADING_2));
 content.push(bullet('Tarjeta agregada en Meta y alerta amarilla desaparecida.'));
@@ -289,6 +309,7 @@ content.push(bullet('Cuenta de facturación de Google Cloud creada y vinculada a
 content.push(bullet('Saldo cargado en OpenAI con recarga automática.'));
 content.push(bullet('Cuenta de Hetzner creada con tarjeta y correo enviado a raaamp.'));
 content.push(bullet('Verificación en dos pasos activa en la cuenta de Google.'));
+content.push(bullet('OK por escrito a raaamp para pasar el asistente a la línea +57 310 5639334.'));
 content.push(bullet('raaamp confirmó por escrito que el asistente responde, entiende audios y envía seguimientos.'));
 
 sections.push({
