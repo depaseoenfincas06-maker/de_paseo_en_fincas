@@ -224,7 +224,7 @@ content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Método de
   ['Google Cloud · Gemini', 'La inteligencia artificial que redacta cada respuesta', 'console.cloud.google.com, con la cuenta de Google', 'Sí (sección 3.2)', 'US$10 a 30 al mes'],
   ['OpenAI', 'Convierte las notas de voz de los clientes en texto', 'platform.openai.com, con la cuenta de Google', 'Sí (sección 3.3)', 'Menos de US$5 al mes'],
   ['Hetzner', 'El servidor donde corren la automatización (n8n) y la bandeja de WhatsApp (Chatwoot)', 'accounts.hetzner.com, con el correo de la cuenta de Google', 'Sí (sección 3.4)', 'US$10 al mes'],
-  ['Kapso', 'Plataforma por la que está registrada la línea de WhatsApp', 'La administra raaamp', 'No, por ahora', 'Incluido'],
+  ['Kapso', 'Plataforma por la que está registrada la línea de WhatsApp', 'app.kapso.ai → Continuar con Google', 'No', 'Incluido'],
   ['Vercel', 'Panel de administración del asistente y documento de confirmación de reserva', 'vercel.com → Continuar con Google', 'No', 'Gratis'],
   ['Supabase', 'Base de datos: conversaciones, mensajes y configuración', 'supabase.com → Continuar con Google', 'No', 'Gratis'],
   ['Google Sheets y Drive', 'Inventario de fincas y fotos', 'Con la cuenta de Google', 'No', 'Gratis'],
