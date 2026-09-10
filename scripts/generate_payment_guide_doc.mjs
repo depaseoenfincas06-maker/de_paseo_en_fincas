@@ -173,8 +173,6 @@ const CRED = {
   gmailUser: process.env.GUIA_GMAIL_USER || BLANK,
   gmailPass: process.env.GUIA_GMAIL_PASS || BLANK,
   gmailPhone: process.env.GUIA_GMAIL_PHONE || BLANK,
-  hetznerUser: process.env.GUIA_HETZNER_USER || BLANK,
-  hetznerPass: process.env.GUIA_HETZNER_PASS || BLANK,
 };
 
 const sections = [];
@@ -194,7 +192,7 @@ sections.push({
     spacer(100),
     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Septiembre 2026', size: 24, color: C.light, font: 'Arial' })] }),
     spacer(60),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: contiene contraseñas (secciones 1 y 3.4). No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: la primera página contiene la contraseña de la cuenta. No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
   ],
 });
 
@@ -219,13 +217,13 @@ content.push(infoBox('🔐 Cuide esta cuenta', 'Active la verificación en dos p
 // 2. Servicios
 content.push(pageBreak());
 content.push(heading('2. Servicios que usa el asistente'));
-content.push(para('Estos son los servicios que hacen funcionar al asistente. Tres de ellos cobran por uso y necesitan una tarjeta vigente de De Paseo en Fincas (sección 3). El asistente ya está conectado a las cuentas de Gemini y OpenAI de la empresa: hasta que tengan facturación y saldo, el asistente permanece en espera y no responde a los clientes.'));
+content.push(para('Estos son los servicios que hacen funcionar al asistente. Cuatro de ellos cobran y necesitan un método de pago vigente de De Paseo en Fincas (sección 3). El asistente ya está conectado a las cuentas de Gemini y OpenAI de la empresa: hasta que tengan facturación y saldo, el asistente permanece en espera y no responde a los clientes.'));
 content.push(spacer(100));
-content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Tarjeta', 'Costo aproximado'], [
+content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Método de pago', 'Costo aproximado'], [
   ['Meta · WhatsApp Business', 'La línea con la que el asistente atiende a los clientes: hoy +1 201-701-8810, que pasará a +57 310 5639334 (sección 5)', 'business.facebook.com, con el correo de la cuenta de Google', 'Sí (sección 3.1)', '1.000 conversaciones gratis al mes; después centavos de dólar por conversación'],
   ['Google Cloud · Gemini', 'La inteligencia artificial que redacta cada respuesta', 'console.cloud.google.com, con la cuenta de Google', 'Sí (sección 3.2)', 'US$10 a 30 al mes'],
   ['OpenAI', 'Convierte las notas de voz de los clientes en texto', 'platform.openai.com, con la cuenta de Google', 'Sí (sección 3.3)', 'Menos de US$5 al mes'],
-  ['Hetzner', 'El servidor donde corren la automatización (n8n) y la bandeja de WhatsApp (Chatwoot)', 'accounts.hetzner.com, con el correo de la cuenta de Google', 'Sí (sección 3.4)', 'US$18 al mes'],
+  ['Hetzner', 'El servidor donde corren la automatización (n8n) y la bandeja de WhatsApp (Chatwoot)', 'accounts.hetzner.com, con el correo de la cuenta de Google', 'Sí (sección 3.4)', 'US$10 al mes'],
   ['Kapso', 'Plataforma por la que está registrada la línea de WhatsApp', 'La administra raaamp', 'No, por ahora', 'Incluido'],
   ['Vercel', 'Panel de administración del asistente y documento de confirmación de reserva', 'vercel.com → Continuar con Google', 'No', 'Gratis'],
   ['Supabase', 'Base de datos: conversaciones, mensajes y configuración', 'supabase.com → Continuar con Google', 'No', 'Gratis'],
@@ -235,17 +233,17 @@ content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Tarjeta', 
 
 // 3. Paso a paso
 content.push(pageBreak());
-content.push(heading('3. Paso a paso para poner las tarjetas'));
+content.push(heading('3. Paso a paso para poner los métodos de pago'));
 content.push(para('Haga los pasos en este orden. Al terminar cada uno, avise a raaamp para que verifique que el asistente volvió a operar.'));
 
 content.push(heading('3.1 Meta · WhatsApp Business', HeadingLevel.HEADING_2));
-content.push(infoBox('Qué está pasando', 'WhatsApp Manager muestra "Se requiere un método de pago válido: tu método de pago caducó o no es válido" en la cuenta "De Paseo En Fincas raaamp". Meta regala 1.000 conversaciones al mes; al agotarse, bloquea el envío y el asistente deja de responder. Los mensajes con plantilla (seguimientos y avisos al asesor) se cobran y no salen sin tarjeta.', C.bgOrange));
+content.push(infoBox('Qué está pasando', 'WhatsApp Manager muestra "Se requiere un método de pago válido: tu método de pago caducó o no es válido" en la cuenta "De Paseo En Fincas raaamp". Meta regala 1.000 conversaciones al mes; al agotarse, bloquea el envío y el asistente deja de responder. Los mensajes con plantilla (seguimientos y avisos al asesor) se cobran y no salen sin un método de pago válido.', C.bgOrange));
 content.push(spacer(80));
 _curSteps = nextSteps();
 content.push(step([{ text: 'Entre a ' }, { text: 'business.facebook.com', bold: true }, { text: ' con el correo de la cuenta de Google.' }]));
 content.push(step([{ text: 'Abra el menú (☰) → Todas las herramientas → ' }, { text: 'WhatsApp Manager', bold: true }, { text: '.' }]));
 content.push(step([{ text: 'En "Cuentas de WhatsApp" elija ' }, { text: 'De Paseo En Fincas raaamp', bold: true }, { text: ' y haga clic en ' }, { text: 'Ir a configuración', bold: true }, { text: ' dentro de la alerta amarilla.' }]));
-content.push(step([{ text: 'En ' }, { text: 'Configuración de pagos', bold: true }, { text: ' haga clic en ' }, { text: 'Agregar método de pago', bold: true }, { text: ': tarjeta de crédito o débito vigente a nombre de la empresa, moneda y datos de facturación. Guarde.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Configuración de pagos', bold: true }, { text: ' haga clic en ' }, { text: 'Agregar método de pago', bold: true }, { text: ': método de pago vigente a nombre de la empresa (tarjeta de crédito o débito), moneda y datos de facturación. Guarde.' }]));
 content.push(step('Vuelva a "Información general" y compruebe que la alerta amarilla desapareció.'));
 content.push(step('Al día siguiente, escriba "hola" a la línea del asistente (hoy +1 201-701-8810) y confirme que responde.'));
 
@@ -254,42 +252,33 @@ content.push(para('La clave de Gemini ya está creada con la cuenta de Google de
 content.push(spacer(80));
 _curSteps = nextSteps();
 content.push(step([{ text: 'Entre a ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ' con la cuenta de Google. Si pide aceptar los términos de Google Cloud, acéptelos.' }]));
-content.push(step([{ text: 'Haga clic en ' }, { text: 'Crear cuenta de facturación', bold: true }, { text: '. País: Colombia. Tipo de cuenta: Empresa. Complete nombre, dirección y la tarjeta. Guarde.' }]));
+content.push(step([{ text: 'Haga clic en ' }, { text: 'Crear cuenta de facturación', bold: true }, { text: '. País: Colombia. Tipo de cuenta: Empresa. Complete nombre, dirección y el método de pago. Guarde.' }]));
 content.push(step([{ text: 'En la misma pantalla abra la pestaña ' }, { text: 'Mis proyectos', bold: true }, { text: '. En la fila del proyecto ' }, { text: '193383790061', bold: true }, { text: ' abra el menú ⋮ → ' }, { text: 'Cambiar facturación', bold: true }, { text: ' → elija la cuenta que acaba de crear → Establecer cuenta.' }]));
 content.push(step([{ text: 'Entre a ' }, { text: 'aistudio.google.com/apikey', bold: true }, { text: ' y confirme que el proyecto de la clave muestra "Pago por uso" en lugar de "Gratis".' }]));
 content.push(step([{ text: 'En ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ' → Presupuestos y alertas, cree un presupuesto de US$50 mensuales con aviso por correo.' }]));
 content.push(step('Avise a raaamp para que confirme que el asistente responde.'));
 content.push(spacer(100));
 content.push(infoBox('Si al crear la cuenta de facturación aparece "Se produjo un error inesperado. Inténtelo de nuevo más tarde. [OR-CBAT-14]"',
-  'Es un rechazo del perfil de pagos de Google. Haga esto, en orden: (1) Entre a pay.google.com con la misma cuenta, abra Configuración y compruebe que el país sea Colombia y que no haya avisos de verificación pendiente; agregue ahí la tarjeta en "Formas de pago". (2) Vuelva a console.cloud.google.com/billing y repita la creación de la cuenta de facturación en una ventana de incógnito, con solo esta cuenta de Google abierta. (3) Si vuelve a fallar, use otra tarjeta de crédito habilitada para compras internacionales por internet (pídale al banco que la habilite si hace falta). (4) Si persiste, espere 24 horas y repita; si aun así falla, abra un caso en "Soporte" dentro de la consola de Google Cloud citando el código OR-CBAT-14.', C.bgBlue));
+  'Es un rechazo del perfil de pagos de Google. Haga esto, en orden: (1) Entre a pay.google.com con la misma cuenta, abra Configuración y compruebe que el país sea Colombia y que no haya avisos de verificación pendiente; agregue ahí el método de pago en "Formas de pago". (2) Vuelva a console.cloud.google.com/billing y repita la creación de la cuenta de facturación en una ventana de incógnito, con solo esta cuenta de Google abierta. (3) Si vuelve a fallar, use otro método de pago: una tarjeta de crédito habilitada para compras internacionales por internet (pídale al banco que la habilite si hace falta). (4) Si persiste, espere 24 horas y repita; si aun así falla, abra un caso en "Soporte" dentro de la consola de Google Cloud citando el código OR-CBAT-14.', C.bgBlue));
 
 content.push(heading('3.3 OpenAI · saldo para las notas de voz', HeadingLevel.HEADING_2));
 content.push(para('La clave de OpenAI ya está instalada en el asistente. La cuenta no tiene saldo, así que los audios de los clientes no se transcriben hasta que lo cargue.'));
 content.push(spacer(80));
 _curSteps = nextSteps();
 content.push(step([{ text: 'Entre a ' }, { text: 'platform.openai.com', bold: true }, { text: ' con la cuenta de Google.' }]));
-content.push(step([{ text: 'Vaya a ' }, { text: 'Settings → Billing → Payment methods', bold: true }, { text: ' y agregue la tarjeta.' }]));
+content.push(step([{ text: 'Vaya a ' }, { text: 'Settings → Billing → Payment methods', bold: true }, { text: ' y agregue el método de pago.' }]));
 content.push(step([{ text: 'En ' }, { text: 'Billing → Add to credit balance', bold: true }, { text: ' cargue US$10.' }]));
 content.push(step([{ text: 'Active ' }, { text: 'Auto recharge', bold: true }, { text: ' (recarga automática) con US$10 cuando el saldo baje de US$5, para que nunca se agote.' }]));
 content.push(step('Avise a raaamp para probar con una nota de voz real.'));
 
 content.push(heading('3.4 Hetzner · el servidor', HeadingLevel.HEADING_2));
-content.push(para('El servidor donde corren n8n y Chatwoot está hoy en la cuenta de raaamp. De Paseo en Fincas ya tiene su cuenta en Hetzner; falta agregarle la tarjeta para que el servidor pase a esa cuenta y la factura mensual llegue a la empresa.'));
-content.push(spacer(80));
-content.push(new Table({
-  width: { size: CONTENT_W, type: WidthType.DXA },
-  columnWidths: [3000, 6360],
-  rows: [
-    new TableRow({ children: [cell('Usuario (accounts.hetzner.com)', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.hetznerUser, 6360, { bold: true })] }),
-    new TableRow({ children: [cell('Contraseña', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.hetznerPass, 6360, { bold: true })] }),
-  ],
-}));
+content.push(para('El servidor donde corren n8n y Chatwoot está hoy en la cuenta de raaamp. De Paseo en Fincas ya tiene su cuenta en Hetzner; falta agregarle el método de pago para que el servidor pase a esa cuenta y la factura mensual llegue a la empresa.'));
 content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'Entre a ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' con el usuario y la contraseña de arriba.' }]));
-content.push(step([{ text: 'En ' }, { text: 'Payment methods', bold: true }, { text: ' agregue la tarjeta de la empresa.' }]));
+content.push(step([{ text: 'Entre a ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' con el correo de la cuenta de Google (sección 1) y la contraseña de Hetzner.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Payment methods', bold: true }, { text: ' agregue el método de pago de la empresa.' }]));
 content.push(step('Avise a raaamp. raaamp traslada el servidor a esta cuenta sin interrumpir el servicio y conserva el acceso técnico para operarlo.'));
-content.push(step('Desde ese momento la factura de Hetzner (aprox. US$18 al mes) llega al correo de la empresa.'));
+content.push(step('Desde ese momento la factura de Hetzner (US$10 al mes) llega al correo de la empresa.'));
 
 // 4. Qué pasa si falta un pago
 content.push(pageBreak());
@@ -322,10 +311,10 @@ content.push(para('Importante: la línea +57 310 5639334 quedará dedicada al as
 
 content.push(spacer(120));
 content.push(heading('Lista de verificación', HeadingLevel.HEADING_2));
-content.push(bullet('Tarjeta agregada en Meta y alerta amarilla desaparecida.'));
+content.push(bullet('Método de pago agregado en Meta y alerta amarilla desaparecida.'));
 content.push(bullet('Cuenta de facturación de Google Cloud creada y vinculada al proyecto 193383790061; la clave muestra "Pago por uso".'));
 content.push(bullet('Saldo cargado en OpenAI con recarga automática.'));
-content.push(bullet('Tarjeta agregada en la cuenta de Hetzner y aviso enviado a raaamp.'));
+content.push(bullet('Método de pago agregado en la cuenta de Hetzner y aviso enviado a raaamp.'));
 content.push(bullet('Verificación en dos pasos activa en la cuenta de Google.'));
 content.push(bullet('OK por escrito a raaamp para pasar el asistente a la línea +57 310 5639334.'));
 content.push(bullet('raaamp confirmó por escrito que el asistente responde, entiende audios y envía seguimientos.'));
