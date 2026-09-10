@@ -299,9 +299,9 @@ content.push(table(['Línea', 'Estado', 'Uso'], [
 content.push(spacer(120));
 content.push(heading('Cómo se hace el cambio', HeadingLevel.HEADING_2));
 _curSteps = nextSteps();
-content.push(step('El cambio se realiza cuando De Paseo en Fincas confirme la fecha. Toma unas horas y no requiere nada del lado de la empresa.'));
+content.push(step('El cambio técnico toma unas horas y no requiere nada del lado de De Paseo en Fincas.'));
+content.push(step('Desde ese momento el asistente atiende únicamente desde +57 310 5639334.'));
 content.push(step('Una vez hecho el cambio, De Paseo en Fincas publica el número +57 310 5639334 en su página, redes e Instagram como línea de atención.'));
-content.push(step('La línea +1 201-701-8810 se mantiene respondiendo unas semanas más para los clientes que la tengan guardada, y luego se retira.'));
 content.push(spacer(80));
 content.push(para('Importante: la línea +57 310 5639334 quedará dedicada al asistente en la plataforma de WhatsApp Business; no debe usarse al mismo tiempo en la aplicación WhatsApp de un celular.', { color: C.mid, size: 20 }));
 
