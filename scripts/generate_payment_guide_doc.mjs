@@ -181,129 +181,121 @@ sections.push({
     spacer(200),
     new Paragraph({ alignment: AlignmentType.CENTER, border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: C.primary } }, children: [] }),
     spacer(200),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Guía de cuentas y métodos de pago', size: 28, bold: true, color: C.dark, font: 'Arial' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Guía de acceso, servicios y métodos de pago', size: 28, bold: true, color: C.dark, font: 'Arial' })] }),
     spacer(100),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Septiembre 2026 · preparado por raaamp', size: 24, color: C.light, font: 'Arial' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Septiembre 2026', size: 24, color: C.light, font: 'Arial' })] }),
     spacer(60),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: la sección 1 contiene accesos. No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: la primera página contiene la contraseña de la cuenta. No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
   ],
 });
 
 const content = [];
 
-// 1. Accesos (confidencial)
-content.push(heading('1. Accesos (confidencial)'));
-content.push(infoBox('🔐 Una sola cuenta de Google para todo', 'Todas las herramientas del asistente se administran entrando con la cuenta de Gmail de De Paseo en Fincas: Google Cloud y AI Studio (Gemini), Google Sheets y Drive (inventario), y el inicio de sesión "Continuar con Google" de Vercel y Supabase. Meta, OpenAI y Hetzner tienen su propio usuario y contraseña, registrados con ese mismo correo. Guarde esta página en un lugar seguro y no la comparta.', C.bgOrange));
+// 1. Acceso
+content.push(heading('1. Acceso: la cuenta de Google de De Paseo en Fincas'));
+content.push(para('Todas las herramientas del asistente se abren con una sola cuenta de Google (Gmail). Con ella se entra a Google Cloud y AI Studio (la inteligencia artificial), a Google Sheets y Drive (el inventario de fincas y las fotos), y a las demás plataformas con el botón "Continuar con Google" o usando este mismo correo como usuario. Guarde estos datos en un lugar seguro y no los comparta.'));
 content.push(spacer(120));
-content.push(table(['Herramienta', 'Dónde entrar', 'Usuario', 'Contraseña / notas'], [
-  ['Cuenta de Google (Gmail) de la empresa', 'accounts.google.com', '________________________', '________________________  Teléfono de recuperación: ______________'],
-  ['Meta Business (WhatsApp)', 'business.facebook.com', '________________________', '________________________  Verificación en dos pasos: ______________'],
-  ['OpenAI', 'platform.openai.com', '________________________', '________________________'],
-  ['Hetzner (servidor)', 'accounts.hetzner.com', '________________________', '________________________  (solo si eligen la opción B de la sección 6)'],
-  ['Vercel y Supabase', 'vercel.com · supabase.com', 'Entrar con Google (la cuenta de arriba)', 'Sin contraseña propia'],
-], [2300, 2000, 2400, 2660]));
-content.push(spacer(80));
-content.push(para('Recomendación: activar la verificación en dos pasos en la cuenta de Google y en Meta, y guardar los códigos de respaldo junto con esta página.', { color: C.mid, size: 20 }));
+content.push(new Table({
+  width: { size: CONTENT_W, type: WidthType.DXA },
+  columnWidths: [3000, 6360],
+  rows: [
+    new TableRow({ children: [cell('Correo (usuario)', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
+    new TableRow({ children: [cell('Contraseña', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
+    new TableRow({ children: [cell('Teléfono de recuperación', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
+  ],
+}));
+content.push(spacer(120));
+content.push(infoBox('🔐 Cuide esta cuenta', 'Active la verificación en dos pasos en accounts.google.com → Seguridad, y guarde los códigos de respaldo junto con esta página. Quien tenga esta cuenta tiene acceso a todo el sistema.', C.bgOrange));
 
-// 2. Resumen
+// 2. Servicios
 content.push(pageBreak());
-content.push(heading('2. Dónde va cada tarjeta'));
-content.push(para('Cinco servicios cobran o pueden cobrar y necesitan una tarjeta vigente de De Paseo en Fincas. El resto es gratuito o ya está incluido. El asistente está conectado a las cuentas de Gemini y OpenAI de la empresa: mientras no tengan facturación o saldo, el asistente permanece en espera y no responde a los clientes.'));
+content.push(heading('2. Servicios que usa el asistente'));
+content.push(para('Estos son los servicios que hacen funcionar al asistente. Tres de ellos cobran por uso y necesitan una tarjeta vigente de De Paseo en Fincas (sección 3). El asistente ya está conectado a las cuentas de Gemini y OpenAI de la empresa: hasta que tengan facturación y saldo, el asistente permanece en espera y no responde a los clientes.'));
 content.push(spacer(100));
-content.push(table(['Servicio', 'Para qué sirve', 'Entrar con', 'Dónde poner la tarjeta', 'Costo aprox.', 'Urgencia'], [
-  ['Meta · WhatsApp Business', 'La línea +1 201-701-8810 con la que el asistente atiende', 'Usuario de Meta Business', 'WhatsApp Manager → Configuración de pagos (sección 3)', '1.000 conversaciones gratis al mes; después centavos por conversación', 'Hoy: tarjeta vencida'],
-  ['Google Cloud (Gemini, la inteligencia artificial)', 'El modelo que redacta cada respuesta', 'Gmail de la empresa', 'Cuenta de facturación de Google Cloud vinculada al proyecto 193383790061 (sección 4)', 'US$10 a 30 al mes', 'Hoy: sin facturación, el asistente no responde'],
-  ['OpenAI (notas de voz)', 'Convierte los audios de los clientes en texto', 'Usuario de OpenAI', 'platform.openai.com → Billing (sección 5)', 'Menos de US$5 al mes', 'Hoy: sin saldo, los audios no se entienden'],
-  ['Hetzner (servidor de n8n y Chatwoot)', 'Donde corre la automatización y la bandeja de WhatsApp', 'Usuario de Hetzner (opción B)', 'accounts.hetzner.com → Payment methods, o factura mensual de raaamp (sección 6)', 'US$18 al mes', 'Sin urgencia: hoy lo paga raaamp'],
-  ['Kapso (plataforma que provee la línea +1 201-701-8810)', 'A través de Kapso se registró el número de WhatsApp que usa el asistente', 'Usuario de Kapso (hoy raaamp)', 'app.kapso.ai → Billing si el plan tiene costo, o factura de raaamp (sección 7)', 'Según plan de Kapso (verificar)', 'Sin urgencia: revisar plan'],
-], [1700, 1900, 1400, 2200, 1300, 860]));
-content.push(spacer(100));
-content.push(heading('Servicios que no necesitan tarjeta', HeadingLevel.HEADING_2));
-content.push(table(['Servicio', 'Estado', 'Nota'], [
-  ['Vercel (panel de administración)', 'Plan gratuito, entrar con Google', 'Suficiente para el uso actual. Solo si Vercel exigiera el plan Pro (US$20/mes) habría que agregar tarjeta.'],
-  ['Supabase (base de datos)', 'Plan gratuito, entrar con Google', 'El plan gratuito pausa el proyecto tras varios días sin uso y el asistente deja de responder hasta reactivarlo. Cuando la operación sea continua conviene el plan Pro (US$25/mes).'],
-  ['Google Sheets y Drive (inventario y fotos)', 'Gratis con la cuenta de Google', 'Mantener el archivo de fincas al día.'],
-  ['n8n, Chatwoot y conversor de PDF', 'Instalados en el servidor, sin licencia', 'No tienen cobro.'],
-  ['Dominio raaamp.co (direcciones de n8n y Chatwoot)', 'Lo aporta raaamp', 'Opcional: pasar a subdominios de depaseoenfincas.com.'],
-], [2800, 2400, 4160]));
+content.push(table(['Servicio', 'Para qué sirve', 'Cómo se entra', 'Tarjeta', 'Costo aproximado'], [
+  ['Meta · WhatsApp Business', 'La línea +1 201-701-8810 con la que el asistente atiende a los clientes', 'business.facebook.com, con el correo de la cuenta de Google', 'Sí (sección 3.1)', '1.000 conversaciones gratis al mes; después centavos de dólar por conversación'],
+  ['Google Cloud · Gemini', 'La inteligencia artificial que redacta cada respuesta', 'console.cloud.google.com, con la cuenta de Google', 'Sí (sección 3.2)', 'US$10 a 30 al mes'],
+  ['OpenAI', 'Convierte las notas de voz de los clientes en texto', 'platform.openai.com, con la cuenta de Google', 'Sí (sección 3.3)', 'Menos de US$5 al mes'],
+  ['Hetzner', 'El servidor donde corren la automatización (n8n) y la bandeja de WhatsApp (Chatwoot)', 'accounts.hetzner.com, con el correo de la cuenta de Google', 'Sí (sección 3.4)', 'US$18 al mes'],
+  ['Kapso', 'Plataforma por la que está registrada la línea de WhatsApp', 'La administra raaamp', 'No, por ahora', 'Incluido'],
+  ['Vercel', 'Panel de administración del asistente y documento de confirmación de reserva', 'vercel.com → Continuar con Google', 'No', 'Gratis'],
+  ['Supabase', 'Base de datos: conversaciones, mensajes y configuración', 'supabase.com → Continuar con Google', 'No', 'Gratis'],
+  ['Google Sheets y Drive', 'Inventario de fincas y fotos', 'Con la cuenta de Google', 'No', 'Gratis'],
+  ['n8n y Chatwoot', 'Automatización y bandeja de mensajes, instalados en el servidor', 'chat.depaseoenfincas.raaamp.co (Chatwoot)', 'No', 'Incluido'],
+], [1800, 2900, 2300, 1100, 1260]));
 
-// 3. Meta
+// 3. Paso a paso
 content.push(pageBreak());
-content.push(heading('3. Meta · WhatsApp Business (urgente)'));
-content.push(infoBox('Qué está pasando', 'WhatsApp Manager muestra "Se requiere un método de pago válido: tu método de pago caducó o no es válido" en la cuenta "De Paseo En Fincas raaamp". Meta regala 1.000 conversaciones de servicio al mes; al agotarse, bloquea el envío. Los mensajes con plantilla (seguimientos después de 24 horas y avisos al asesor) se cobran y no salen sin tarjeta.', C.bgOrange));
-content.push(spacer(100));
-_curSteps = nextSteps();
-content.push(step([{ text: 'Entrar a ' }, { text: 'business.facebook.com', bold: true }, { text: ' con el usuario administrador del negocio "De Paseo En Fincas raaamp".' }]));
-content.push(step([{ text: 'Menú (☰) → Todas las herramientas → ' }, { text: 'WhatsApp Manager', bold: true }, { text: '. Alternativa: Configuración del negocio → Cuentas → Cuentas de WhatsApp.' }]));
-content.push(step([{ text: 'Elegir la cuenta "De Paseo En Fincas raaamp" y hacer clic en ' }, { text: 'Ir a configuración', bold: true }, { text: ' dentro de la alerta amarilla. Alternativa: Configuración de la cuenta → ' }, { text: 'Configuración de pagos', bold: true }, { text: '.' }]));
-content.push(step([{ text: 'Agregar método de pago', bold: true }, { text: ': tarjeta de crédito o débito vigente a nombre de la empresa, moneda y datos de facturación. Guardar.' }]));
-content.push(step('Comprobar que la alerta desaparece en "Información general". Al día siguiente, escribir "hola" a la línea del asistente y confirmar que responde.'));
-content.push(para([{ text: 'Ruta alternativa: ' }, { text: 'Configuración del negocio → Facturación y pagos → Métodos de pago', bold: true }, { text: ' (business.facebook.com/billing_hub).' }], { before: 80 }));
+content.push(heading('3. Paso a paso para poner las tarjetas'));
+content.push(para('Haga los pasos en este orden. Al terminar cada uno, avise a raaamp para que verifique que el asistente volvió a operar.'));
 
-// 4. Google Cloud / Gemini
-content.push(spacer(200));
-content.push(heading('4. Google Cloud · facturación para Gemini (urgente)'));
-content.push(para('La clave de Gemini ya fue creada con la cuenta de Google de la empresa (proyecto 193383790061, "Gemini API Key - Support Agent") y ya está instalada en el asistente. Falta vincularle una cuenta de facturación; sin ella la clave queda en el nivel gratuito, cuyos límites por minuto hacen que el asistente falle en cada respuesta.'));
+content.push(heading('3.1 Meta · WhatsApp Business', HeadingLevel.HEADING_2));
+content.push(infoBox('Qué está pasando', 'WhatsApp Manager muestra "Se requiere un método de pago válido: tu método de pago caducó o no es válido" en la cuenta "De Paseo En Fincas raaamp". Meta regala 1.000 conversaciones al mes; al agotarse, bloquea el envío y el asistente deja de responder. Los mensajes con plantilla (seguimientos y avisos al asesor) se cobran y no salen sin tarjeta.', C.bgOrange));
 content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'Entrar a ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ' con el Gmail de la empresa. Aceptar los términos de Google Cloud si los pide.' }]));
-content.push(step([{ text: 'Crear cuenta de facturación', bold: true }, { text: ': país Colombia, tipo de cuenta "Empresa" (o "Particular" si no tienen NIT a mano), nombre, dirección y la tarjeta. Guardar.' }]));
-content.push(step([{ text: 'En la misma pantalla, pestaña ' }, { text: 'Mis proyectos', bold: true }, { text: ' → fila del proyecto ' }, { text: '193383790061', bold: true }, { text: ' → menú ⋮ → ' }, { text: 'Cambiar facturación', bold: true }, { text: ' → elegir la cuenta recién creada.' }]));
-content.push(step([{ text: 'Verificar en ' }, { text: 'aistudio.google.com/apikey', bold: true }, { text: ': el proyecto de la clave debe mostrar "Pago por uso" en vez de "Gratis". Avisar a raaamp para que confirme que el asistente responde.' }]));
-content.push(step([{ text: 'Opcional: en ' }, { text: 'Presupuestos y alertas', bold: true }, { text: ' crear un presupuesto mensual (por ejemplo US$50) con aviso por correo.' }]));
-content.push(spacer(100));
-content.push(infoBox('Si aparece el error "Se produjo un error inesperado. Inténtelo de nuevo más tarde. [OR-CBAT-14]"',
-  'Es un rechazo del perfil de pagos de Google, no de Google Cloud. Causas habituales: la tarjeta no está habilitada para compras internacionales por internet, el país de la cuenta de Google no coincide con el de la tarjeta, o el perfil de pagos de esa cuenta tiene una verificación pendiente. Qué hacer, en orden: (1) probar con otra tarjeta, idealmente de crédito y habilitada para pagos en el exterior (pedirlo al banco si hace falta); (2) revisar en pay.google.com → Configuración que el país sea Colombia y que no haya alertas de verificación, y agregar ahí la tarjeta primero; (3) intentar de nuevo en una ventana de incógnito, con la sesión solo de esa cuenta de Google; (4) si persiste, esperar 24 horas o abrir un caso en Soporte de facturación de Google Cloud citando el código OR-CBAT-14. Mientras tanto el asistente sigue en espera.', C.bgBlue));
+content.push(step([{ text: 'Entre a ' }, { text: 'business.facebook.com', bold: true }, { text: ' con el correo de la cuenta de Google.' }]));
+content.push(step([{ text: 'Abra el menú (☰) → Todas las herramientas → ' }, { text: 'WhatsApp Manager', bold: true }, { text: '.' }]));
+content.push(step([{ text: 'En "Cuentas de WhatsApp" elija ' }, { text: 'De Paseo En Fincas raaamp', bold: true }, { text: ' y haga clic en ' }, { text: 'Ir a configuración', bold: true }, { text: ' dentro de la alerta amarilla.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Configuración de pagos', bold: true }, { text: ' haga clic en ' }, { text: 'Agregar método de pago', bold: true }, { text: ': tarjeta de crédito o débito vigente a nombre de la empresa, moneda y datos de facturación. Guarde.' }]));
+content.push(step('Vuelva a "Información general" y compruebe que la alerta amarilla desapareció.'));
+content.push(step('Al día siguiente, escriba "hola" a la línea +1 201-701-8810 y confirme que el asistente responde.'));
 
-// 5. OpenAI
-content.push(pageBreak());
-content.push(heading('5. OpenAI · saldo para las notas de voz (urgente)'));
-content.push(para('La clave de OpenAI ya está instalada en el asistente. La cuenta autentica bien, pero no tiene saldo: cada audio de un cliente devuelve "You have no credits remaining" y el asistente le pide que escriba.'));
+content.push(heading('3.2 Google Cloud · facturación para Gemini', HeadingLevel.HEADING_2));
+content.push(para('La clave de Gemini ya está creada con la cuenta de Google de la empresa (proyecto 193383790061, "Gemini API Key - Support Agent") y ya está instalada en el asistente. Falta activar la facturación del proyecto; sin ella Google limita las respuestas y el asistente no puede atender.'));
 content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'Entrar a ' }, { text: 'platform.openai.com', bold: true }, { text: ' con el usuario de OpenAI de la empresa.' }]));
-content.push(step([{ text: 'Settings → Billing → Payment methods', bold: true }, { text: ': agregar la tarjeta.' }]));
-content.push(step([{ text: 'En ' }, { text: 'Billing → Add to credit balance', bold: true }, { text: ' cargar US$10 (alcanza varios meses). Opcional: activar recarga automática para que no se agote.' }]));
-content.push(step('Avisar a raaamp para probar con un audio real.'));
+content.push(step([{ text: 'Entre a ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ' con la cuenta de Google. Si pide aceptar los términos de Google Cloud, acéptelos.' }]));
+content.push(step([{ text: 'Haga clic en ' }, { text: 'Crear cuenta de facturación', bold: true }, { text: '. País: Colombia. Tipo de cuenta: Empresa. Complete nombre, dirección y la tarjeta. Guarde.' }]));
+content.push(step([{ text: 'En la misma pantalla abra la pestaña ' }, { text: 'Mis proyectos', bold: true }, { text: '. En la fila del proyecto ' }, { text: '193383790061', bold: true }, { text: ' abra el menú ⋮ → ' }, { text: 'Cambiar facturación', bold: true }, { text: ' → elija la cuenta que acaba de crear → Establecer cuenta.' }]));
+content.push(step([{ text: 'Entre a ' }, { text: 'aistudio.google.com/apikey', bold: true }, { text: ' y confirme que el proyecto de la clave muestra "Pago por uso" en lugar de "Gratis".' }]));
+content.push(step([{ text: 'En ' }, { text: 'console.cloud.google.com/billing', bold: true }, { text: ' → Presupuestos y alertas, cree un presupuesto de US$50 mensuales con aviso por correo.' }]));
+content.push(step('Avise a raaamp para que confirme que el asistente responde.'));
+content.push(spacer(100));
+content.push(infoBox('Si al crear la cuenta de facturación aparece "Se produjo un error inesperado. Inténtelo de nuevo más tarde. [OR-CBAT-14]"',
+  'Es un rechazo del perfil de pagos de Google. Haga esto, en orden: (1) Entre a pay.google.com con la misma cuenta, abra Configuración y compruebe que el país sea Colombia y que no haya avisos de verificación pendiente; agregue ahí la tarjeta en "Formas de pago". (2) Vuelva a console.cloud.google.com/billing y repita la creación de la cuenta de facturación en una ventana de incógnito, con solo esta cuenta de Google abierta. (3) Si vuelve a fallar, use otra tarjeta de crédito habilitada para compras internacionales por internet (pídale al banco que la habilite si hace falta). (4) Si persiste, espere 24 horas y repita; si aun así falla, abra un caso en "Soporte" dentro de la consola de Google Cloud citando el código OR-CBAT-14.', C.bgBlue));
 
-// 6. Hetzner
-content.push(spacer(200));
-content.push(heading('6. Hetzner · servidor de n8n y Chatwoot'));
-content.push(para('El servidor (4 CPU, 8 GB, 75 GB, Helsinki) está hoy en la cuenta de raaamp y lo paga raaamp. No hay urgencia. Dos opciones:'));
-content.push(para([{ text: 'Opción A (más simple): ', bold: true }, { text: 'raaamp mantiene el servidor a su nombre y lo factura mensualmente a De Paseo en Fincas (aprox. US$18/mes). No hay que hacer nada.' }]));
-content.push(para([{ text: 'Opción B (a nombre del cliente):', bold: true }]));
+content.push(heading('3.3 OpenAI · saldo para las notas de voz', HeadingLevel.HEADING_2));
+content.push(para('La clave de OpenAI ya está instalada en el asistente. La cuenta no tiene saldo, así que los audios de los clientes no se transcriben hasta que lo cargue.'));
+content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'Crear cuenta en ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' con el correo de la empresa y agregar la tarjeta en ' }, { text: 'Payment methods', bold: true }, { text: '.' }]));
-content.push(step('Avisar a raaamp el correo de la cuenta. raaamp transfiere el proyecto de Hetzner Cloud (servidor e IP incluidos) a esa cuenta, sin interrumpir el servicio.'));
-content.push(step('Desde ese momento la factura mensual llega a De Paseo en Fincas. raaamp conserva el acceso técnico para operar n8n y Chatwoot.'));
+content.push(step([{ text: 'Entre a ' }, { text: 'platform.openai.com', bold: true }, { text: ' con la cuenta de Google.' }]));
+content.push(step([{ text: 'Vaya a ' }, { text: 'Settings → Billing → Payment methods', bold: true }, { text: ' y agregue la tarjeta.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Billing → Add to credit balance', bold: true }, { text: ' cargue US$10.' }]));
+content.push(step([{ text: 'Active ' }, { text: 'Auto recharge', bold: true }, { text: ' (recarga automática) con US$10 cuando el saldo baje de US$5, para que nunca se agote.' }]));
+content.push(step('Avise a raaamp para probar con una nota de voz real.'));
 
-// 7. Kapso
-content.push(spacer(200));
-content.push(heading('7. Kapso · plataforma del número de WhatsApp'));
-content.push(para('La línea +1 201-701-8810 con la que el asistente atiende se registró en mayo de 2026 a través de Kapso (kapso.ai), un proveedor tecnológico de Meta; está en estado CONNECTED y en modo producción. La cuenta de Kapso está hoy a nombre de raaamp. Meta cobra las conversaciones directamente a la cuenta de WhatsApp (sección 3); Kapso puede cobrar aparte por su plataforma según el plan contratado.'));
+content.push(heading('3.4 Hetzner · el servidor', HeadingLevel.HEADING_2));
+content.push(para('El servidor donde corren n8n y Chatwoot está hoy en la cuenta de raaamp. Para que la factura mensual llegue a De Paseo en Fincas:'));
+content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'raaamp revisa en ' }, { text: 'app.kapso.ai → Billing', bold: true }, { text: ' el plan actual y si tiene costo mensual.' }]));
-content.push(step('Si tiene costo: igual que el servidor, o raaamp lo factura mensualmente, o se crea una cuenta de Kapso a nombre de De Paseo en Fincas con su tarjeta y se traslada el número.'));
-content.push(step('Alternativa a mediano plazo: operar con una línea colombiana propia del cliente (por ejemplo la +57 310 5639334, que ya está en la misma cuenta de WhatsApp Business) directamente con Meta, sin intermediario. Requiere migrar la bandeja de Chatwoot y volver a aprobar plantillas.'));
+content.push(step([{ text: 'Entre a ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' y cree una cuenta con el correo de la cuenta de Google y los datos de la empresa.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Payment methods', bold: true }, { text: ' agregue la tarjeta.' }]));
+content.push(step('Avise a raaamp el correo de la cuenta. raaamp traslada el servidor a esa cuenta sin interrumpir el servicio y conserva el acceso técnico para operarlo.'));
+content.push(step('Desde ese momento la factura de Hetzner (aprox. US$18 al mes) llega al correo de la empresa.'));
 
-// 8. Estado y verificación
-content.push(spacer(200));
-content.push(heading('8. Qué pasa mientras faltan los pagos y cómo verificar'));
+// 4. Qué pasa si falta un pago
+content.push(pageBreak());
+content.push(heading('4. Qué pasa si falta un pago'));
 content.push(table(['Servicio', 'Sin pago', 'Con pago activo'], [
-  ['Meta', 'El asistente responde hasta agotar las 1.000 conversaciones gratuitas del mes; los seguimientos con plantilla no salen', 'Todo opera; los cobros aparecen en WhatsApp Manager → Configuración de pagos'],
-  ['Google Cloud (Gemini)', 'El asistente no responde (queda en espera)', 'Responde normal. raaamp lo confirma con la suite de pruebas'],
+  ['Meta', 'El asistente responde hasta agotar las 1.000 conversaciones gratuitas del mes; los seguimientos y avisos con plantilla no salen', 'Todo opera; los cobros se ven en WhatsApp Manager → Configuración de pagos'],
+  ['Google Cloud (Gemini)', 'El asistente no responde a los clientes', 'Responde normal'],
   ['OpenAI', 'Los audios no se transcriben; el asistente pide el mensaje por escrito', 'Los audios se entienden'],
-  ['Hetzner', 'Nada cambia (lo paga raaamp)', 'La factura llega al cliente si eligen la opción B'],
-  ['Kapso', 'Nada cambia mientras raaamp mantenga el plan', 'Según lo que se decida en la sección 7'],
+  ['Hetzner', 'Nada cambia mientras esté en la cuenta de raaamp', 'La factura llega a la empresa'],
 ], [2000, 3700, 3660]));
-content.push(spacer(100));
-content.push(para('Al terminar cada paso, avisar a raaamp: verifica el servicio y confirma por escrito que el asistente volvió a operar.', { color: C.mid, size: 20 }));
+content.push(spacer(120));
+content.push(heading('Lista de verificación', HeadingLevel.HEADING_2));
+content.push(bullet('Tarjeta agregada en Meta y alerta amarilla desaparecida.'));
+content.push(bullet('Cuenta de facturación de Google Cloud creada y vinculada al proyecto 193383790061; la clave muestra "Pago por uso".'));
+content.push(bullet('Saldo cargado en OpenAI con recarga automática.'));
+content.push(bullet('Cuenta de Hetzner creada con tarjeta y correo enviado a raaamp.'));
+content.push(bullet('Verificación en dos pasos activa en la cuenta de Google.'));
+content.push(bullet('raaamp confirmó por escrito que el asistente responde, entiende audios y envía seguimientos.'));
 
 sections.push({
   properties: { page: { size: { width: PAGE_W, height: PAGE_H }, margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN } } },
   headers: { default: new Header({ children: [new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: C.light } }, spacing: { after: 100 }, children: [
     new TextRun({ text: 'De Paseo en Fincas ', bold: true, size: 16, color: C.primary, font: 'Arial' }),
-    new TextRun({ text: '• Guía de cuentas y métodos de pago · CONFIDENCIAL', size: 16, color: C.light, font: 'Arial' }),
+    new TextRun({ text: '• Guía de acceso, servicios y métodos de pago · CONFIDENCIAL', size: 16, color: C.light, font: 'Arial' }),
   ] })] }) },
   footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [
     new TextRun({ text: 'Página ', size: 16, color: C.light, font: 'Arial' }),
