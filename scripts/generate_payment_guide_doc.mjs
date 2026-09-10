@@ -166,7 +166,16 @@ function nextSteps() { _stepsRef += 1; return `steps${_stepsRef}`; }
 let _curSteps = nextSteps();
 const step = (text) => bullet(text, _curSteps);
 function pageBreak() { return new Paragraph({ children: [new PageBreak()] }); }
-const OUT = path.join(rootDir, 'docs', 'Guia_Metodos_de_Pago_DePaseoEnFincas.docx');
+const OUT = process.env.GUIA_OUT || path.join(rootDir, 'docs', 'Guia_Metodos_de_Pago_DePaseoEnFincas.docx');
+// Credenciales SOLO desde variables de entorno (la copia del repo queda con espacios en blanco).
+const BLANK = '________________________________________';
+const CRED = {
+  gmailUser: process.env.GUIA_GMAIL_USER || BLANK,
+  gmailPass: process.env.GUIA_GMAIL_PASS || BLANK,
+  gmailPhone: process.env.GUIA_GMAIL_PHONE || BLANK,
+  hetznerUser: process.env.GUIA_HETZNER_USER || BLANK,
+  hetznerPass: process.env.GUIA_HETZNER_PASS || BLANK,
+};
 
 const sections = [];
 sections.push({
@@ -185,7 +194,7 @@ sections.push({
     spacer(100),
     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Septiembre 2026', size: 24, color: C.light, font: 'Arial' })] }),
     spacer(60),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: la primera página contiene la contraseña de la cuenta. No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Documento CONFIDENCIAL: contiene contraseñas (secciones 1 y 3.4). No reenviar.', size: 20, bold: true, color: C.accent, font: 'Arial' })] }),
   ],
 });
 
@@ -199,9 +208,9 @@ content.push(new Table({
   width: { size: CONTENT_W, type: WidthType.DXA },
   columnWidths: [3000, 6360],
   rows: [
-    new TableRow({ children: [cell('Correo (usuario)', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
-    new TableRow({ children: [cell('Contraseña', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
-    new TableRow({ children: [cell('Teléfono de recuperación', 3000, { bold: true, shading: C.bgOrange }), cell('________________________________________', 6360)] }),
+    new TableRow({ children: [cell('Correo (usuario)', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.gmailUser, 6360, { bold: true })] }),
+    new TableRow({ children: [cell('Contraseña', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.gmailPass, 6360, { bold: true })] }),
+    new TableRow({ children: [cell('Teléfono de recuperación', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.gmailPhone, 6360)] }),
   ],
 }));
 content.push(spacer(120));
@@ -265,12 +274,21 @@ content.push(step([{ text: 'Active ' }, { text: 'Auto recharge', bold: true }, {
 content.push(step('Avise a raaamp para probar con una nota de voz real.'));
 
 content.push(heading('3.4 Hetzner · el servidor', HeadingLevel.HEADING_2));
-content.push(para('El servidor donde corren n8n y Chatwoot está hoy en la cuenta de raaamp. Para que la factura mensual llegue a De Paseo en Fincas:'));
+content.push(para('El servidor donde corren n8n y Chatwoot está hoy en la cuenta de raaamp. De Paseo en Fincas ya tiene su cuenta en Hetzner; falta agregarle la tarjeta para que el servidor pase a esa cuenta y la factura mensual llegue a la empresa.'));
+content.push(spacer(80));
+content.push(new Table({
+  width: { size: CONTENT_W, type: WidthType.DXA },
+  columnWidths: [3000, 6360],
+  rows: [
+    new TableRow({ children: [cell('Usuario (accounts.hetzner.com)', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.hetznerUser, 6360, { bold: true })] }),
+    new TableRow({ children: [cell('Contraseña', 3000, { bold: true, shading: C.bgOrange }), cell(CRED.hetznerPass, 6360, { bold: true })] }),
+  ],
+}));
 content.push(spacer(80));
 _curSteps = nextSteps();
-content.push(step([{ text: 'Entre a ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' y cree una cuenta con el correo de la cuenta de Google y los datos de la empresa.' }]));
-content.push(step([{ text: 'En ' }, { text: 'Payment methods', bold: true }, { text: ' agregue la tarjeta.' }]));
-content.push(step('Avise a raaamp el correo de la cuenta. raaamp traslada el servidor a esa cuenta sin interrumpir el servicio y conserva el acceso técnico para operarlo.'));
+content.push(step([{ text: 'Entre a ' }, { text: 'accounts.hetzner.com', bold: true }, { text: ' con el usuario y la contraseña de arriba.' }]));
+content.push(step([{ text: 'En ' }, { text: 'Payment methods', bold: true }, { text: ' agregue la tarjeta de la empresa.' }]));
+content.push(step('Avise a raaamp. raaamp traslada el servidor a esta cuenta sin interrumpir el servicio y conserva el acceso técnico para operarlo.'));
 content.push(step('Desde ese momento la factura de Hetzner (aprox. US$18 al mes) llega al correo de la empresa.'));
 
 // 4. Qué pasa si falta un pago
@@ -307,7 +325,7 @@ content.push(heading('Lista de verificación', HeadingLevel.HEADING_2));
 content.push(bullet('Tarjeta agregada en Meta y alerta amarilla desaparecida.'));
 content.push(bullet('Cuenta de facturación de Google Cloud creada y vinculada al proyecto 193383790061; la clave muestra "Pago por uso".'));
 content.push(bullet('Saldo cargado en OpenAI con recarga automática.'));
-content.push(bullet('Cuenta de Hetzner creada con tarjeta y correo enviado a raaamp.'));
+content.push(bullet('Tarjeta agregada en la cuenta de Hetzner y aviso enviado a raaamp.'));
 content.push(bullet('Verificación en dos pasos activa en la cuenta de Google.'));
 content.push(bullet('OK por escrito a raaamp para pasar el asistente a la línea +57 310 5639334.'));
 content.push(bullet('raaamp confirmó por escrito que el asistente responde, entiende audios y envía seguimientos.'));
