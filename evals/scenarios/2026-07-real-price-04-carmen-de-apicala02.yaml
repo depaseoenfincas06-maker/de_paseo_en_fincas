@@ -10,7 +10,7 @@ category: real-inventory / pricing
 #   TOTAL = 2.960.000 + 300.000 + 120.000 = $3.380.000
 
 turns:
-  - user: 'Busco finca en Carmen de Apicalá para 12 personas del 25 al 27 de agosto de 2026'
+  - user: 'Busco finca en Carmen de Apicalá para 12 personas del 25 al 27 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'

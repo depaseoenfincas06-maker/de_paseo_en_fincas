@@ -1,0 +1,31 @@
+id: 2026-07-preguntas-multi-tema
+title: Cliente pregunta múltiples cosas en un solo mensaje → bot debe responderlas TODAS
+category: real-conv / multi-question
+
+seed_source:
+  observed_at: '2026-06'
+  literal_client_msg: |
+    "en qué está más cerca al pueblo? Tiene piscina? Cuánto sería con
+    servicio de empleada incluido?"
+
+# Regla del prompt qa_agent (línea 42): "Si el cliente escribió varias
+# cosas, responde de forma unificada y coherente."
+
+turns:
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'De la primera: cuánto está del pueblo? tiene piscina? y cuánto sería el total?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Debe mencionar los 3 temas: distancia, piscina, precio
+      - contains_any:
+          - 'minuto'
+          - 'min '
+          - 'MIN '
+      - contains_any:
+          - 'piscina'
+          - 'Piscina'
+      - contains: '$'

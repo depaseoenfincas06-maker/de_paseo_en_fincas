@@ -12,7 +12,7 @@ seed_source:
 #  Niños de 5+ → SÍ cuentan como huéspedes."
 
 turns:
-  - user: 'Hola busco finca en Anapoima para 15 adultos + 5 niños menores de 4 años, del 20 al 22 de agosto'
+  - user: 'Hola busco finca en Anapoima para 15 adultos + 5 niños menores de 4 años, del 20 al 22 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

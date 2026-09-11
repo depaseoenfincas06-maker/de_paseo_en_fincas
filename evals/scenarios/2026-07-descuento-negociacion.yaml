@@ -1,0 +1,25 @@
+id: 2026-07-descuento-negociacion
+title: Cliente pide descuento explícito → bot debe responder con política sin evadir
+category: real-conv / negotiation
+
+seed_source:
+  observed_at: '2026-06'
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Me pueden hacer un descuento? El precio está un poco elevado'
+    assert:
+      # El bot debe responder algo — no ignorar. Puede: (a) explicar
+      # política sin descuento, (b) ofrecer opción más económica, (c)
+      # derivar a HITL para autorizar descuento. TODAS válidas.
+      - contains_any:
+          - 'descuento'
+          - 'precio'
+          - 'presupuesto'
+          - 'te paso con mi compañero'
+          - 'compañero del área'
+          - 'más económica'

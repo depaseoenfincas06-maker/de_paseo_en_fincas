@@ -1,0 +1,18 @@
+id: inf-11-multi-zona-un-mensaje
+title: 'Errores frecuentes #4: varias zonas en un solo mensaje no agotan las iteraciones del agente'
+category: errores-frecuentes / max iterations
+seed_failure:
+  wa_id: '(docs/Plan_Resolucion_Errores_Frecuentes_DPF.docx, Error #4)'
+  observed_at: '2026-08'
+  symptom: 'NodeOperationError "Max iterations (4) reached": el agente encadenaba varias consultas de inventario en un mismo turno y se quedaba sin iteraciones, dejando al cliente sin respuesta.'
+turns:
+  - user: 'Buenas, necesito finca para 12 personas del 24 al 26 de octubre de 2026, me sirve Anapoima, La Mesa o Girardot, la que tenga mejor precio'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+  - user: 'Y tienes algo más económico en alguna de esas tres zonas?'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true

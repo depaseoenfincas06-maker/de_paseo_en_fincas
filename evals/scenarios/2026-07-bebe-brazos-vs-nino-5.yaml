@@ -1,0 +1,30 @@
+id: 2026-07-bebe-brazos-vs-nino-5
+title: Matices del umbral 5 años — bebé de 6 meses vs niño de 5
+category: real-conv / children-threshold-nuance
+
+seed_source:
+  observed_at: '2026-06'
+  literal_client_msg: '"3 menos de 4 años y 2 de 11" / "5 niños menores de 5 años"'
+
+# Regla del prompt: umbral es 5 años EXACTOS. NO usar "bebés de brazos" ni
+# "menores de 2" como criterio. NUNCA inventar otro umbral.
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 10 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Somos 10 adultos + 1 bebé de 6 meses y 1 niño de 5 años. El bebé no cuenta cierto?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # El bot NO debe inventar términos
+      - not_contains: 'menores de 2'
+      - not_contains: 'de brazos'
+      - not_contains: 'mayores de 6'
+      # Y debe reflejar el umbral correcto (5 años)
+      - contains_any:
+          - '5 años'
+          - 'menores de 5'
+          - '5 en adelante'
+          - 'cinco años'

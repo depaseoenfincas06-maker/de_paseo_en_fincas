@@ -1,0 +1,29 @@
+id: 2026-07-reserva-por-empresa-RUT
+title: Cliente reserva a nombre de empresa, pide RUT + Cámara Comercio
+category: real-conv / corporate-booking
+
+seed_source:
+  wa_id: '573117360736'
+  observed_at: '2026-06'
+  literal_client_msg: |
+    "la reserva la vamos a hacer por medio de la empresa. ¿Ustedes tienen
+    toda la documentación, el RUT, Cámara de Comercio, Registro Nacional
+    de Turismo?"
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 10 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La reserva la haría a nombre de mi empresa. Ustedes tienen RUT, Cámara de Comercio y Registro Nacional de Turismo para facturar?'
+    assert:
+      - not_contains: 'no tenemos'
+      - not_contains: 'no manejamos'
+      - contains_any:
+          - 'te paso con mi compañero'
+          - 'RUT'
+          - 'Cámara'
+          - 'facturación'
+          - 'facturar'
+          - 'empresa'

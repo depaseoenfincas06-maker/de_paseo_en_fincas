@@ -8,7 +8,7 @@ seed_source:
   literal_client_msg: '"Incluye servicio de comida alguna finca?"'
 
 turns:
-  - user: 'Busco finca en Anapoima para 12 personas del 20 al 22 de agosto'
+  - user: 'Busco finca en Anapoima para 12 personas del 20 al 22 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

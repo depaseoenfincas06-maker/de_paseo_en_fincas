@@ -8,7 +8,7 @@ seed_source:
   literal_client_msg: '"Creo que se sale de el presupuesto"'
 
 turns:
-  - user: 'Busco finca en Anapoima para 10 personas del 25 al 27 de agosto'
+  - user: 'Busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

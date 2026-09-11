@@ -28,7 +28,7 @@ turns:
       - not_contains: 'Síguenos y dale like'
       - testimonials_sent: true
   # 4. El flujo de reserva sigue funcionando igual (no se rompió CONFIRMING).
-  - user: 'Listo, me gusta esa finca, quiero reservarla'
+  - user: 'Listo, me gusta ANAPOIMA_#10, quiero reservarla'
     assert:
       - bot_replied: true
       - state_equals: CONFIRMING_RESERVATION

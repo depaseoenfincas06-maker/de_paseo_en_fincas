@@ -11,7 +11,7 @@ seed_source:
     en Pereira."
 
 turns:
-  - user: 'Hola, busco finca en Pereira para 12 personas del 20 al 22 de agosto'
+  - user: 'Hola, busco finca en Pereira para 12 personas del 20 al 22 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

@@ -1,0 +1,28 @@
+id: 2026-07-cliente-desiste
+title: Cliente desiste explícito ("ya reservé en otra parte") → CUSTOMER_DECLINED con farewell
+category: real-conv / customer-declined
+
+seed_source:
+  observed_at: '2026-05 (A.5 despedida)'
+  fix_commit: 'A.5 batch'
+
+# Regla del prompt (línea 181): CUSTOMER_DECLINED triggers concretos.
+# NO usar para "voy a pensarlo" o "déjame revisar".
+
+turns:
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Ya reservamos con otra empresa, muchas gracias por tu tiempo'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Farewell amable — no debe insistir agresivamente ni ignorar
+      - contains_any:
+          - 'abrazo'
+          - 'gracias'
+          - 'próxima'
+          - 'una próxima'
+          - 'esperamos'
+          - 'agradezco'

@@ -16,7 +16,7 @@ seed_failure:
     departamento y matchea todos sus municipios listados en el inventario.
 
 turns:
-  - user: 'Buenos días, busco una finca en Cundinamarca para 8 personas, del 1 al 3 de septiembre'
+  - user: 'Buenos días, busco una finca en Cundinamarca para 8 personas, del 1 al 3 de septiembre de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'

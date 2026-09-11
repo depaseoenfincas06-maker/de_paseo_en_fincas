@@ -14,7 +14,7 @@ seed_source:
 # coordinar con propietario. Este scenario cubre AMBAS transiciones.
 
 turns:
-  - user: 'Hola busco finca para 8 personas en Anapoima del 20 al 22 de agosto'
+  - user: 'Hola busco finca para 8 personas en Anapoima del 20 al 22 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

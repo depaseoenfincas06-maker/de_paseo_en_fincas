@@ -25,7 +25,7 @@ turns:
     assert:
       - not_contains: 'te paso con mi compañero'
 
-  - user: 'Busco finca en Anapoima para 8 personas del 22 al 24 de agosto'
+  - user: 'Busco finca en Anapoima para 8 personas del 22 al 24 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

@@ -12,7 +12,7 @@ seed_source:
 # cerrado o privada? / ¿está en conjunto?" → cita ese campo).
 
 turns:
-  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto'
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

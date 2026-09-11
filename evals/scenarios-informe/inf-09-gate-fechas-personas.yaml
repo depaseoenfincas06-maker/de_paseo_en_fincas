@@ -1,0 +1,21 @@
+id: inf-09-gate-fechas-personas
+title: 'Informe 8-sep: no se muestran fichas antes de tener fechas y personas'
+category: informe-cliente / calificación
+seed_failure:
+  wa_id: '(informe del cliente, caso "descripción antes de preguntar fechas")'
+  observed_at: '2026-09-08'
+  symptom: 'La IA saltaba a mostrar opciones (y descripciones de fincas) sin tener fechas ni número de personas.'
+turns:
+  - user: 'Hola, quiero una finca en Anapoima con piscina y BBQ'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - state_equals: QUALIFYING
+      # Sin fechas ni personas no puede haber fichas: la card siempre trae 💰
+      - not_contains: '💰'
+      - contains_any: ['fechas', 'personas', 'cuántas', 'cuántos']
+  - user: 'Del 24 al 26 de octubre de 2026, somos 8'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+      - criteria_equals: { fecha_inicio: '2026-10-24', fecha_fin: '2026-10-26', personas: 8 }

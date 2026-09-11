@@ -11,7 +11,7 @@ category: real-inventory / pricing
 #   TOTAL = 3.266.667 + 300.000 + 120.000 = $3.686.667
 
 turns:
-  - user: 'Busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2026'
+  - user: 'Busco finca en Anapoima para 10 personas del 25 al 27 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'no tenemos'
@@ -22,9 +22,9 @@ turns:
       - not_contains: 'te paso con mi compañero'
       - contains: '$'
       - bot_recognized_finca: 'ANAPOIMA_#01'
-      # Total esperado: $3.686.667. Tolerancia ~1% por rounding de decimales.
+      # Total esperado ACTUALIZADO 11-sep-2026: incluye el servicio de empleada
+      # OBLIGATORIO (1 empleada × 2 días × $100.000 = $200.000), que la cotización de julio no sumaba.
       - contains_any:
-          - '3.686'
-          - '3.687'
-          - '3,686'
-          - '3,687'
+          - '3.886.667'
+          - '3.887'
+          - '3,886,667'

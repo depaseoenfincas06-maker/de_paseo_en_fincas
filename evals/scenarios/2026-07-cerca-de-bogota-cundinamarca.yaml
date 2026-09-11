@@ -13,7 +13,7 @@ seed_source:
 # pedir zona específica.
 
 turns:
-  - user: 'Hola busco finca cerca de Bogotá para 20 personas del 22 al 24 de agosto'
+  - user: 'Hola busco finca cerca de Bogotá para 20 personas del 22 al 24 de agosto de 2027'
     assert:
       - not_contains: 'te paso con mi compañero'
       - not_contains: 'no tenemos'

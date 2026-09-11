@@ -1,0 +1,24 @@
+id: 2026-07-oficinas-direccion
+title: Cliente pregunta por oficinas físicas → bot muestra las 2 direcciones correctas
+category: real-conv / offices
+
+seed_source:
+  observed_at: '2026-05'
+  fix_commit: '9305c9e (oficinas correctas)'
+
+# Regla del prompt: hay 2 oficinas (Medellín + Bogotá). Cuando cliente
+# pregunta por oficinas físicas, mostrar AMBAS. NUNCA confundir la
+# dirección de la EMPRESA (oficinas) con la de una FINCA.
+
+turns:
+  - user: 'Hola, dónde están ubicadas sus oficinas físicas? Me gustaría pasar antes de reservar'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - not_contains: 'no tenemos oficina'
+      # Dos oficinas reales — al menos una debe aparecer
+      - contains_any:
+          - 'Medellín'
+          - 'Medellin'
+          - 'Bogotá'
+          - 'Bogota'
+          - 'oficina'

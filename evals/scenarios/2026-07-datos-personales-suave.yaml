@@ -1,0 +1,30 @@
+id: 2026-07-datos-personales-suave
+title: Cliente ingresa correo/celular/dirección para confirmar reserva → validación suave
+category: real-conv / customer-data-validation
+
+seed_source:
+  observed_at: '2026-05 (soft validation)'
+  fix_commit: 'soft validation batch'
+
+# El bot valida datos suavemente — si el correo/teléfono no está bien
+# formateado, pregunta amable, NO rechaza. Y NO cae a HITL por errores
+# tipográficos comunes.
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'La primera me sirve, cómo procedemos con la reserva?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # Debe pedir datos o guiar el proceso, no ignorar
+      - contains_any:
+          - 'nombre'
+          - 'correo'
+          - 'datos'
+          - 'cédula'
+          - 'reservar'
+          - 'documento'
+          - 'proceso'

@@ -1,0 +1,26 @@
+id: 2026-07-cambio-finca-durante-confirming
+title: Cliente elige finca A, pide precio B, luego cambia a B — bot debe manejar CHANGE_FINCA
+category: real-conv / change-finca
+
+seed_source:
+  observed_at: '2026-05 (fix C.5)'
+  fix_commit: '9305c9e'
+
+turns:
+  - user: 'Hola busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  # Cliente pregunta por otra opción
+  - user: 'La segunda opción cómo es? Cuánto sería su precio total?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      - contains: '$'
+
+  # Cliente cambia de opinión
+  - user: 'Ok me gusta más la segunda, quiero avanzar con esa'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # El bot no debe seguir hablando de la primera finca — debe respetar
+      # el cambio.

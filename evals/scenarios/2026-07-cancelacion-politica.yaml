@@ -1,0 +1,25 @@
+id: 2026-07-cancelacion-politica
+title: Cliente pregunta política de cancelación → bot responde con política real
+category: real-conv / cancellation-policy
+
+seed_source:
+  observed_at: '2026-06'
+
+turns:
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Si tengo que cancelar la reserva, cuáles son las condiciones?'
+    assert:
+      # La política de cancelación puede venir del bot directo (info en
+      # settings), o derivar a HITL para casos complejos. Ambas válidas.
+      - contains_any:
+          - 'cancelación'
+          - 'cancelar'
+          - 'política'
+          - 'reembolso'
+          - 'devolución'
+          - 'te paso con mi compañero'
+          - 'compañero del área'

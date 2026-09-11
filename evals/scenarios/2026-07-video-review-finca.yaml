@@ -1,0 +1,37 @@
+id: 2026-07-video-review-finca
+title: Cliente pide "qué dicen los que han ido" → se envían los videos de calificaciones + Instagram
+category: real-conv / video-review
+
+seed_source:
+  observed_at: '2026-05 (Track 5.1 videos)'
+
+# ACTUALIZADO 10-sep-2026 (P5): si la finca no tiene `review_video_urls`
+# propios, el bloque determinístico P5 envía la biblioteca global de videos
+# de calificaciones (agent_settings.testimonial_video_urls) + el CTA de
+# Instagram, una sola vez por conversación. Ya no aplica el viejo fallback
+# "aún no tengo videos".
+
+turns:
+  - user: 'Busco finca en Anapoima para 8 personas del 20 al 22 de agosto de 2027'
+    assert:
+      - state_equals: OFFERING
+      - not_contains: 'te paso con mi compañero'
+
+  - user: 'Tienen testimonios o videos de gente que haya ido a la primera opción?'
+    assert:
+      - not_contains: 'te paso con mi compañero'
+      # El bot debe responder — sea con videos, sea con fallback amable.
+      - contains_any:
+          - 'testimonios'
+          - 'testimonio'
+          - 'familias'
+          - 'video'
+          - 'calificaciones'
+          - 'destacan'
+          - 'reseñ'
+      # P5: los videos salen de verdad, no el fallback de "no tengo videos".
+      - testimonials_sent: true
+      - not_contains: 'Aún no tengo videos'
+      # El LLM se inventó un "4.9/5" cuando le quitamos el fallback (11-sep): prohibido.
+      - not_contains: '/5'
+      - not_contains: 'estrellas'

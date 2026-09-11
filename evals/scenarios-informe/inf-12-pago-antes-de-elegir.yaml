@@ -1,0 +1,21 @@
+id: inf-12-pago-antes-de-elegir
+title: 'Cliente 10-sep: pregunta el proceso de pago antes de ver fincas → Pasos para Reservar + videos + Instagram'
+category: informe-cliente / enganche comercial
+seed_failure:
+  wa_id: '(reporte del cliente 10-sep-2026)'
+  observed_at: '2026-09-10'
+  symptom: 'El flujo comercial de la empresa manda la metodología de reserva y los videos de calificaciones apenas el cliente pregunta cómo es el proceso de pago, sin importar en qué punto vaya.'
+turns:
+  - user: 'Hola, cómo es el proceso de pago para reservar con ustedes?'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains: 'Pasos para Reservar'
+      - contains: 'instagram.com/depaseoenfincascol'
+      - testimonials_sent: true
+  - user: 'Perfecto. Busco para 8 personas del 24 al 26 de octubre de 2026 en Anapoima'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+      # No se repiten los videos ni el CTA en el resto de la conversación.
+      - not_contains: 'Síguenos y dale like'

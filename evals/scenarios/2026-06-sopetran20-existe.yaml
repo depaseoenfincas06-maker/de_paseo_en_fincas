@@ -12,7 +12,7 @@ seed_failure:
     finca con el código Sopetrán #20" — FALSO POSITIVO de no-existencia.
 
 turns:
-  - user: 'Buenos días, busco una propiedad en Antioquia del 10 al 12 de agosto para 52 personas'
+  - user: 'Buenos días, busco una propiedad en Antioquia del 10 al 12 de agosto de 2027 para 52 personas'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

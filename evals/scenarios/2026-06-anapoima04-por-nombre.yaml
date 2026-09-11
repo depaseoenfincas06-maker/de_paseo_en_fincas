@@ -13,7 +13,7 @@ seed_failure:
 turns:
   # Turn 1: qualifying captura criterios (zona, fechas, personas) y transita a OFFERING.
   # No esperamos reconocimiento de la finca específica acá — eso lo hace offering en turn 2.
-  - user: 'Hola quiero preguntar por la finca Anapoima 04, 8-10 julio, 32 personas'
+  - user: 'Hola quiero preguntar por la finca Anapoima 04, 8-10 julio de 2027, 32 personas'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

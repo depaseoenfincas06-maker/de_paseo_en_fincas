@@ -24,7 +24,7 @@ seed_failure:
 # "high-touch" y vale tenerlo aunque tarde 4-5 min.
 
 turns:
-  - user: 'Busco una finca en Anapoima para 8 personas del 15 al 17 de agosto'
+  - user: 'Busco una finca en Anapoima para 8 personas del 15 al 17 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'

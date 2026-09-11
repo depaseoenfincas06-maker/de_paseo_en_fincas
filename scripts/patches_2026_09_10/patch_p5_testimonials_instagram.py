@@ -317,6 +317,34 @@ if '=== P5: videos de testimonios (config) ===' not in code:
 else:
     applied.append('P5.5: whitelist ya estaba')
 
+# ------------------------------------------------------------------ P5.6 prompts SHOW_REVIEW
+# La regla vieja mandaba al LLM decir "Aún no tengo videos específicos de esta finca" cuando la
+# finca no tiene `review_video_urls`. Con P5 el sistema SÍ adjunta la biblioteca global, así que
+# el texto contradecía los videos que salían justo después (visto en el eval del 11-sep). Y al
+# quitar el fallback, el LLM se inventó un "4.9/5" — de ahí la prohibición explícita de cifras.
+NEW_RULE = """  \u2022 Si la finca NO tiene `review_video_urls`, EMIT\u00cd SHOW_REVIEW igual: el sistema adjunta
+    autom\u00e1ticamente las calificaciones de nuestros hu\u00e9spedes en todo Colombia. NUNCA digas que no
+    ten\u00e9s videos de esa finca ni ofrezcas "otras fincas con testimonios".
+    NUNCA inventes cifras: nada de promedios ("4.9/5"), estrellas, cantidad de rese\u00f1as ni
+    porcentajes de satisfacci\u00f3n \u2014 esos datos no existen en el sistema.
+    Texto: present\u00e1 las calificaciones en una l\u00ednea y agreg\u00e1 qu\u00e9 destacan las familias de ESA finca
+    (solo con amenidades/caracter\u00edsticas reales del item).
+"""
+# El bloque va desde el bullet de la finca sin videos hasta la regla siguiente (umbral de niños).
+RULE_RX = re.compile(r'  \u2022 Si la finca NO tiene .*?(?=- \U0001f476 REGLA INVIOLABLE)', re.S)
+prompt_nodes = ['Run offering pass', 'Run verifying_availability pass', 'Run qa pass', 'Run confirming_reservation pass']
+touched, already = [], []
+for nm in prompt_nodes:
+    n = node(wf, nm)
+    sm = n['parameters']['options'].get('systemMessage') or ''
+    if not RULE_RX.search(sm):
+        continue
+    if RULE_RX.search(sm).group(0) == NEW_RULE:
+        already.append(nm); continue
+    n['parameters']['options']['systemMessage'] = RULE_RX.sub(NEW_RULE, sm, count=1)
+    touched.append(nm)
+applied.append('P5.6 prompts SHOW_REVIEW: %d actualizados, %d ya estaban' % (len(touched), len(already)))
+
 cjs['parameters']['jsCode'] = code
 put_workflow(CA, wf)
 

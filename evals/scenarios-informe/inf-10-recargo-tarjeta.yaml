@@ -1,0 +1,18 @@
+id: inf-10-recargo-tarjeta
+title: 'Informe 8-sep: el recargo del 5% con tarjeta se menciona siempre que se habla de tarjeta'
+category: informe-cliente / reglas de negocio
+seed_failure:
+  wa_id: '(informe del cliente, caso "recargo 5% tarjeta")'
+  observed_at: '2026-09-08'
+  symptom: 'El recargo estaba en los medios de pago pero la IA no lo mencionaba cuando el cliente preguntaba por tarjeta.'
+turns:
+  - user: 'Hola, busco finca en Anapoima del 24 al 26 de octubre de 2026 para 8 personas'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+  - user: 'Puedo pagar con tarjeta de crédito?'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      # El bot escribe "5 %" o "5%" según el turno; ambos valen.
+      - contains_any: ['5%', '5 %', '5 por ciento']

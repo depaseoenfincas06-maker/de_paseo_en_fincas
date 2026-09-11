@@ -10,7 +10,7 @@ seed_source:
      más cerca de Pereira? ¿Cuál está más cerca al pueblo?"
 
 turns:
-  - user: 'Hola busco finca en Pereira para 10 personas del 25 al 27 de agosto'
+  - user: 'Hola busco finca en Pereira para 10 personas del 25 al 27 de agosto de 2027'
     assert:
       - state_equals: OFFERING
       - not_contains: 'te paso con mi compañero'
