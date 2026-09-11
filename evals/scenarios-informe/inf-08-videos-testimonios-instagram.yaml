@@ -1,0 +1,35 @@
+id: inf-08-videos-testimonios-instagram
+title: 'Cliente 10-sep: videos de calificaciones + invitación a Instagram en el momento de interés'
+category: informe-cliente / enganche comercial
+seed_failure:
+  wa_id: '(reporte del cliente 10-sep-2026)'
+  observed_at: '2026-09-10'
+  symptom: 'El agente nunca envía los videos de calificaciones ("los famosos") ni invita a seguir el Instagram cuando el cliente está realmente interesado. confirming_video_url tenía un placeholder inexistente y review_video_urls está vacío en las 167 fincas.'
+turns:
+  # 1. Búsqueda normal: NO deben salir videos todavía.
+  - user: 'Hola, busco finca en Anapoima del 27 al 29 de octubre de 2026 para 10 personas'
+    assert:
+      - bot_replied: true
+      - state_equals: OFFERING
+      - testimonials_sent: false
+  # 2. Pregunta por el proceso de pago estando en OFFERING → Pasos para Reservar + videos + IG.
+  - user: 'Y cómo sería el proceso de pago?'
+    assert:
+      - bot_replied: true
+      - no_stall_fallback: true
+      - contains: 'Pasos para Reservar'
+      - contains: '5%'
+      - contains: 'instagram.com/depaseoenfincascol'
+      - testimonials_sent: true
+  # 3. Ya se enviaron: no se repiten aunque vuelva a preguntar.
+  - user: 'Perfecto, y tienen testimonios de gente que haya ido?'
+    assert:
+      - bot_replied: true
+      - not_contains: 'Síguenos y dale like'
+      - testimonials_sent: true
+  # 4. El flujo de reserva sigue funcionando igual (no se rompió CONFIRMING).
+  - user: 'Listo, me gusta esa finca, quiero reservarla'
+    assert:
+      - bot_replied: true
+      - state_equals: CONFIRMING_RESERVATION
+      - not_contains: 'Síguenos y dale like'

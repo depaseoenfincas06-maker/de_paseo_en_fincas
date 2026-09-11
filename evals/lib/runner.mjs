@@ -90,6 +90,8 @@ function buildAssertionContext({ snapshot, turnIndex, userText, baselineMsgCount
     selected_finca_id: conv.selected_finca_id,
     selected_finca: conv.selected_finca,
     search_criteria: conv.search_criteria,
+    // extras vive en el snapshot bajo `context`, no en conversationRow (P5, 10-sep-2026).
+    extras: conv.extras || context?.extras || {},
     hitl_reason: conv.hitl_reason,
     funnel_status: conv.funnel_status,
     context,

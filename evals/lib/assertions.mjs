@@ -163,6 +163,22 @@ export const assertions = {
     return { ok: diffs.length === 0, detail: diffs.join('; ') };
   },
 
+  // P5 (10-sep-2026): los videos de testimonios ya se enviaron en esta conversación
+  // (marca determinística `extras.testimonios_enviados_at`, la misma guarda que impide
+  // reenviarlos). arg=false exige que TODAVÍA no se hayan enviado.
+  testimonials_sent(ctx, arg) {
+    const want = arg === false ? false : true;
+    const extras = ctx.conversation?.extras || {};
+    const at = extras.testimonios_enviados_at || null;
+    const ok = want ? Boolean(at) : !at;
+    return {
+      ok,
+      detail: ok ? '' : (want
+        ? 'extras.testimonios_enviados_at sigue vacío: el bloque P5 no disparó'
+        : `extras.testimonios_enviados_at ya estaba puesto (${at})`),
+    };
+  },
+
   // El ÚLTIMO documento de confirmación enviado en este turno trae estos campos
   // (payload decodificado de la URL reservation-confirmation.*?payload=…).
   docx_payload(ctx, arg) {
